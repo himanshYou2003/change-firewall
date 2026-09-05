@@ -167,3 +167,55 @@ body {
   background: #1e293b;
   border-bottom: 1px solid #334155;
 }
+
+/* Blast Radius Visualizer Circuit Streams & Radar */
+@keyframes blast-stream-flow {
+  0% {
+    stroke-dashoffset: 24;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-blast-stream {
+  stroke-dasharray: 6, 6;
+  animation: blast-stream-flow 0.8s linear infinite;
+}
+
+@keyframes sonar-wave-pulse {
+  0% {
+    r: 20px;
+    opacity: 0.85;
+    stroke-width: 2px;
+  }
+  100% {
+    r: 230px;
+    opacity: 0;
+    stroke-width: 0.5px;
+  }
+}
+
+.animate-sonar-wave {
+  animation: sonar-wave-pulse 2.4s cubic-bezier(0.1, 0.8, 0.3, 1) infinite;
+}
+
+.animate-sonar-wave-delayed {
+  animation: sonar-wave-pulse 2.4s cubic-bezier(0.1, 0.8, 0.3, 1) infinite 1.2s;
+}
+
+@keyframes node-beacon-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.3;
+  }
+}
+
+.animate-node-beacon {
+  transform-origin: center;
+  animation: node-beacon-pulse 2s ease-in-out infinite;
+}
