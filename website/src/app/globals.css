@@ -9,7 +9,7 @@
   --font-jetbrains: 'JetBrains Mono', monospace;
 
   /* Light mode palette: Soft, low-saturation warm cream/parchment with rich dark text for high visibility */
-  --bg-main: #f0e3bf;
+  --bg-main: #f5f2e8;
   --surface-main: #fdfbf7bb;
   --surface-50: #faf7f0d4;
   --surface-100: #ede8dc;
@@ -24,6 +24,14 @@
   --glass-bg: rgba(253, 251, 247, 0.88);
   --glass-glow-bg: rgba(255, 255, 255, 0.96);
   --grid-line: rgba(40, 32, 24, 0.04);
+
+  /* Adaptive Brand Accents for Light Mode: Deep, rich dark colors that NEVER merge */
+  --brand-cyan-rgb: 3, 105, 161;      /* Deep dark cerulean blue (#0369a1) - high contrast against warm cream */
+  --brand-blue-rgb: 29, 78, 216;      /* Deep royal blue (#1d4ed8) */
+  --brand-purple-rgb: 109, 40, 217;   /* Deep violet (#6d28d9) */
+  --brand-pink-rgb: 190, 24, 93;      /* Deep rose (#be185d) */
+  --brand-danger-rgb: 220, 38, 38;    /* Deep crimson (#dc2626) */
+  --brand-success-rgb: 21, 128, 61;   /* Deep emerald (#15803d) */
 }
 
 .dark {
@@ -43,6 +51,14 @@
   --glass-bg: rgba(13, 17, 26, 0.72);
   --glass-glow-bg: rgba(18, 24, 38, 0.85);
   --grid-line: rgba(255, 255, 255, 0.03);
+
+  /* Adaptive Brand Accents for Dark Mode: Soft, legible tones without blinding neon glare */
+  --brand-cyan-rgb: 56, 189, 248;     /* Soft sky cyan (#38bdf8) */
+  --brand-blue-rgb: 96, 165, 250;     /* Soft blue (#60a5fa) */
+  --brand-purple-rgb: 168, 85, 247;   /* Soft violet (#a855f7) */
+  --brand-pink-rgb: 244, 114, 182;    /* Soft rose (#f472b6) */
+  --brand-danger-rgb: 248, 113, 113;  /* Soft red (#f87171) */
+  --brand-success-rgb: 52, 211, 153;  /* Soft emerald (#34d399) */
 }
 
 body {
