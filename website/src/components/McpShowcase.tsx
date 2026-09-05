@@ -383,10 +383,10 @@ function renderMarkdownLine(line: string) {
 function renderSyntaxHighlighted(code: string, isJson: boolean) {
   const lines = code.trim().split('\n');
   return (
-    <div className="font-mono text-xs leading-relaxed py-3 overflow-x-auto select-text">
+    <div className="font-mono text-xs leading-relaxed py-3 overflow-x-auto select-text touch-pan-x">
       {lines.map((line, lineIndex) => (
-        <div key={lineIndex} className="flex hover:bg-white/[0.03] px-3.5 py-0.5 group">
-          <span className="w-6 shrink-0 text-right pr-3 select-none text-slate-500/70 font-mono text-[11px] group-hover:text-slate-400 border-r border-slate-800/80 mr-3">
+        <div key={lineIndex} className="flex hover:bg-white/[0.03] px-2.5 sm:px-3.5 py-0.5 group">
+          <span className="w-5 sm:w-6 shrink-0 text-right pr-2 sm:pr-3 select-none text-slate-500/70 font-mono text-[10px] sm:text-[11px] group-hover:text-slate-400 border-r border-slate-800/80 mr-2 sm:mr-3">
             {lineIndex + 1}
           </span>
           <span className="flex-1 whitespace-pre">
@@ -402,6 +402,8 @@ export default function McpShowcase() {
   const [activeId, setActiveId] = useState<string>('claude');
   const [selectedOs, setSelectedOs] = useState<OsType>('macos');
   const [copied, setCopied] = useState<boolean>(false);
+  const [pathCopied, setPathCopied] = useState<boolean>(false);
+  const [mobileDeckView, setMobileDeckView] = useState<'config' | 'simulator'>('config');
   const [selectedTool, setSelectedTool] = useState<string | null>(null);
 
   const activePlatform = MCP_PLATFORMS.find((p) => p.id === activeId) || MCP_PLATFORMS[0];
@@ -412,6 +414,12 @@ export default function McpShowcase() {
     navigator.clipboard.writeText(currentConfig);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleCopyPath = () => {
+    navigator.clipboard.writeText(currentPath);
+    setPathCopied(true);
+    setTimeout(() => setPathCopied(false), 2000);
   };
 
   return (
@@ -432,8 +440,43 @@ export default function McpShowcase() {
           </p>
         </div>
 
-        {/* Minimal Platform Selector Tabs */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mb-6">
+        {/* Mobile Swipeable Platform Track (< sm) */}
+        <div className="flex sm:hidden overflow-x-auto no-scrollbar gap-2 pb-2 -mx-4 px-4 snap-x mb-5">
+          {MCP_PLATFORMS.map((platform) => {
+            const isSelected = platform.id === activeId;
+            return (
+              <button
+                key={platform.id}
+                onClick={() => setActiveId(platform.id)}
+                className={`snap-start shrink-0 min-w-[140px] p-2.5 rounded-lg text-left transition-all border ${
+                  isSelected
+                    ? 'bg-[var(--surface-100)] border-[var(--text-primary)] text-[var(--text-primary)] ring-1 ring-[var(--text-primary)]/20'
+                    : 'bg-[var(--surface-main)] border-[var(--border-subtle)] text-[var(--text-secondary)]'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--text-muted)]">
+                    {platform.vendor}
+                  </span>
+                  {isSelected && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--text-primary)]" />
+                  )}
+                </div>
+                <div className="mt-1">
+                  <span className="text-xs font-semibold block truncate">
+                    {platform.name}
+                  </span>
+                  <span className="text-[10px] text-[var(--text-muted)] font-mono block truncate">
+                    {platform.featurePill}
+                  </span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Desktop / Tablet Grid Platform Selector (sm+) */}
+        <div className="hidden sm:grid sm:grid-cols-3 lg:grid-cols-5 gap-2 mb-6">
           {MCP_PLATFORMS.map((platform) => {
             const isSelected = platform.id === activeId;
             return (
@@ -441,8 +484,6 @@ export default function McpShowcase() {
                 key={platform.id}
                 onClick={() => setActiveId(platform.id)}
                 className={`p-3 rounded-lg text-left transition-all border ${
-                  platform.id === 'copilot' ? 'col-span-2 sm:col-span-1' : ''
-                } ${
                   isSelected
                     ? 'bg-[var(--surface-100)] border-[var(--text-primary)] text-[var(--text-primary)]'
                     : 'bg-[var(--surface-main)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-card)]'
@@ -472,22 +513,67 @@ export default function McpShowcase() {
 
         {/* Minimal Showcase Deck */}
         <div className="bg-[var(--surface-main)] rounded-xl border border-[var(--border-subtle)] p-3.5 sm:p-6 lg:p-7">
+          {/* Mobile Segmented Toggle (< lg) */}
+          <div className="lg:hidden mb-4 p-1 rounded-lg bg-[var(--surface-100)] border border-[var(--border-subtle)] grid grid-cols-2 gap-1">
+            <button
+              onClick={() => setMobileDeckView('config')}
+              className={`py-2 px-3 rounded-md text-xs font-mono font-medium transition-all flex items-center justify-center gap-2 ${
+                mobileDeckView === 'config'
+                  ? 'bg-[var(--surface-main)] text-[var(--text-primary)] shadow-sm border border-[var(--border-subtle)]'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              <Code2 className="w-3.5 h-3.5" />
+              <span>Config Setup</span>
+            </button>
+            <button
+              onClick={() => setMobileDeckView('simulator')}
+              className={`py-2 px-3 rounded-md text-xs font-mono font-medium transition-all flex items-center justify-center gap-2 ${
+                mobileDeckView === 'simulator'
+                  ? 'bg-[var(--surface-main)] text-[var(--text-primary)] shadow-sm border border-[var(--border-subtle)]'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              <Terminal className="w-3.5 h-3.5" />
+              <span>AI Simulation</span>
+            </button>
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* Left Column: Configuration Box */}
-            <div className="lg:col-span-7 flex flex-col gap-3.5">
+            <div className={`lg:col-span-7 flex-col gap-3.5 ${mobileDeckView === 'config' ? 'flex' : 'hidden lg:flex'}`}>
               {/* Header with Title & OS Tabs */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[var(--border-subtle)]">
                 <div>
                   <h3 className="text-xs font-semibold text-[var(--text-primary)] font-mono uppercase tracking-wider">
                     {activePlatform.name} Configuration
                   </h3>
-                  <p className="text-[11px] font-mono text-[var(--text-muted)] mt-0.5 truncate max-w-[240px] xs:max-w-[320px] sm:max-w-md">
-                    {currentPath}
-                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-[11px] font-mono text-[var(--text-muted)] truncate max-w-[200px] xs:max-w-[260px] sm:max-w-md">
+                      {currentPath}
+                    </p>
+                    <button
+                      onClick={handleCopyPath}
+                      title="Copy config file path"
+                      className="shrink-0 text-[10px] font-mono text-[var(--text-muted)] hover:text-[var(--text-primary)] px-1.5 py-0.5 rounded bg-[var(--surface-100)] border border-[var(--border-subtle)] transition-colors flex items-center gap-1"
+                    >
+                      {pathCopied ? (
+                        <>
+                          <Check className="w-2.5 h-2.5 text-emerald-500" />
+                          <span className="text-emerald-500">Copied</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-2.5 h-2.5" />
+                          <span>Copy path</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
 
                 {/* OS Switcher Pills */}
-                <div className="flex items-center gap-1 p-0.5 rounded-md bg-[var(--surface-100)] border border-[var(--border-subtle)] self-start sm:self-auto">
+                <div className="flex items-center gap-1 p-0.5 rounded-md bg-[var(--surface-100)] border border-[var(--border-subtle)] self-start sm:self-auto shrink-0">
                   {(['macos', 'windows', 'linux'] as OsType[]).map((os) => (
                     <button
                       key={os}
@@ -538,7 +624,9 @@ export default function McpShowcase() {
                   </button>
                 </div>
 
-                {renderSyntaxHighlighted(currentConfig, activePlatform.id !== 'copilot')}
+                <div className="max-h-[360px] sm:max-h-[440px] overflow-y-auto overflow-x-auto custom-scrollbar">
+                  {renderSyntaxHighlighted(currentConfig, activePlatform.id !== 'copilot')}
+                </div>
               </div>
 
               {/* Explanation Note */}
@@ -549,7 +637,7 @@ export default function McpShowcase() {
             </div>
 
             {/* Right Column: Clean Platform Simulator */}
-            <div className="lg:col-span-5 flex flex-col gap-3.5">
+            <div className={`lg:col-span-5 flex-col gap-3.5 ${mobileDeckView === 'simulator' ? 'flex' : 'hidden lg:flex'}`}>
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium text-[var(--text-muted)] font-mono">
                   Simulated {activePlatform.name} Experience
@@ -629,21 +717,21 @@ export default function McpShowcase() {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-1.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                   {MCP_TOOLS.map((tool) => (
                     <button
                       key={tool.name}
                       onClick={() => setSelectedTool(selectedTool === tool.name ? null : tool.name)}
-                      className={`p-2 rounded text-left border transition-all ${
+                      className={`p-2 rounded text-left border transition-all flex items-center justify-between ${
                         selectedTool === tool.name
                           ? 'bg-[var(--surface-100)] border-[var(--text-primary)] text-[var(--text-primary)]'
                           : 'bg-[var(--surface-main)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                       }`}
                     >
-                      <span className="font-mono text-[11px] font-medium block truncate">
+                      <span className="font-mono text-[11px] font-medium truncate mr-2">
                         {tool.name}
                       </span>
-                      <span className="text-[10px] text-[var(--text-muted)] block truncate">
+                      <span className="text-[10px] text-[var(--text-muted)] font-mono shrink-0 px-1.5 py-0.5 rounded bg-[var(--surface-100)] border border-[var(--border-subtle)]">
                         {tool.badge}
                       </span>
                     </button>

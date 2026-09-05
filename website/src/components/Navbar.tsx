@@ -14,6 +14,7 @@ import {
   Menu,
   X,
   ArrowRight,
+  ExternalLink,
 } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 
@@ -159,34 +160,59 @@ export default function Navbar() {
 
         {/* Action Buttons & Theme Switcher */}
         <div className="flex items-center gap-2 sm:gap-2.5">
-          {/* Quick Copy Command (Desktop >= 1024px) */}
+          {/* Beautiful Quick Copy Command (Desktop >= 1024px) */}
           <button
             onClick={copyCommand}
-            className="hidden lg:flex items-center gap-2 px-3 py-1.5 text-xs font-mono rounded-xl bg-[var(--surface-100)] border border-[var(--border-subtle)] hover:border-brand-cyan/40 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all shadow-xs group"
+            className="hidden lg:flex items-center gap-2.5 px-3 py-1.5 text-xs font-mono rounded-xl bg-[var(--surface-100)] border border-[var(--border-subtle)] hover:border-brand-cyan/40 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all shadow-xs group"
             title="Click to copy quick start command"
           >
-            <Terminal className="w-3.5 h-3.5 text-brand-cyan" />
-            <span>npx change-firewall</span>
-            {copied ? (
-              <span className="text-brand-success text-[11px] font-sans font-semibold flex items-center gap-1">
-                <Check className="w-3 h-3" />
-                Copied
-              </span>
-            ) : (
-              <Copy className="w-3.5 h-3.5 opacity-50 group-hover:opacity-100 transition-opacity" />
-            )}
+            <div className="flex items-center gap-1.5">
+              <Terminal className="w-3.5 h-3.5 text-brand-cyan" />
+              <span className="text-[var(--text-primary)] font-medium">npx change-firewall</span>
+            </div>
+            <div className="flex items-center gap-1 pl-2 border-l border-[var(--border-subtle)] text-[11px] font-sans">
+              {copied ? (
+                <span className="text-brand-success font-semibold flex items-center gap-1">
+                  <Check className="w-3 h-3" />
+                  Copied
+                </span>
+              ) : (
+                <span className="text-[var(--text-muted)] group-hover:text-[var(--text-primary)] transition-colors flex items-center gap-1">
+                  <Copy className="w-3 h-3 opacity-60" />
+                  <span>Copy</span>
+                </span>
+              )}
+            </div>
           </button>
 
-          {/* GitHub Link */}
+          {/* Beautiful GitHub Link */}
           <a
             href="https://github.com/himanshYou2003/change-firewall"
             target="_blank"
             rel="noreferrer"
-            className="p-2 rounded-xl bg-[var(--surface-100)] border border-[var(--border-subtle)] hover:border-[var(--border-card)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all shadow-xs"
+            className="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-xl bg-[var(--surface-100)] border border-[var(--border-subtle)] hover:border-[var(--border-card)] text-xs font-medium text-[var(--text-primary)] hover:bg-[var(--surface-200)] transition-all shadow-xs group"
             aria-label="GitHub Repository"
             title="GitHub Repository"
           >
-            <Github className="w-4 h-4" />
+            <Github className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors" />
+            <span className="hidden sm:inline">GitHub</span>
+            <span className="hidden md:inline-block text-[10px] font-mono px-1.5 py-0.2 rounded bg-[var(--surface-200)] text-[var(--text-muted)] border border-[var(--border-subtle)]">
+              Star
+            </span>
+          </a>
+
+          {/* Beautiful NPM Badge Button */}
+          <a
+            href="https://www.npmjs.com/package/change-firewall"
+            target="_blank"
+            rel="noreferrer"
+            className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-xl bg-[var(--surface-100)] border border-[var(--border-subtle)] hover:border-brand-cyan/40 text-[var(--text-primary)] hover:bg-[var(--surface-200)] transition-all shadow-xs group"
+          >
+            <span className="text-[10px] font-black font-mono px-1.5 py-0.2 rounded bg-red-500/10 text-red-500 dark:text-red-400 border border-red-500/20">
+              npm
+            </span>
+            <span>v0.1.4</span>
+            <ExternalLink className="w-3 h-3 text-[var(--text-muted)] group-hover:text-brand-cyan transition-colors" />
           </a>
 
           {/* Dark / Light Theme Toggle */}
@@ -202,16 +228,6 @@ export default function Navbar() {
               <Moon className="w-4 h-4 text-slate-700" />
             )}
           </button>
-
-          {/* NPM Badge Button (Large screens) */}
-          <a
-            href="https://www.npmjs.com/package/change-firewall"
-            target="_blank"
-            rel="noreferrer"
-            className="hidden md:inline-flex text-xs font-semibold px-3 py-1.5 rounded-lg bg-[var(--surface-100)] hover:bg-[var(--surface-200)] text-[var(--text-primary)] border border-[var(--border-subtle)] transition-all shadow-xs"
-          >
-            NPM Package
-          </a>
 
           {/* Clean Menu Toggle Button (< 1280px, iPad Mini / Air & Mobile) */}
           <button
@@ -240,7 +256,7 @@ export default function Navbar() {
 
           {/* Clean Menu Container with Solid Background */}
           <div className="fixed top-16 inset-x-0 z-50 bg-[var(--bg-main)] border-b border-[var(--border-subtle)] shadow-xl xl:hidden animate-in fade-in slide-in-from-top-1 duration-150">
-            <div className="max-w-4xl mx-auto px-5 sm:px-8 py-6 space-y-4">
+            <div className="max-w-4xl mx-auto px-5 sm:px-8 py-6 space-y-5">
               {/* Minimal Nav List (No Cards) */}
               <nav className="flex flex-col divide-y divide-[var(--border-subtle)]/70">
                 {NAV_ITEMS.map((item, idx) => {
@@ -287,43 +303,62 @@ export default function Navbar() {
                 })}
               </nav>
 
-              {/* Minimal Bottom Utility Row */}
-              <div className="pt-4 border-t border-[var(--border-subtle)] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono text-[var(--text-secondary)]">
-                {/* Command Line Copier */}
+              {/* Beautiful Developer Quick Actions Bar */}
+              <div className="pt-4 border-t border-[var(--border-subtle)] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                {/* Beautiful Copy NPX Pill */}
                 <button
                   onClick={copyCommand}
-                  className="flex items-center gap-2 hover:text-[var(--text-primary)] transition-colors text-left"
+                  className="group flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl bg-[var(--surface-100)] border border-[var(--border-subtle)] hover:border-brand-cyan/40 text-xs font-mono text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all shadow-xs"
                   title="Click to copy quick start command"
                 >
-                  <Terminal className="w-3.5 h-3.5 text-brand-cyan shrink-0" />
-                  <span>npx change-firewall</span>
-                  {copied ? (
-                    <span className="text-brand-success font-sans font-semibold text-[11px] ml-1 flex items-center gap-1">
-                      <Check className="w-3 h-3" />
-                      Copied!
-                    </span>
-                  ) : (
-                    <Copy className="w-3 h-3 text-[var(--text-muted)] opacity-60" />
-                  )}
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-brand-cyan font-bold">$</span>
+                    <span className="truncate text-[var(--text-primary)] font-medium">npx change-firewall</span>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0 px-2 py-1 rounded-md bg-[var(--surface-200)] border border-[var(--border-subtle)] text-[11px] font-sans font-medium text-[var(--text-muted)] group-hover:text-[var(--text-primary)] transition-colors">
+                    {copied ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-brand-success" />
+                        <span className="text-brand-success font-semibold">Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5 opacity-60" />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </div>
                 </button>
 
-                {/* Minimal Clean Text Links */}
-                <div className="flex items-center gap-5 font-sans text-xs">
+                {/* Beautiful GitHub & NPM Action Buttons */}
+                <div className="flex items-center gap-2.5">
+                  {/* GitHub Button */}
                   <a
                     href="https://github.com/himanshYou2003/change-firewall"
                     target="_blank"
                     rel="noreferrer"
-                    className="hover:text-[var(--text-primary)] transition-colors"
+                    className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-[var(--surface-100)] border border-[var(--border-subtle)] hover:border-[var(--border-card)] text-xs font-medium text-[var(--text-primary)] hover:bg-[var(--surface-200)] transition-all shadow-xs group"
+                    aria-label="GitHub Repository"
                   >
-                    GitHub
+                    <Github className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors" />
+                    <span>GitHub</span>
+                    <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[var(--surface-200)] text-[var(--text-muted)] border border-[var(--border-subtle)]">
+                      ★ Star
+                    </span>
                   </a>
+
+                  {/* NPM Package Button */}
                   <a
                     href="https://www.npmjs.com/package/change-firewall"
                     target="_blank"
                     rel="noreferrer"
-                    className="hover:text-[var(--text-primary)] transition-colors"
+                    className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-[var(--surface-100)] border border-[var(--border-subtle)] hover:border-brand-cyan/40 text-xs font-medium text-[var(--text-primary)] hover:bg-[var(--surface-200)] transition-all shadow-xs group"
                   >
-                    NPM Package
+                    <span className="text-[10px] font-black font-mono px-1.5 py-0.5 rounded bg-red-500/10 text-red-500 dark:text-red-400 border border-red-500/20">
+                      npm
+                    </span>
+                    <span>v0.1.4</span>
+                    <ExternalLink className="w-3 h-3 text-[var(--text-muted)] group-hover:text-brand-cyan transition-colors" />
                   </a>
                 </div>
               </div>
