@@ -297,7 +297,7 @@ export default function DocViewer() {
               <div className="flex-1 overflow-y-auto p-2 space-y-2 font-mono text-xs">
                 <div className="px-2 py-1 flex items-center gap-2 text-[11px] font-bold text-[var(--text-primary)]">
                   <div className="w-4 h-4 rounded overflow-hidden border border-orange-500/40 bg-black flex items-center justify-center shrink-0">
-                    <Image src="/logo.jpeg" alt="Logo" width={16} height={16} className="w-full h-full object-cover" />
+                    <Image src="/logo.png" alt="Logo" width={16} height={16} className="w-full h-full object-cover" />
                   </div>
                   <span>CHANGE-FIREWALL</span>
                 </div>

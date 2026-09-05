@@ -47,7 +47,7 @@ export default function EmailWaitlist() {
       {/* Radiant Glow Behind Card */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[300px] bg-gradient-to-r from-brand-cyan/15 via-brand-purple/20 to-brand-danger/10 rounded-full blur-[90px] pointer-events-none" />
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="glass-panel rounded-3xl p-8 sm:p-12 text-center relative overflow-hidden border border-brand-cyan/30 shadow-2xl">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-cyan/10 border border-brand-cyan/30 text-brand-cyan text-xs font-semibold mb-6">
             <Sparkles className="w-3.5 h-3.5 text-brand-cyan animate-pulse" />

@@ -38,7 +38,7 @@ export default function HeroTrailer() {
 
   return (
     <section id="simulator" className="relative pt-10 pb-20 sm:pt-16 sm:pb-28 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
+      <div className="w-full max-w-[1550px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
         {/* Release Pill Badge */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--surface-100)] border border-brand-cyan/30 text-brand-cyan text-xs font-medium mb-6 shadow-sm">
           <Sparkles className="w-3.5 h-3.5 text-brand-cyan animate-pulse" />
@@ -123,7 +123,7 @@ export default function HeroTrailer() {
         </div>
 
         {/* Killer Interactive AST Blast Radius Visualizer */}
-        <div className="w-full mt-12 max-w-5xl">
+        <div className="w-full mt-12 max-w-6xl">
           <BlastVisualizer />
         </div>
       </div>

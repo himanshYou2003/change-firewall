@@ -46,16 +46,12 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-[var(--border-subtle)] bg-[var(--bg-main)]/90 backdrop-blur-xl transition-colors duration-200">
-      <div
-        className={`mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between transition-all duration-200 ${
-          isDocs ? 'w-full max-w-none' : 'max-w-7xl'
-        }`}
-      >
+      <div className="w-full px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand Logo with Official Fire Shield Icon */}
         <Link href="/" className="flex items-center gap-3 group shrink-0">
           <div className="relative w-9 h-9 rounded-xl overflow-hidden shadow-md shadow-orange-500/20 border border-orange-500/30 group-hover:scale-105 transition-transform bg-black flex items-center justify-center">
             <Image
-              src="/logo.jpeg"
+              src="/logo.png"
               alt="Change Firewall Logo"
               width={36}
               height={36}

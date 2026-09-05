@@ -42,7 +42,7 @@ const SUPERPOWERS = [
 export default function SuperpowerGrid() {
   return (
     <section id="superpowers" className="py-20 relative">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-[1550px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="text-xs font-bold font-mono tracking-widest text-brand-cyan uppercase">
             Four Core Pillars
