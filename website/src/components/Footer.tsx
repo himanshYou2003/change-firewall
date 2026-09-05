@@ -2,8 +2,9 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { ShieldAlert, Github } from 'lucide-react';
+import { Github } from 'lucide-react';
 
 export default function Footer() {
   const pathname = usePathname();
@@ -17,8 +18,14 @@ export default function Footer() {
     <footer className="w-full border-t border-[var(--border-subtle)] bg-[var(--bg-main)] py-12 relative z-10 transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-[var(--text-muted)]">
         <div className="flex items-center gap-3">
-          <div className="w-7 h-7 rounded-lg bg-[var(--surface-100)] border border-[var(--border-subtle)] flex items-center justify-center">
-            <ShieldAlert className="w-4 h-4 text-brand-cyan" />
+          <div className="w-8 h-8 rounded-lg overflow-hidden border border-orange-500/30 bg-black flex items-center justify-center">
+            <Image
+              src="/logo.jpeg"
+              alt="Change Firewall"
+              width={32}
+              height={32}
+              className="w-full h-full object-cover"
+            />
           </div>
           <span className="font-bold text-[var(--text-primary)] tracking-tight">Change Firewall</span>
           <span className="opacity-40">|</span>

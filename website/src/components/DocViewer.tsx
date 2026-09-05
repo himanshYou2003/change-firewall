@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { DOCS_TREE, DocItem } from '@/lib/docs-data';
 import {
   Search,
@@ -294,9 +295,10 @@ export default function DocViewer() {
 
               {/* Tree View Structure */}
               <div className="flex-1 overflow-y-auto p-2 space-y-2 font-mono text-xs">
-                {/* Project Root Label */}
-                <div className="px-2 py-1 flex items-center gap-1.5 text-[11px] font-bold text-[var(--text-muted)]">
-                  <FolderOpen className="w-3.5 h-3.5 text-brand-cyan" />
+                <div className="px-2 py-1 flex items-center gap-2 text-[11px] font-bold text-[var(--text-primary)]">
+                  <div className="w-4 h-4 rounded overflow-hidden border border-orange-500/40 bg-black flex items-center justify-center shrink-0">
+                    <Image src="/logo.jpeg" alt="Logo" width={16} height={16} className="w-full h-full object-cover" />
+                  </div>
                   <span>CHANGE-FIREWALL</span>
                 </div>
 
