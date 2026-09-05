@@ -27,7 +27,7 @@ const SUPERPOWERS = [
     tag: 'Zero Hallucination',
     description:
       'A predictable, mathematically reproducible risk algorithm. No LLM randomness, no prompt drift. Produces transparent contribution breakdown for every security and architecture risk.',
-    color: 'from-yellow-500/20 to-orange-500/20 text-yellow-400 border-yellow-500/30',
+    color: 'from-amber-500/20 to-orange-500/20 text-amber-500 border-amber-500/30',
   },
   {
     icon: ShieldCheck,
@@ -47,10 +47,10 @@ export default function SuperpowerGrid() {
           <span className="text-xs font-bold font-mono tracking-widest text-brand-cyan uppercase">
             Four Core Pillars
           </span>
-          <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight mt-2">
+          <h2 className="text-3xl sm:text-5xl font-extrabold text-[var(--text-primary)] tracking-tight mt-2">
             Engineered for the Agentic Coding Era
           </h2>
-          <p className="mt-4 text-slate-300 text-sm sm:text-base leading-relaxed">
+          <p className="mt-4 text-[var(--text-secondary)] text-sm sm:text-base leading-relaxed">
             Standard linters and tests aren't enough when AI modifies 20 files in 5 seconds.
           </p>
         </div>
@@ -61,25 +61,25 @@ export default function SuperpowerGrid() {
             return (
               <div
                 key={idx}
-                className="glass-panel rounded-2xl p-7 sm:p-8 border border-white/10 hover:border-white/20 transition-all duration-300 hover:-translate-y-1 relative group overflow-hidden"
+                className="glass-panel rounded-2xl p-7 sm:p-8 border border-[var(--border-card)] hover:border-brand-cyan/40 transition-all duration-300 hover:-translate-y-1 relative group overflow-hidden shadow-sm"
               >
                 <div className="flex items-start justify-between">
                   <div
-                    className={`w-12 h-12 rounded-xl bg-gradient-to-br ${sp.color} border p-3 flex items-center justify-center shadow-lg`}
+                    className={`w-12 h-12 rounded-xl bg-gradient-to-br ${sp.color} border p-3 flex items-center justify-center shadow-md`}
                   >
                     <Icon className="w-6 h-6" />
                   </div>
-                  <span className="text-[11px] font-mono px-2.5 py-1 rounded-full bg-white/[0.05] border border-white/10 text-slate-300">
+                  <span className="text-[11px] font-mono px-2.5 py-1 rounded-full bg-[var(--surface-100)] border border-[var(--border-subtle)] text-[var(--text-muted)]">
                     {sp.tag}
                   </span>
                 </div>
 
-                <h3 className="text-xl font-bold text-white mt-6 group-hover:text-brand-cyan transition-colors flex items-center gap-1.5">
+                <h3 className="text-xl font-bold text-[var(--text-primary)] mt-6 group-hover:text-brand-cyan transition-colors flex items-center gap-1.5">
                   <span>{sp.title}</span>
                   <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity text-brand-cyan" />
                 </h3>
 
-                <p className="mt-3 text-slate-400 text-sm leading-relaxed">
+                <p className="mt-3 text-[var(--text-secondary)] text-sm leading-relaxed">
                   {sp.description}
                 </p>
               </div>

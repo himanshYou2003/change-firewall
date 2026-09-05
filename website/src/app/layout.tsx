@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { ThemeProvider } from '@/components/ThemeProvider';
 
 export const metadata: Metadata = {
   title: 'Change Firewall ⚡ — AST Behavioral Diffing, Blast Radius & MCP for AI Code',
@@ -35,15 +36,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className="bg-background text-slate-100 min-h-screen flex flex-col selection:bg-brand-cyan/30 selection:text-white">
-        <div className="fixed inset-0 bg-grid-pattern pointer-events-none opacity-40 z-0" />
-        <div className="fixed inset-0 bg-radial-gradient pointer-events-none z-0" />
-        <div className="relative z-10 flex flex-col min-h-screen">
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </div>
+    <html lang="en" className="dark" suppressHydrationWarning>
+      <body className="bg-background text-[var(--text-primary)] min-h-screen flex flex-col selection:bg-brand-cyan/20 selection:text-brand-cyan transition-colors duration-200">
+        <ThemeProvider>
+          <div className="fixed inset-0 bg-grid-pattern pointer-events-none opacity-60 z-0" />
+          <div className="fixed inset-0 bg-radial-gradient pointer-events-none z-0" />
+          <div className="relative z-10 flex flex-col min-h-screen">
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </div>
+        </ThemeProvider>
       </body>
     </html>
   );

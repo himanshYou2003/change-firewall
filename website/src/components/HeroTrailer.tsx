@@ -1,96 +1,129 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import BlastVisualizer from './BlastVisualizer';
-import { Sparkles, Terminal, ArrowRight, ShieldCheck, Cpu, Code2 } from 'lucide-react';
+import { Sparkles, Terminal, ArrowRight, ShieldCheck, Cpu, Code2, BookOpen, Check, Copy } from 'lucide-react';
 import Link from 'next/link';
 
 export default function HeroTrailer() {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const subtitleRef = useRef<HTMLParagraphElement>(null);
+  const ctaRef = useRef<HTMLDivElement>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     gsap.fromTo(
       titleRef.current,
-      { opacity: 0, y: 30 },
-      { opacity: 1, y: 0, duration: 1, ease: 'power3.out' }
+      { opacity: 0, y: 25 },
+      { opacity: 1, y: 0, duration: 0.9, ease: 'power3.out' }
     );
     gsap.fromTo(
       subtitleRef.current,
       { opacity: 0, y: 20 },
-      { opacity: 1, y: 0, duration: 1, delay: 0.2, ease: 'power3.out' }
+      { opacity: 1, y: 0, duration: 0.9, delay: 0.15, ease: 'power3.out' }
+    );
+    gsap.fromTo(
+      ctaRef.current,
+      { opacity: 0, y: 15 },
+      { opacity: 1, y: 0, duration: 0.8, delay: 0.3, ease: 'power3.out' }
     );
   }, []);
 
+  const copyQuickStart = () => {
+    navigator.clipboard.writeText('npx change-firewall');
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
-    <section id="simulator" className="relative pt-12 pb-20 sm:pt-20 sm:pb-28 overflow-hidden">
+    <section id="simulator" className="relative pt-10 pb-20 sm:pt-16 sm:pb-28 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
         {/* Release Pill Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-100/90 border border-brand-cyan/30 text-brand-cyan text-xs font-medium mb-8 shadow-sm backdrop-blur-md">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--surface-100)] border border-brand-cyan/30 text-brand-cyan text-xs font-medium mb-6 shadow-sm">
           <Sparkles className="w-3.5 h-3.5 text-brand-cyan animate-pulse" />
-          <span>Change Firewall v0.1.4 is Live with Native MCP Support</span>
-          <span className="text-slate-500">•</span>
-          <span className="text-slate-300">100% Local-First</span>
+          <span className="font-semibold">Change Firewall v0.1.4</span>
+          <span className="text-[var(--text-muted)]">•</span>
+          <span className="text-[var(--text-secondary)]">Native Model Context Protocol (MCP)</span>
+          <span className="text-[var(--text-muted)]">•</span>
+          <span className="text-[var(--text-muted)]">100% Offline AST</span>
         </div>
 
-        {/* Hero Title */}
+        {/* Hero Title with killer modern typography */}
         <h1
           ref={titleRef}
-          className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white max-w-5xl leading-[1.15]"
+          className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-[var(--text-primary)] max-w-5xl leading-[1.12]"
         >
           Your AI wrote the code. <br />
-          <span className="bg-gradient-to-r from-brand-cyan via-brand-blue to-brand-purple bg-clip-text text-transparent glow-text-cyan">
-            We tell you what it actually broke.
+          <span className="bg-gradient-to-r from-brand-cyan via-brand-blue to-brand-purple bg-clip-text text-transparent">
+            We tell you what it broke.
           </span>
         </h1>
 
-        {/* Subtitle */}
+        {/* Subtitle with soft comfortable contrast */}
         <p
           ref={subtitleRef}
-          className="mt-6 text-base sm:text-xl text-slate-300 max-w-3xl font-normal leading-relaxed"
+          className="mt-5 text-base sm:text-xl text-[var(--text-secondary)] max-w-3xl font-normal leading-relaxed"
         >
-          Raw Git diffs hide consequences. Change Firewall performs deterministic AST behavioral analysis,
-          maps downstream caller blast radius, and provides native Model Context Protocol (MCP) tooling for
-          autonomous self-correction.
+          Standard git diffs only see text lines (+1 / -1). Change Firewall computes deterministic AST behavioral mutations, maps downstream caller blast radius, and provides stdio MCP tools for autonomous AI self-correction.
         </p>
 
-        {/* Primary CTA Row */}
-        <div className="mt-8 flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-          <a
-            href="#waitlist"
-            className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-gradient-to-r from-brand-cyan to-brand-blue hover:from-brand-cyan/90 hover:to-brand-blue/90 text-slate-950 font-bold text-sm shadow-lg shadow-brand-cyan/25 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5"
+        {/* Quick Command & Action Buttons */}
+        <div ref={ctaRef} className="mt-8 flex flex-col sm:flex-row items-center gap-3.5 w-full sm:w-auto">
+          {/* 1-Click Copy Command */}
+          <button
+            onClick={copyQuickStart}
+            className="w-full sm:w-auto px-5 py-3.5 rounded-xl bg-[var(--surface-100)] hover:bg-[var(--surface-200)] border border-[var(--border-card)] text-[var(--text-primary)] font-mono text-xs transition-all flex items-center justify-center gap-2.5 shadow-sm group"
+            title="Click to copy quickstart"
           >
-            <span>Get Future Superpowers</span>
-            <ArrowRight className="w-4 h-4" />
-          </a>
+            <Terminal className="w-4 h-4 text-brand-cyan" />
+            <span>npx change-firewall</span>
+            {copied ? (
+              <span className="flex items-center gap-1 text-brand-success font-sans text-xs">
+                <Check className="w-3.5 h-3.5" /> Copied!
+              </span>
+            ) : (
+              <Copy className="w-3.5 h-3.5 opacity-50 group-hover:opacity-100" />
+            )}
+          </button>
 
+          {/* Primary CTA: View Docs */}
           <Link
             href="/docs"
-            className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-surface-100 hover:bg-surface-200 border border-white/10 hover:border-white/20 text-white font-semibold text-sm transition-all flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-gradient-to-r from-brand-cyan to-brand-blue hover:opacity-95 text-slate-950 font-bold text-xs sm:text-sm shadow-md shadow-brand-cyan/20 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5"
           >
-            <span>Explore Documentation</span>
+            <BookOpen className="w-4 h-4" />
+            <span>Docs & Tree Architecture</span>
+            <ArrowRight className="w-4 h-4" />
           </Link>
+
+          {/* Future updates waitlist CTA */}
+          <a
+            href="#waitlist"
+            className="w-full sm:w-auto px-5 py-3.5 rounded-xl bg-[var(--surface-100)] hover:bg-[var(--surface-200)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-medium text-xs sm:text-sm transition-all flex items-center justify-center gap-1.5"
+          >
+            <span>Get Future Updates</span>
+          </a>
         </div>
 
-        {/* Badges / Guarantees */}
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-400">
+        {/* Value Prop Badges */}
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs text-[var(--text-muted)] font-mono">
           <div className="flex items-center gap-1.5">
             <ShieldCheck className="w-4 h-4 text-brand-success" />
             <span>Zero API Keys / 100% Offline</span>
           </div>
           <div className="flex items-center gap-1.5">
             <Cpu className="w-4 h-4 text-brand-cyan" />
-            <span>Deterministic AST Diffing</span>
+            <span>Deterministic AST Engine</span>
           </div>
           <div className="flex items-center gap-1.5">
             <Code2 className="w-4 h-4 text-brand-purple" />
-            <span>Claude, Antigravity & Cursor Native</span>
+            <span>Claude, Antigravity & Cursor Ready</span>
           </div>
         </div>
 
-        {/* Interactive Visual Trailer Simulator */}
-        <div className="w-full mt-14 max-w-5xl">
+        {/* Killer Interactive AST Blast Radius Visualizer */}
+        <div className="w-full mt-12 max-w-5xl">
           <BlastVisualizer />
         </div>
       </div>

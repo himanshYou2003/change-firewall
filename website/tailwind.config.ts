@@ -10,13 +10,14 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: '#07090e',
+        background: 'var(--bg-main)',
         surface: {
-          50: '#0d1117',
-          100: '#121722',
-          200: '#171d2b',
-          300: '#1f2739',
-          400: '#2b364e',
+          DEFAULT: 'var(--surface-main)',
+          50: 'var(--surface-50)',
+          100: 'var(--surface-100)',
+          200: 'var(--surface-200)',
+          300: 'var(--surface-300)',
+          400: 'var(--surface-400)',
         },
         brand: {
           cyan: '#00f2fe',
@@ -26,6 +27,7 @@ const config: Config = {
           danger: '#ff3366',
           warning: '#f59e0b',
           success: '#10b981',
+          accent: '#0284c7',
         },
       },
       fontFamily: {
