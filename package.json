@@ -1,6 +1,6 @@
 {
   "name": "change-firewall",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Converts code diffs into behavior-aware change reports, blast radius mapping, and deterministic risk scoring.",
   "type": "module",
   "bin": {
