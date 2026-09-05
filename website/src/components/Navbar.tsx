@@ -49,7 +49,7 @@ export default function Navbar() {
       <div className="w-full px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand Logo with Official Fire Shield Icon */}
         <Link href="/" className="flex items-center gap-3 group shrink-0">
-          <div className="relative w-9 h-9 rounded-xl overflow-hidden border border-[var(--border-subtle)] group-hover:border-[var(--border-card)] transition-colors bg-black flex items-center justify-center">
+          <div className="relative w-9 h-9 rounded-xl overflow-hidden border border-orange-500/20 dark:border-[var(--border-subtle)] group-hover:border-orange-500/40 transition-colors bg-orange-500/[0.08] dark:bg-black flex items-center justify-center">
             <Image
               src="/logo.png"
               alt="Change Firewall Logo"
