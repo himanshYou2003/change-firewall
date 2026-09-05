@@ -4,7 +4,7 @@
   "description": "Converts code diffs into behavior-aware change reports, blast radius mapping, and deterministic risk scoring.",
   "type": "module",
   "bin": {
-    "change-firewall": "./bin/change-firewall.js"
+    "change-firewall": "bin/change-firewall.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
