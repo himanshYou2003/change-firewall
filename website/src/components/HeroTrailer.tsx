@@ -55,7 +55,7 @@ export default function HeroTrailer() {
           className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-[var(--text-primary)] max-w-5xl leading-[1.12]"
         >
           Your AI wrote the code. <br />
-          <span className="bg-gradient-to-r from-brand-cyan via-brand-blue to-brand-purple bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-orange-500 via-amber-500 to-orange-400 bg-clip-text text-transparent font-black">
             We tell you what it broke.
           </span>
         </h1>
