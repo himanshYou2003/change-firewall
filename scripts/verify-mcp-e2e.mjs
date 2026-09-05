@@ -37,7 +37,7 @@ async function runProof() {
   // Server info verification
   const serverVersion = client.getServerVersion();
   console.log(`      ✓ Server identified as: "${serverVersion?.name}" version "${serverVersion?.version}"`);
-  if (serverVersion?.name !== 'change-firewall' || serverVersion?.version !== '0.1.3') {
+  if (serverVersion?.name !== 'change-firewall' || serverVersion?.version !== '0.1.4') {
     throw new Error(`Unexpected server version: ${JSON.stringify(serverVersion)}`);
   }
 
