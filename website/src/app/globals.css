@@ -1,0 +1,94 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-inter: 'Inter', sans-serif;
+  --font-jetbrains: 'JetBrains Mono', monospace;
+}
+
+body {
+  background-color: #07090e;
+  color: #e2e8f0;
+  font-family: var(--font-inter);
+  overflow-x: hidden;
+}
+
+/* Custom modern scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #090c15;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e2638;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2e3a54;
+}
+
+/* Glassmorphism primitives */
+.glass-panel {
+  background: rgba(18, 24, 38, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-glow {
+  background: rgba(18, 24, 38, 0.75);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 242, 254, 0.25);
+  box-shadow: 0 0 25px rgba(0, 242, 254, 0.12);
+}
+
+.glass-panel-danger {
+  background: rgba(26, 16, 22, 0.75);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 51, 102, 0.3);
+  box-shadow: 0 0 25px rgba(255, 51, 102, 0.15);
+}
+
+/* Radiant glow effects */
+.glow-text-cyan {
+  text-shadow: 0 0 15px rgba(0, 242, 254, 0.5);
+}
+
+.glow-text-danger {
+  text-shadow: 0 0 15px rgba(255, 51, 102, 0.6);
+}
+
+.glow-box-cyan {
+  box-shadow: 0 0 30px rgba(0, 242, 254, 0.25);
+}
+
+.glow-box-purple {
+  box-shadow: 0 0 35px rgba(121, 40, 202, 0.3);
+}
+
+/* Background grid pattern */
+.bg-grid-pattern {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
+
+.bg-radial-gradient {
+  background: radial-gradient(circle at 50% 20%, rgba(0, 242, 254, 0.15) 0%, rgba(121, 40, 202, 0.08) 35%, transparent 70%);
+}
+
+/* Shimmer animation */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.animate-shimmer {
+  animation: shimmer 2.5s infinite;
+}
