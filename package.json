@@ -1,6 +1,6 @@
 {
   "name": "change-firewall",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Converts code diffs into behavior-aware change reports, blast radius mapping, and deterministic risk scoring.",
   "type": "module",
   "bin": {
@@ -18,7 +18,8 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "test": "vitest run",
-    "prepublishOnly": "npm run build"
+    "verify:mcp": "node scripts/verify-mcp-e2e.mjs",
+    "prepublishOnly": "npm run build && npm run verify:mcp"
   },
   "keywords": [
     "ai",
@@ -28,7 +29,12 @@
     "blast-radius",
     "risk-analysis",
     "code-review",
-    "agentic-coding"
+    "agentic-coding",
+    "mcp",
+    "model-context-protocol",
+    "mcp-server",
+    "claude",
+    "antigravity"
   ],
   "author": "Himanshu",
   "license": "MIT",
@@ -44,10 +50,12 @@
     "access": "public"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "commander": "^13.1.0",
     "open": "^10.1.0",
     "picocolors": "^1.1.1",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "zod": "^4.5.4"
   },
   "devDependencies": {
     "@types/node": "^22.13.5",

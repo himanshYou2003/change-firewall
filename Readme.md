@@ -25,12 +25,16 @@ A local-first developer tool, CLI, and TypeScript engine that translates raw Git
   - [5. `change-firewall why <file>` (Architectural Role)](#5-change-firewall-why-file-architectural-role)
   - [6. `change-firewall open` (Dashboard Server)](#6-change-firewall-open-dashboard-server)
   - [7. `change-firewall demo` (Simulation Mode)](#7-change-firewall-demo-simulation-mode)
+  - [8. `change-firewall mcp` (Model Context Protocol)](#8-change-firewall-mcp-model-context-protocol)
 - [💻 Programmatic Node.js / TypeScript API](#-programmatic-nodejs--typescript-api)
   - [`analyzeChanges()`](#1-analyzechanges)
   - [`evaluatePreflight()`](#2-evaluatepreflight)
   - [`computeBlastRadius()`](#3-computeblastradius)
   - [`startWatchMode()`](#4-startwatchmode)
-- [🤖 AI Coding Agent Self-Correction Loop](#-ai-coding-agent-self-correction-loop)
+  - [`createMcpServer()` / `startMcpServer()`](#5-createmcpserver--startmcpserver)
+- [🤖 AI Coding Agent Self-Correction Loop & MCP](#-ai-coding-agent-self-correction-loop--mcp)
+  - [🔌 Model Context Protocol (MCP) Server Setup](#-model-context-protocol-mcp-server-setup)
+  - [🤖 Direct Agent Instructions (Claude Code, OpenAI Codex, Copilot)](#-direct-agent-instructions-claude-code-openai-codex-copilot)
 - [🔄 CI/CD & GitHub Actions Integration](#-cicd--github-actions-integration)
 - [🪝 Git Pre-Commit Hook (Husky)](#-git-pre-commit-hook-husky)
 - [🧪 Real-World Behavioral Scenarios](#-real-world-behavioral-scenarios)
@@ -263,6 +267,24 @@ npx change-firewall demo
 
 ---
 
+### 8. `change-firewall mcp` (Model Context Protocol)
+Starts the native Model Context Protocol (MCP) server over standard I/O (`stdio`). This exposes Change Firewall as native tools and prompts to AI assistants like **Claude Desktop**, **Google Antigravity**, **Cursor**, and **Windsurf**.
+
+```bash
+npx change-firewall mcp
+```
+
+#### Exposed MCP Tools:
+* **`analyze_changes`**: Performs AST behavioral diffing, caller blast radius mapping, and deterministic risk scoring (0–100).
+* **`evaluate_preflight`**: Determines whether current changes are safe to merge, blocking on high-risk mutations.
+* **`compute_blast_radius`**: Inspects direct consumers, indirect dependents, and affected routes for a specific file.
+* **`explain_file_impact`**: Explains architectural role (middleware, route, service, model), historical git churn, and callers.
+
+#### Exposed MCP Prompts:
+* **`change_firewall_audit`**: Guided prompt for agents to audit diffs and propose self-corrections before committing.
+
+---
+
 ## 💻 Programmatic Node.js / TypeScript API
 
 Change Firewall exports a fully-typed JavaScript / TypeScript API for use in your custom tools, scripts, testing suites, or backend servers.
@@ -410,15 +432,91 @@ runLiveWatcher();
 
 ---
 
-## 🤖 AI Coding Agent Self-Correction Loop
+### 5. `createMcpServer()` / `startMcpServer()`
+Embed or start the Model Context Protocol (MCP) server directly in your custom Node.js application or test harness:
 
-AI coding tools (Cursor, Claude Code, GitHub Copilot, Antigravity) can consume Change Firewall's `--json` mode to **automatically audit and self-correct their own code** before asking for human approval:
+```typescript
+import { createMcpServer, startMcpServer } from 'change-firewall';
 
-```bash
-npx change-firewall analyze --json
+// Option A: Start standard stdio MCP server for AI clients
+await startMcpServer();
+
+// Option B: Create McpServer instance for custom transports (e.g. SSE / testing)
+const server = createMcpServer({ name: 'custom-firewall', version: '0.1.3' });
 ```
 
-### Sample JSON Output:
+---
+
+## 🤖 AI Coding Agent Self-Correction Loop & MCP
+
+Change Firewall provides two integration models for AI coding assistants:
+
+1. **Native Model Context Protocol (MCP)**: AI assistants directly discover and execute Change Firewall tools without needing raw terminal/shell access.
+2. **Direct Agent Instructions (CLI / JSON Mode)**: Terminal-enabled agents run Change Firewall CLI commands to verify and self-correct their own code.
+
+---
+
+### 🔌 Model Context Protocol (MCP) Server Setup
+
+Change Firewall exposes 4 native MCP tools (`analyze_changes`, `evaluate_preflight`, `compute_blast_radius`, `explain_file_impact`) and the `change_firewall_audit` prompt.
+
+#### 1. Claude Desktop
+Add Change Firewall to your `claude_desktop_config.json`:
+* **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+* **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+* **Linux**: `~/.config/Claude/claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "change-firewall": {
+      "command": "npx",
+      "args": ["-y", "change-firewall", "mcp"]
+    }
+  }
+}
+```
+
+#### 2. Google Antigravity
+Add to your global configuration at `~/.gemini/config/mcp_config.json` (or within your project's `.agents/` plugin):
+
+```json
+{
+  "mcpServers": {
+    "change-firewall": {
+      "command": "npx",
+      "args": ["-y", "change-firewall", "mcp"]
+    }
+  }
+}
+```
+
+#### 3. Cursor & Windsurf
+1. Navigate to **Cursor Settings > Features > MCP** (or Windsurf Settings).
+2. Click **+ Add New MCP Server**.
+3. Fill in:
+   - **Name**: `change-firewall`
+   - **Type**: `command` (stdio)
+   - **Command**: `npx -y change-firewall mcp`
+
+---
+
+### 🤖 Direct Agent Instructions (Claude Code, OpenAI Codex, Copilot)
+
+For agents with terminal access (like **Claude Code**, **Antigravity IDE**, **Cursor Agent**, **Aider**, or **OpenAI Codex / Copilot**), you can instruct the agent to run Change Firewall as an automated self-correction loop.
+
+Add the following rules to your repository's `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, or `.cursorrules`:
+
+```markdown
+### Change Verification & Safety Protocol:
+Before committing or completing any code change:
+1. Run `npx change-firewall preflight --json` to evaluate merge safety.
+2. If `readyToMerge` is false, inspect the `blockers` and `highRiskCount` in the output.
+3. Automatically self-correct any breaking API contract mutations or missing test coverage.
+4. For targeted inspection of affected callers, run `npx change-firewall impact <modified-file>`.
+```
+
+#### Sample JSON Output (`npx change-firewall analyze --json`):
 ```json
 {
   "risk": {
@@ -427,7 +525,7 @@ npx change-firewall analyze --json
   },
   "summary": {
     "totalFilesChanged": 3,
-    "behavioralChangeCount": 1
+    "behavioralChangesCount": 1
   },
   "findings": [
     {
@@ -449,9 +547,6 @@ npx change-firewall analyze --json
   ]
 }
 ```
-
-**How to prompt your AI agent:**
-> *"Run `npx change-firewall analyze --json`. If any findings are returned with HIGH or MEDIUM severity, adjust the code to fix the contract mutations or update affected callers before completing the task."*
 
 ---
 

@@ -28,6 +28,7 @@ import {
 } from './core/preflight/preflight-checker.js';
 import { startWatchMode, type WatchOptions, type WatchHandle } from './core/watcher/watch-engine.js';
 import { getFileHistory, type FileHistoryInfo } from './core/git/history.js';
+import { createMcpServer, startMcpServer, type McpServerOptions } from './mcp/index.js';
 
 export * from './types/index.js';
 export {
@@ -44,11 +45,14 @@ export {
   renderPreflightTerminal,
   startWatchMode,
   getFileHistory,
+  createMcpServer,
+  startMcpServer,
   type PreflightOptions,
   type PreflightResult,
   type WatchOptions,
   type WatchHandle,
   type FileHistoryInfo,
+  type McpServerOptions,
 };
 export { generateDemoReport, runDemoSimulation, type DemoOptions } from './core/demo/demo-runner.js';
 

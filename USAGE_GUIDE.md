@@ -17,10 +17,11 @@ Change Firewall is a local-first, zero-AI-API developer tool and CLI for JavaScr
    - [`change-firewall why <file>` (Architectural Role & History)](#e-change-firewall-why-file)
    - [`change-firewall open` (Dashboard Server)](#f-change-firewall-open)
    - [`change-firewall demo` (Golden Moment Simulation)](#g-change-firewall-demo)
+   - [`change-firewall mcp` (Model Context Protocol Server)](#h-change-firewall-mcp)
 4. [Programmatic Node.js / TypeScript API](#4-programmatic-nodejs--typescript-api)
 5. [CI/CD & GitHub Actions Integration](#5-cicd--github-actions-integration)
 6. [Git Pre-commit Hook (Husky)](#6-git-pre-commit-hook-husky)
-7. [AI Coding Agent Self-Correction Loop](#7-ai-coding-agent-self-correction-loop)
+7. [AI Coding Agent Self-Correction Loop & MCP](#7-ai-coding-agent-self-correction-loop--mcp)
 8. [Real-World Testing Scenarios](#8-real-world-testing-scenarios)
 
 ---
@@ -211,6 +212,26 @@ npx change-firewall demo --no-open
 
 ---
 
+### H. `change-firewall mcp`
+Launches the native **Model Context Protocol (MCP)** server over standard input/output (`stdio`).
+
+```bash
+npx change-firewall mcp
+```
+
+Used by MCP hosts (**Claude Desktop**, **Google Antigravity**, **Cursor**, **Windsurf**) to discover and execute Change Firewall capabilities natively.
+
+#### MCP Tools Provided:
+* `analyze_changes`: Full Git working tree or staged diff behavioral analysis.
+* `evaluate_preflight`: Deterministic merge-readiness evaluation.
+* `compute_blast_radius`: Downstream dependent and route mapping for a specific file.
+* `explain_file_impact`: Architectural role, historical git churn, and callers.
+
+#### MCP Prompts Provided:
+* `change_firewall_audit`: Direct guided prompt for models to audit diffs and propose self-corrections.
+
+---
+
 ## 4. Programmatic Node.js / TypeScript API
 
 You can integrate Change Firewall directly into your Node.js scripts, custom tools, or tests:
@@ -301,15 +322,57 @@ If an AI tool accidentally breaks an API contract or alters security middleware 
 
 ---
 
-## 7. AI Coding Agent Self-Correction Loop
+## 7. AI Coding Agent Self-Correction Loop & MCP
 
-AI agents (Cursor, Claude Code, Antigravity) can run Change Firewall to verify their own work before asking for your review:
+### A. Native MCP Setup (Claude Desktop, Google Antigravity, Cursor, Windsurf)
 
-```bash
-npx change-firewall analyze --json
+#### 1. Claude Desktop
+Add to your `claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "change-firewall": {
+      "command": "npx",
+      "args": ["-y", "change-firewall", "mcp"]
+    }
+  }
+}
 ```
 
-### Sample JSON Output for Agents:
+#### 2. Google Antigravity
+Add to `~/.gemini/config/mcp_config.json`:
+```json
+{
+  "mcpServers": {
+    "change-firewall": {
+      "command": "npx",
+      "args": ["-y", "change-firewall", "mcp"]
+    }
+  }
+}
+```
+
+#### 3. Cursor & Windsurf
+Add a new MCP server in your editor's MCP Settings:
+* **Name**: `change-firewall`
+* **Type**: `command` (stdio)
+* **Command**: `npx -y change-firewall mcp`
+
+---
+
+### B. Direct Agent Instructions (Claude Code, OpenAI Codex, Copilot)
+
+For agents with terminal access, add these instructions to your repository's `CLAUDE.md`, `AGENTS.md`, or `.cursorrules`:
+
+```markdown
+### Change Safety Verification:
+Before finalizing code or asking for review:
+1. Run `npx change-firewall preflight --json`.
+2. If `readyToMerge` is false, inspect the blockers and self-correct any breaking API contracts or missing tests.
+3. For specific caller impact, run `npx change-firewall impact <filepath>`.
+```
+
+#### Sample JSON Output (`npx change-firewall analyze --json`):
 ```json
 {
   "risk": {
@@ -332,8 +395,6 @@ npx change-firewall analyze --json
   ]
 }
 ```
-
-The AI can read this output, adjust its code, update client consumers or tests, and re-run until the risk is low!
 
 ---
 

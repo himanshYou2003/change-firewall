@@ -257,4 +257,18 @@ program
     }
   });
 
+// MCP server command
+program
+  .command('mcp')
+  .description('Start Model Context Protocol (MCP) server over stdio for Claude Desktop, Antigravity, and Cursor')
+  .action(async () => {
+    try {
+      const { startMcpServer } = await import('../index.js');
+      await startMcpServer();
+    } catch (err: any) {
+      console.error(pc.red(`\nMCP Server failed to start: ${err.message}\n`));
+      process.exit(1);
+    }
+  });
+
 program.parse(process.argv);
