@@ -9,11 +9,11 @@
   --font-jetbrains: 'JetBrains Mono', monospace;
 
   /* Light mode palette: Soft, low-saturation warm cream/parchment with rich dark text for high visibility */
-  --bg-main: #f5f1e8;
-  --surface-main: #fdfbf7;
-  --surface-50: #faf7f0;
+  --bg-main: #f0e3bf;
+  --surface-main: #fdfbf7bb;
+  --surface-50: #faf7f0d4;
   --surface-100: #ede8dc;
-  --surface-200: #e2dbcd;
+  --surface-200: #e2dbcdda;
   --surface-300: #d1c8b7;
   --surface-400: #9e9480;
   --text-primary: #181512;

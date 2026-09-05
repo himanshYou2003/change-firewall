@@ -155,7 +155,7 @@ export default function DocViewer() {
             <div className="flex items-center gap-2 group/lights mr-3">
               <button
                 onClick={() => isFullscreen && setIsFullscreen(false)}
-                title={isFullscreen ? 'Exit Fullscreen' : 'Xcode IDE'}
+                title="Toggle Fullscreen"
                 className="w-3 h-3 rounded-full bg-[#ff5f56] border border-[#e0443e] flex items-center justify-center hover:opacity-80 transition-opacity"
               >
                 <span className="text-[8px] font-bold text-black/60 opacity-0 group-hover/lights:opacity-100 leading-none">✕</span>
@@ -259,7 +259,7 @@ export default function DocViewer() {
               {/* Explorer Header */}
               <div className="p-3 border-b border-[var(--border-subtle)] flex items-center justify-between">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)] font-mono">
-                  Xcode Navigator
+                  Project Navigator
                 </span>
 
                 <div className="flex items-center gap-1 text-[10px] font-mono text-[var(--text-muted)]">

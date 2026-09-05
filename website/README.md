@@ -6,7 +6,7 @@
 
 ## Features
 - **Interactive Blast Radius Simulator**: Real-time before vs after AST behavioral mutation graph.
-- **Xcode-Style Documentation Navigator**: macOS-inspired tree hierarchy with collapsible folders and full-screen reading mode.
+- **IDE Documentation Navigator**: Tree hierarchy with collapsible folders and full-screen reading mode.
 - **Universal Model Context Protocol (MCP) Hub**: Native configurations for Claude Desktop, Google Antigravity, Cursor Composer, Windsurf, and Copilot.
 - **Dark & Light Mode**: Seamless theme toggle with persistent state.
 - **MongoDB Atlas Waitlist**: Direct subscriber collection with automated indexing.

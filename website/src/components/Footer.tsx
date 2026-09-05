@@ -9,10 +9,8 @@ import { Github } from 'lucide-react';
 export default function Footer() {
   const pathname = usePathname();
 
-  // Hide footer on documentation route so Xcode IDE touches the application edge completely
-  if (pathname?.startsWith('/docs')) {
-    return null;
-  }
+  // Hide footer on documentation route so IDE layout touches the application edge completely
+  if (pathname === '/docs') return null;
 
   return (
     <footer className="w-full border-t border-[var(--border-subtle)] bg-[var(--bg-main)] py-12 relative z-10 transition-colors duration-200">
