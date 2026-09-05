@@ -1,23 +1,35 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Copy, Check, Sparkles, Terminal, Bot, ShieldCheck, Cpu, Code2, Layers, CheckCircle2 } from 'lucide-react';
+import {
+  Copy,
+  Check,
+  Terminal,
+  Bot,
+  CheckCircle2,
+  Zap,
+  Info,
+} from 'lucide-react';
+
+type OsType = 'macos' | 'windows' | 'linux';
 
 interface McpPlatform {
   id: string;
   name: string;
   vendor: string;
-  badgeColor: string;
-  fileLocation: string;
-  config: string;
-  summary: string;
+  featurePill: string;
+  paths: Record<OsType, string>;
+  configs: Record<OsType, string>;
+  explanation: string;
   mockup: {
-    title: string;
+    platformTitle: string;
     agentName: string;
     prompt: string;
     toolCalled: string;
-    resultSnippet: string;
-    status: string;
+    executionTime: string;
+    resultSummary: string;
+    details: string[];
+    gateStatus: string;
   };
 }
 
@@ -26,9 +38,14 @@ const MCP_PLATFORMS: McpPlatform[] = [
     id: 'claude',
     name: 'Claude Desktop',
     vendor: 'Anthropic',
-    badgeColor: 'text-amber-400 bg-amber-400/10 border-amber-400/30',
-    fileLocation: 'macOS: ~/Library/Application Support/Claude/claude_desktop_config.json',
-    config: `{
+    featurePill: 'Desktop Hammer 🔨',
+    paths: {
+      macos: '~/Library/Application Support/Claude/claude_desktop_config.json',
+      windows: '%APPDATA%\\Claude\\claude_desktop_config.json',
+      linux: '~/.config/Claude/claude_desktop_config.json',
+    },
+    configs: {
+      macos: `{
   "mcpServers": {
     "change-firewall": {
       "command": "npx",
@@ -36,24 +53,52 @@ const MCP_PLATFORMS: McpPlatform[] = [
     }
   }
 }`,
-    summary:
-      'Claude Desktop spawns Change Firewall as a local background process via stdio. A hammer 🔨 icon appears in Claude chat with all 4 deterministic tools ready to invoke.',
+      windows: `{
+  "mcpServers": {
+    "change-firewall": {
+      "command": "cmd.exe",
+      "args": ["/c", "npx", "-y", "change-firewall", "mcp"]
+    }
+  }
+}`,
+      linux: `{
+  "mcpServers": {
+    "change-firewall": {
+      "command": "npx",
+      "args": ["-y", "change-firewall", "mcp"]
+    }
+  }
+}`,
+    },
+    explanation:
+      'Claude Desktop natively spawns Change Firewall as a local process over stdio. A hammer icon appears in chat with all 4 tools ready to execute.',
     mockup: {
-      title: 'Claude Desktop 3.7 Sonnet',
+      platformTitle: 'Claude 3.7 Sonnet',
       agentName: 'Claude',
       prompt: 'Refactor user session authentication and check if anything broke.',
       toolCalled: 'change-firewall.analyze_changes',
-      resultSnippet: 'AST diff complete: 0 contract breaks. Risk Score: 12/100 (Safe). Blast radius: 2 consumers updated.',
-      status: 'Ready to Merge',
+      executionTime: '18ms',
+      resultSummary: 'AST diff complete: 0 contract breaks. Risk Score: 12/100 (Safe).',
+      details: [
+        'Checked 14 export signatures across 3 files',
+        '2 downstream consumers auto-updated',
+        'All parameter nullability contracts verified',
+      ],
+      gateStatus: 'READY TO MERGE',
     },
   },
   {
     id: 'antigravity',
     name: 'Google Antigravity',
     vendor: 'Google',
-    badgeColor: 'text-brand-cyan bg-brand-cyan/10 border-brand-cyan/30',
-    fileLocation: 'Global: ~/.gemini/config/mcp_config.json | Workspace: .agents/mcp_config.json',
-    config: `{
+    featurePill: 'Agent Custom Tool',
+    paths: {
+      macos: '~/.gemini/config/mcp_config.json or .agents/mcp_config.json',
+      windows: '%USERPROFILE%\\.gemini\\config\\mcp_config.json',
+      linux: '~/.gemini/config/mcp_config.json or .agents/mcp_config.json',
+    },
+    configs: {
+      macos: `{
   "mcpServers": {
     "change-firewall": {
       "command": "npx",
@@ -64,46 +109,102 @@ const MCP_PLATFORMS: McpPlatform[] = [
     }
   }
 }`,
-    summary:
-      'Google Antigravity automatically detects the MCP server during startup. The autonomous agent pairs with Change Firewall to self-correct hallucinated API signatures before presenting code.',
+      windows: `{
+  "mcpServers": {
+    "change-firewall": {
+      "command": "cmd.exe",
+      "args": ["/c", "npx", "-y", "change-firewall", "mcp"],
+      "env": {
+        "FIREWALL_STRICT": "true"
+      }
+    }
+  }
+}`,
+      linux: `{
+  "mcpServers": {
+    "change-firewall": {
+      "command": "npx",
+      "args": ["-y", "change-firewall", "mcp"],
+      "env": {
+        "FIREWALL_STRICT": "true"
+      }
+    }
+  }
+}`,
+    },
+    explanation:
+      'Google Antigravity detects the MCP server on startup. Autonomous pair-programming agents invoke blast-radius calculations before presenting changes.',
     mockup: {
-      title: 'Google Antigravity IDE (Agentic Pair)',
+      platformTitle: 'Google Antigravity IDE',
       agentName: 'Antigravity Assistant',
       prompt: 'Verify downstream caller impact for src/services/auth.ts before committing.',
       toolCalled: 'change-firewall.compute_blast_radius',
-      resultSnippet: 'Traversed reverse AST graph: 5 downstream callers identified. All imports match new TypeScript signature.',
-      status: 'Gate Passed (Exit 0)',
+      executionTime: '24ms',
+      resultSummary: 'Traversed reverse AST graph: 5 downstream callers identified.',
+      details: [
+        'userController.ts (Direct caller: 1 hop)',
+        'sessionMiddleware.ts (Direct caller: 1 hop)',
+        'DashboardView.tsx (Transitive caller: 2 hops)',
+      ],
+      gateStatus: 'SAFETY GATE PASSED',
     },
   },
   {
     id: 'cursor',
     name: 'Cursor',
     vendor: 'Composer',
-    badgeColor: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/30',
-    fileLocation: 'Cursor Settings > Features > MCP > + Add New MCP Server',
-    config: `{
+    featurePill: 'Composer & Chat',
+    paths: {
+      macos: 'Cursor Settings > Features > MCP > + Add New MCP Server',
+      windows: 'Cursor Settings > Features > MCP > + Add New MCP Server',
+      linux: 'Cursor Settings > Features > MCP > + Add New MCP Server',
+    },
+    configs: {
+      macos: `{
   "name": "change-firewall",
   "type": "command",
   "command": "npx -y change-firewall mcp"
 }`,
-    summary:
-      'Cursor displays a green active status dot for Change Firewall. Both Cursor Composer (Cmd+I) and Cursor Chat (Cmd+L) can invoke preflight checks deterministically.',
+      windows: `{
+  "name": "change-firewall",
+  "type": "command",
+  "command": "cmd.exe /c npx -y change-firewall mcp"
+}`,
+      linux: `{
+  "name": "change-firewall",
+  "type": "command",
+  "command": "npx -y change-firewall mcp"
+}`,
+    },
+    explanation:
+      'Cursor displays a green active status dot for Change Firewall. Both Cursor Composer (Cmd+I) and Chat run preflight gates deterministically.',
     mockup: {
-      title: 'Cursor Composer (Cmd+I)',
-      agentName: 'Cursor Agent',
+      platformTitle: 'Cursor Composer (Cmd+I)',
+      agentName: 'Composer Agent',
       prompt: 'Execute preflight check on staged git modifications.',
       toolCalled: 'change-firewall.evaluate_preflight',
-      resultSnippet: 'Preflight check: PASS. 0 high-risk mutations, risk score 18/100 below threshold 60.',
-      status: 'Verified Safe',
+      executionTime: '15ms',
+      resultSummary: 'Preflight check: PASS. 0 high-risk contract mutations detected.',
+      details: [
+        'Risk Score: 18 / 100 (Threshold: 60)',
+        'Zero breaking exports detected in 4 modified files',
+        'Ready for Git staging and review',
+      ],
+      gateStatus: 'VERIFIED SAFE',
     },
   },
   {
     id: 'windsurf',
     name: 'Windsurf',
     vendor: 'Codeium',
-    badgeColor: 'text-purple-400 bg-purple-400/10 border-purple-400/30',
-    fileLocation: '~/.codeium/windsurf/mcp_config.json',
-    config: `{
+    featurePill: 'Cascade Engine',
+    paths: {
+      macos: '~/.codeium/windsurf/mcp_config.json',
+      windows: '%USERPROFILE%\\.codeium\\windsurf\\mcp_config.json',
+      linux: '~/.codeium/windsurf/mcp_config.json',
+    },
+    configs: {
+      macos: `{
   "mcpServers": {
     "change-firewall": {
       "command": "npx",
@@ -111,49 +212,125 @@ const MCP_PLATFORMS: McpPlatform[] = [
     }
   }
 }`,
-    summary:
-      'Windsurf Cascade seamlessly accesses Change Firewall tools to audit multi-file agent workflows, pinpointing collateral damage across unedited files in real time.',
+      windows: `{
+  "mcpServers": {
+    "change-firewall": {
+      "command": "cmd.exe",
+      "args": ["/c", "npx", "-y", "change-firewall", "mcp"]
+    }
+  }
+}`,
+      linux: `{
+  "mcpServers": {
+    "change-firewall": {
+      "command": "npx",
+      "args": ["-y", "change-firewall", "mcp"]
+    }
+  }
+}`,
+    },
+    explanation:
+      'Windsurf Cascade accesses Change Firewall tools to audit multi-file agent workflows, pinpointing collateral damage across unedited files.',
     mockup: {
-      title: 'Windsurf Cascade Agent',
+      platformTitle: 'Windsurf Cascade',
       agentName: 'Cascade',
       prompt: 'Audit collateral damage from renaming getUser to fetchUserProfile.',
       toolCalled: 'change-firewall.explain_file_impact',
-      resultSnippet: 'Detected 3 broken export references in src/routes/api.ts. Self-healing applied.',
-      status: 'Self-Corrected',
+      executionTime: '21ms',
+      resultSummary: 'Detected 3 broken export references in src/routes/api.ts.',
+      details: [
+        'Identified outdated call site: api.ts:line 42',
+        'Generated compatible type alias wrapper',
+        'Self-healing patch applied before save',
+      ],
+      gateStatus: 'SELF-HEALED',
     },
   },
   {
     id: 'copilot',
     name: 'Copilot & Codex',
     vendor: 'Rules / CLI',
-    badgeColor: 'text-blue-400 bg-blue-400/10 border-blue-400/30',
-    fileLocation: '.github/copilot-instructions.md or AGENTS.md',
-    config: `### AI Agent Verification Protocol
+    featurePill: 'Rules Protocol',
+    paths: {
+      macos: '.github/copilot-instructions.md or AGENTS.md',
+      windows: '.github\\copilot-instructions.md or AGENTS.md',
+      linux: '.github/copilot-instructions.md or AGENTS.md',
+    },
+    configs: {
+      macos: `### AI Agent Verification Protocol
 Always verify code changes with Change Firewall before reporting completion:
 1. Run \`npx change-firewall preflight --json\`
 2. If \`readyToMerge\` is false, revert breaking contract mutations immediately.
 3. For file impact, run \`npx change-firewall impact <filepath>\``,
-    summary:
-      'Inject clear deterministic rules into Copilot Workspace, Codex, or Claude Code CLI. Terminal agents run the preflight gate autonomously to ensure 100% bug-free delivery.',
+      windows: `### AI Agent Verification Protocol
+Always verify code changes with Change Firewall before reporting completion:
+1. Run \`npx change-firewall preflight --json\`
+2. If \`readyToMerge\` is false, revert breaking contract mutations immediately.
+3. For file impact, run \`npx change-firewall impact <filepath>\``,
+      linux: `### AI Agent Verification Protocol
+Always verify code changes with Change Firewall before reporting completion:
+1. Run \`npx change-firewall preflight --json\`
+2. If \`readyToMerge\` is false, revert breaking contract mutations immediately.
+3. For file impact, run \`npx change-firewall impact <filepath>\``,
+    },
+    explanation:
+      'Inject deterministic verification rules into Copilot Workspace, Codex, or Claude Code CLI. Terminal agents run the preflight gate autonomously.',
     mockup: {
-      title: 'Autonomous Terminal Agent',
-      agentName: 'Codex / CLI Agent',
+      platformTitle: 'CLI Agent Protocol',
+      agentName: 'CLI Agent',
       prompt: 'Running preflight safety gate before git push...',
       toolCalled: 'npx change-firewall preflight --json',
-      resultSnippet: '{"readyToMerge": true, "riskScore": 14, "blockers": []}',
-      status: 'Exit Code: 0',
+      executionTime: '32ms',
+      resultSummary: '{"readyToMerge": true, "riskScore": 14, "blockers": []}',
+      details: [
+        'Execution mode: Headless JSON-RPC',
+        'Output parsed by agent loop',
+        '0 blocking errors; git commit authorized',
+      ],
+      gateStatus: 'PR GATE PASSED',
     },
+  },
+];
+
+const MCP_TOOLS = [
+  {
+    name: 'analyze_changes',
+    badge: 'AST Diff & Risk Score',
+    description: 'Parses TypeScript source ASTs to detect semantic mutations and calculates a deterministic 0-100 risk score.',
+    params: '--staged, --base <ref>, --json',
+  },
+  {
+    name: 'evaluate_preflight',
+    badge: 'Merge Gate',
+    description: 'Automated merge gate for CI/CD and agents. Exits 0 if safe, exits 1 if blocked by contract breaks.',
+    params: '--max-risk <num>, --json',
+  },
+  {
+    name: 'compute_blast_radius',
+    badge: 'Downstream Callers',
+    description: 'Traverses reverse dependency graph to find all client routes, UI components, and microservices.',
+    params: '<filepath>, --depth <1-3>',
+  },
+  {
+    name: 'explain_file_impact',
+    badge: 'Architectural Churn',
+    description: 'Explains the architectural role of modified files, historic git churn, and sensitive dependency routes.',
+    params: '<filepath>',
   },
 ];
 
 export default function McpShowcase() {
   const [activeId, setActiveId] = useState<string>('claude');
+  const [selectedOs, setSelectedOs] = useState<OsType>('macos');
   const [copied, setCopied] = useState<boolean>(false);
+  const [selectedTool, setSelectedTool] = useState<string | null>(null);
 
   const activePlatform = MCP_PLATFORMS.find((p) => p.id === activeId) || MCP_PLATFORMS[0];
+  const currentConfig = activePlatform.configs[selectedOs] || activePlatform.configs.macos;
+  const currentPath = activePlatform.paths[selectedOs] || activePlatform.paths.macos;
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(activePlatform.config);
+    navigator.clipboard.writeText(currentConfig);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -161,199 +338,241 @@ export default function McpShowcase() {
   return (
     <section id="mcp-hub" className="py-20 relative">
       <div className="w-full max-w-[1550px] mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Title */}
+        {/* Section Header - Clean & Minimal */}
         <div className="text-center max-w-3xl mx-auto mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-purple/10 border border-brand-purple/30 text-brand-purple text-xs font-semibold mb-3">
-            <Sparkles className="w-3.5 h-3.5 text-brand-purple animate-pulse" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-[var(--surface-100)] border border-[var(--border-subtle)] text-xs font-mono text-[var(--text-muted)] mb-3">
             <span>Open Standard Protocol (MCP)</span>
           </div>
-          <h2 className="text-3xl sm:text-5xl font-extrabold text-[var(--text-primary)] tracking-tight">
+
+          <h2 className="text-2xl sm:text-4xl font-bold text-[var(--text-primary)] tracking-tight">
             Universal AI Integration
           </h2>
+
           <p className="mt-3 text-[var(--text-secondary)] text-sm sm:text-base leading-relaxed">
             Configure once. Connect Change Firewall natively to Claude Desktop, Google Antigravity, Cursor, Windsurf, and Copilot with zero custom wrappers.
           </p>
         </div>
 
-        {/* Tab Selector Buttons */}
-        <div className="glass-panel rounded-2xl border border-[var(--border-card)] p-2 shadow-xl mb-6">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-            {MCP_PLATFORMS.map((platform) => {
-              const isSelected = platform.id === activeId;
-              return (
-                <button
-                  key={platform.id}
-                  onClick={() => setActiveId(platform.id)}
-                  className={`px-4 py-3 rounded-xl text-xs font-medium transition-all flex flex-col items-start gap-1 text-left relative overflow-hidden ${
-                    isSelected
-                      ? 'bg-[var(--surface-100)] border border-brand-cyan/50 shadow-md ring-1 ring-brand-cyan/20'
-                      : 'hover:bg-[var(--surface-100)]/60 text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-transparent'
-                  }`}
-                >
-                  <div className="flex items-center justify-between w-full">
-                    <span className={`font-semibold ${isSelected ? 'text-[var(--text-primary)]' : ''}`}>
-                      {platform.name}
-                    </span>
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded border font-mono ${platform.badgeColor}`}>
-                      {platform.vendor}
-                    </span>
-                  </div>
-                  <span className="text-[11px] text-[var(--text-muted)] truncate w-full">
-                    {platform.id === 'claude' && 'Desktop Hammer 🔨'}
-                    {platform.id === 'antigravity' && 'Agent Custom Tool'}
-                    {platform.id === 'cursor' && 'Composer & Chat'}
-                    {platform.id === 'windsurf' && 'Cascade Engine'}
-                    {platform.id === 'copilot' && 'Rules Protocol'}
+        {/* Minimal Platform Selector Tabs */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mb-6">
+          {MCP_PLATFORMS.map((platform) => {
+            const isSelected = platform.id === activeId;
+            return (
+              <button
+                key={platform.id}
+                onClick={() => setActiveId(platform.id)}
+                className={`p-3 rounded-lg text-left transition-all border ${
+                  isSelected
+                    ? 'bg-[var(--surface-100)] border-[var(--text-primary)] text-[var(--text-primary)]'
+                    : 'bg-[var(--surface-main)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-card)]'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--text-muted)]">
+                    {platform.vendor}
                   </span>
                   {isSelected && (
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-brand-cyan to-brand-purple" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--text-primary)]" />
                   )}
-                </button>
-              );
-            })}
-          </div>
+                </div>
+
+                <div className="mt-1">
+                  <span className="text-xs font-semibold block truncate">
+                    {platform.name}
+                  </span>
+                  <span className="text-[10px] text-[var(--text-muted)] font-mono block truncate">
+                    {platform.featurePill}
+                  </span>
+                </div>
+              </button>
+            );
+          })}
         </div>
 
-        {/* Content Viewer for Selected Platform */}
-        <div className="glass-panel rounded-2xl border border-[var(--border-card)] overflow-hidden shadow-2xl">
-          <div className="p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            {/* Left Column: Configuration Code Box */}
-            <div className="lg:col-span-7 flex flex-col gap-4">
-              <div className="flex items-center justify-between">
+        {/* Minimal Showcase Deck */}
+        <div className="bg-[var(--surface-main)] rounded-xl border border-[var(--border-subtle)] p-5 sm:p-7">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* Left Column: Configuration Box */}
+            <div className="lg:col-span-7 flex flex-col gap-3.5">
+              {/* Header with Title & OS Tabs */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[var(--border-subtle)]">
                 <div>
-                  <h3 className="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
-                    <span>{activePlatform.name} Configuration</span>
+                  <h3 className="text-xs font-semibold text-[var(--text-primary)] font-mono uppercase tracking-wider">
+                    {activePlatform.name} Configuration
                   </h3>
-                  <p className="text-xs text-[var(--text-muted)] font-mono mt-0.5">
-                    {activePlatform.fileLocation}
+                  <p className="text-[11px] font-mono text-[var(--text-muted)] mt-0.5 truncate max-w-[320px] sm:max-w-md">
+                    {currentPath}
                   </p>
                 </div>
 
-                <button
-                  onClick={handleCopy}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--surface-100)] border border-[var(--border-subtle)] text-xs text-brand-cyan hover:text-[var(--text-primary)] transition-all hover:scale-105"
-                >
-                  {copied ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-brand-success" />
-                      <span className="text-brand-success font-semibold">Copied!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5" />
-                      <span>Copy Config</span>
-                    </>
-                  )}
-                </button>
+                {/* OS Switcher Pills */}
+                <div className="flex items-center gap-1 p-0.5 rounded-md bg-[var(--surface-100)] border border-[var(--border-subtle)] self-start sm:self-auto">
+                  {(['macos', 'windows', 'linux'] as OsType[]).map((os) => (
+                    <button
+                      key={os}
+                      onClick={() => setSelectedOs(os)}
+                      className={`px-2 py-0.5 rounded text-[10px] font-mono transition-colors uppercase ${
+                        selectedOs === os
+                          ? 'bg-[var(--surface-main)] text-[var(--text-primary)] font-medium'
+                          : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+                      }`}
+                    >
+                      {os === 'macos' ? 'macOS' : os === 'windows' ? 'Win' : 'Linux'}
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              {/* Code Snippet Box */}
-              <div className="code-dark-panel rounded-xl border border-white/10 overflow-hidden shadow-inner">
-                <div className="flex items-center justify-between px-4 py-2 bg-black/40 border-b border-white/[0.06] text-xs font-mono text-slate-400">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-green-500/80" />
-                    <span className="ml-2 text-slate-300 font-medium">
-                      {activePlatform.id === 'copilot' ? 'AGENTS.md' : 'mcp_config.json'}
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-slate-400 uppercase">
-                    {activePlatform.id === 'copilot' ? 'Markdown' : 'JSON'}
-                  </span>
+              {/* Minimal Code Box */}
+              <div className="code-dark-panel rounded-lg border border-[var(--border-subtle)] overflow-hidden">
+                <div className="h-8 px-3 bg-black/40 border-b border-white/[0.06] flex items-center justify-between select-none text-xs font-mono text-slate-400">
+                  <span className="text-[11px]">{activePlatform.id === 'copilot' ? 'AGENTS.md' : 'mcp_config.json'}</span>
+
+                  <button
+                    onClick={handleCopy}
+                    className="flex items-center gap-1 text-[11px] font-mono text-slate-300 hover:text-white transition-colors"
+                    title="Copy configuration"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="w-3 h-3 text-emerald-400" />
+                        <span className="text-emerald-400">Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3 text-slate-400" />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </button>
                 </div>
+
                 <pre className="p-4 font-mono text-xs text-slate-200 overflow-x-auto leading-relaxed">
-                  <code>{activePlatform.config}</code>
+                  <code>{currentConfig}</code>
                 </pre>
               </div>
 
-              <div className="p-4 rounded-xl bg-[var(--surface-50)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] leading-relaxed">
+              {/* Explanation Note */}
+              <div className="p-3 rounded-lg bg-[var(--surface-50)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] leading-relaxed">
                 <strong className="text-[var(--text-primary)]">How it works: </strong>
-                {activePlatform.summary}
+                {activePlatform.explanation}
               </div>
             </div>
 
-            {/* Right Column: Live Simulated Platform UI Mockup */}
-            <div className="lg:col-span-5 flex flex-col gap-4">
-              <div className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider flex items-center gap-1.5">
-                <Bot className="w-3.5 h-3.5 text-brand-cyan" />
-                <span>Simulated {activePlatform.name} Experience</span>
+            {/* Right Column: Clean Platform Simulator */}
+            <div className="lg:col-span-5 flex flex-col gap-3.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-[var(--text-muted)] font-mono">
+                  Simulated {activePlatform.name} Experience
+                </span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[var(--surface-100)] text-[var(--text-muted)] border border-[var(--border-subtle)]">
+                  MCP Active
+                </span>
               </div>
 
-              {/* Platform Mockup Card */}
-              <div className="code-dark-panel rounded-xl border border-white/10 p-5 space-y-4 shadow-xl">
-                {/* Header */}
-                <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-lg bg-brand-cyan/20 border border-brand-cyan/40 flex items-center justify-center">
-                      <Bot className="w-3.5 h-3.5 text-brand-cyan" />
-                    </div>
-                    <span className="text-xs font-bold text-white">
-                      {activePlatform.mockup.title}
-                    </span>
-                  </div>
-                  <span className="flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                    MCP Active
+              {/* Simulated Window */}
+              <div className="code-dark-panel rounded-lg border border-[var(--border-subtle)] p-3.5 space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-white/[0.06]">
+                  <span className="text-xs font-medium text-white font-mono">
+                    {activePlatform.mockup.platformTitle}
+                  </span>
+                  <span className="text-[10px] font-mono text-slate-400">
+                    {activePlatform.mockup.executionTime}
                   </span>
                 </div>
 
-                {/* User Prompt */}
                 <div className="space-y-1">
-                  <div className="text-[10px] font-mono text-slate-400 uppercase">User Input</div>
-                  <div className="text-xs text-slate-200 bg-white/[0.04] p-2.5 rounded-lg border border-white/[0.05]">
+                  <div className="text-[10px] font-mono text-slate-400">User Input</div>
+                  <div className="text-xs text-slate-200 bg-white/[0.02] p-2.5 rounded border border-white/[0.05]">
                     &ldquo;{activePlatform.mockup.prompt}&rdquo;
                   </div>
                 </div>
 
-                {/* Autonomous Tool Call */}
-                <div className="space-y-1.5">
-                  <div className="text-[10px] font-mono text-brand-cyan flex items-center gap-1">
-                    <Cpu className="w-3 h-3" />
+                <div className="space-y-1">
+                  <div className="text-[10px] font-mono text-slate-400 flex items-center gap-1">
+                    <Terminal className="w-3 h-3" />
                     <span>Autonomous Tool Invocation</span>
                   </div>
-                  <div className="bg-brand-cyan/10 border border-brand-cyan/30 rounded-lg p-2.5 text-xs font-mono text-cyan-200 flex items-center justify-between">
-                    <span>⚡ {activePlatform.mockup.toolCalled}</span>
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <div className="bg-white/[0.04] border border-white/[0.08] rounded p-2 text-xs font-mono text-slate-200 flex items-center justify-between">
+                    <span>{activePlatform.mockup.toolCalled}</span>
+                    <CheckCircle2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                   </div>
                 </div>
 
-                {/* Tool Response */}
                 <div className="space-y-1">
-                  <div className="text-[10px] font-mono text-slate-400 uppercase">Deterministic Feedback</div>
-                  <div className="text-xs text-slate-300 font-mono bg-black/40 p-2.5 rounded-lg border border-white/[0.05] leading-relaxed">
-                    {activePlatform.mockup.resultSnippet}
+                  <div className="text-[10px] font-mono text-slate-400">Deterministic Feedback</div>
+                  <div className="text-xs text-slate-300 font-mono bg-black/40 p-2.5 rounded border border-white/[0.05] space-y-1">
+                    <p className="text-white font-medium">{activePlatform.mockup.resultSummary}</p>
+                    <ul className="text-[11px] text-slate-400 space-y-0.5">
+                      {activePlatform.mockup.details.map((d, idx) => (
+                        <li key={idx} className="flex items-center gap-1.5">
+                          <span className="w-1 h-1 rounded-full bg-slate-500" />
+                          <span>{d}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
 
-                {/* Gate Status Footer */}
-                <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between text-xs">
-                  <span className="text-slate-400 text-[11px]">Safety Gate Result:</span>
-                  <span className="font-semibold text-emerald-400 font-mono text-[11px] bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                    {activePlatform.mockup.status}
+                <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-mono">
+                  <span className="text-slate-400">Safety Gate Result:</span>
+                  <span className="text-slate-200 font-semibold px-2 py-0.5 rounded bg-white/[0.06] border border-white/10">
+                    {activePlatform.mockup.gateStatus}
                   </span>
                 </div>
               </div>
 
-              {/* 4 Exposed Tools Pills */}
-              <div className="p-3.5 rounded-xl bg-[var(--surface-50)] border border-[var(--border-subtle)] space-y-2">
-                <span className="text-[11px] font-bold text-[var(--text-primary)] uppercase tracking-wider block">
-                  Exposed MCP Toolset:
-                </span>
-                <div className="grid grid-cols-2 gap-2 text-[11px]">
-                  <div className="p-1.5 rounded-lg bg-[var(--surface-100)] border border-[var(--border-subtle)] font-mono text-brand-cyan truncate">
-                    analyze_changes
-                  </div>
-                  <div className="p-1.5 rounded-lg bg-[var(--surface-100)] border border-[var(--border-subtle)] font-mono text-brand-danger truncate">
-                    evaluate_preflight
-                  </div>
-                  <div className="p-1.5 rounded-lg bg-[var(--surface-100)] border border-[var(--border-subtle)] font-mono text-brand-purple truncate">
-                    compute_blast_radius
-                  </div>
-                  <div className="p-1.5 rounded-lg bg-[var(--surface-100)] border border-[var(--border-subtle)] font-mono text-amber-500 truncate">
-                    explain_file_impact
-                  </div>
+              {/* Minimal 4 Tools Shelf */}
+              <div className="p-3 rounded-lg bg-[var(--surface-50)] border border-[var(--border-subtle)] space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-[var(--text-primary)] font-mono">
+                    Exposed MCP Tools:
+                  </span>
+                  <span className="text-[10px] text-[var(--text-muted)] font-mono">
+                    Click for details
+                  </span>
                 </div>
+
+                <div className="grid grid-cols-2 gap-1.5">
+                  {MCP_TOOLS.map((tool) => (
+                    <button
+                      key={tool.name}
+                      onClick={() => setSelectedTool(selectedTool === tool.name ? null : tool.name)}
+                      className={`p-2 rounded text-left border transition-all ${
+                        selectedTool === tool.name
+                          ? 'bg-[var(--surface-100)] border-[var(--text-primary)] text-[var(--text-primary)]'
+                          : 'bg-[var(--surface-main)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                      }`}
+                    >
+                      <span className="font-mono text-[11px] font-medium block truncate">
+                        {tool.name}
+                      </span>
+                      <span className="text-[10px] text-[var(--text-muted)] block truncate">
+                        {tool.badge}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                {selectedTool && (
+                  <div className="mt-2 p-2.5 rounded bg-[var(--surface-100)] border border-[var(--border-subtle)] text-xs font-mono space-y-1">
+                    {(() => {
+                      const t = MCP_TOOLS.find((item) => item.name === selectedTool);
+                      if (!t) return null;
+                      return (
+                        <>
+                          <div className="text-[var(--text-primary)] font-semibold flex items-center justify-between text-[11px]">
+                            <span>{t.name}</span>
+                            <span className="text-[10px] text-[var(--text-muted)]">{t.params}</span>
+                          </div>
+                          <p className="text-[11px] text-[var(--text-secondary)] font-sans leading-relaxed">
+                            {t.description}
+                          </p>
+                        </>
+                      );
+                    })()}
+                  </div>
+                )}
               </div>
             </div>
           </div>

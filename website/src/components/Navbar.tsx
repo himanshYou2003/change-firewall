@@ -49,7 +49,7 @@ export default function Navbar() {
       <div className="w-full px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand Logo with Official Fire Shield Icon */}
         <Link href="/" className="flex items-center gap-3 group shrink-0">
-          <div className="relative w-9 h-9 rounded-xl overflow-hidden shadow-md shadow-orange-500/20 border border-orange-500/30 group-hover:scale-105 transition-transform bg-black flex items-center justify-center">
+          <div className="relative w-9 h-9 rounded-xl overflow-hidden border border-[var(--border-subtle)] group-hover:border-[var(--border-card)] transition-colors bg-black flex items-center justify-center">
             <Image
               src="/logo.png"
               alt="Change Firewall Logo"
@@ -63,7 +63,7 @@ export default function Navbar() {
             <span className="font-extrabold text-base sm:text-lg tracking-tight text-[var(--text-primary)]">
               Change Firewall
             </span>
-            <span className="ml-2 text-[10px] sm:text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/30">
+            <span className="ml-2 text-[10px] sm:text-[11px] font-mono font-medium px-2 py-0.5 rounded-md bg-[var(--surface-100)] text-[var(--text-muted)] border border-[var(--border-subtle)]">
               v0.1.4
             </span>
           </div>
@@ -95,9 +95,9 @@ export default function Navbar() {
           </a>
           <Link
             href="/docs"
-            className={`flex items-center gap-1.5 font-semibold text-xs sm:text-sm px-3 py-1.5 rounded-xl transition-all ${
+            className={`flex items-center gap-1.5 font-semibold text-xs sm:text-sm px-3 py-1.5 rounded-lg transition-all ${
               isDocs
-                ? 'bg-brand-cyan/15 text-brand-cyan border border-brand-cyan/30 shadow-sm'
+                ? 'bg-[var(--surface-100)] text-[var(--text-primary)] border border-[var(--border-subtle)]'
                 : 'hover:text-[var(--text-primary)]'
             }`}
           >
@@ -153,7 +153,7 @@ export default function Navbar() {
             href="https://www.npmjs.com/package/change-firewall"
             target="_blank"
             rel="noreferrer"
-            className="hidden sm:inline-flex text-xs font-semibold px-3 py-1.5 rounded-xl bg-brand-cyan/10 hover:bg-brand-cyan/20 text-brand-cyan border border-brand-cyan/30 transition-all shadow-sm"
+            className="hidden sm:inline-flex text-xs font-semibold px-3 py-1.5 rounded-lg bg-[var(--surface-100)] hover:bg-[var(--surface-200)] text-[var(--text-primary)] border border-[var(--border-subtle)] transition-all"
           >
             NPM Package
           </a>

@@ -103,14 +103,8 @@ export default function BlastVisualizer() {
   return (
     <div
       ref={containerRef}
-      className="w-full glass-panel rounded-2xl p-6 sm:p-8 border border-[var(--border-card)] shadow-xl relative overflow-hidden text-left"
+      className="w-full glass-panel rounded-2xl p-6 sm:p-8 border border-[var(--border-card)] shadow-sm relative overflow-hidden text-left"
     >
-      {/* Decorative ambient radial glow */}
-      <div
-        className={`absolute -right-20 -top-20 w-80 h-80 rounded-full blur-3xl pointer-events-none transition-all duration-700 ${
-          mode === 'firewall' ? 'bg-brand-danger/10' : 'bg-brand-cyan/10'
-        }`}
-      />
 
       {/* Header & Mode Switcher */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[var(--border-subtle)]">

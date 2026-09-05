@@ -1,13 +1,15 @@
-# Change Firewall ⚡
+<div align="center">
+  <img src="./assets/icon.png" alt="Change Firewall Logo" width="120" height="120" />
+  <h1>Change Firewall ⚡</h1>
+  <p><strong>Your AI wrote the code. Change Firewall tells you what it actually broke.</strong></p>
 
-[![npm version](https://img.shields.io/npm/v/change-firewall.svg?style=flat-square&color=3b82f6)](https://www.npmjs.com/package/change-firewall)
-[![npm downloads](https://img.shields.io/npm/dm/change-firewall.svg?style=flat-square&color=10b981)](https://www.npmjs.com/package/change-firewall)
-[![license](https://img.shields.io/npm/l/change-firewall.svg?style=flat-square)](https://github.com/himanshYou2003/change-firewall/blob/main/LICENSE)
-[![node version](https://img.shields.io/node/v/change-firewall.svg?style=flat-square)](https://nodejs.org)
+  [![npm version](https://img.shields.io/npm/v/change-firewall.svg?style=flat-square&color=3b82f6)](https://www.npmjs.com/package/change-firewall)
+  [![npm downloads](https://img.shields.io/npm/dm/change-firewall.svg?style=flat-square&color=10b981)](https://www.npmjs.com/package/change-firewall)
+  [![license](https://img.shields.io/npm/l/change-firewall.svg?style=flat-square)](https://github.com/himanshYou2003/change-firewall/blob/main/LICENSE)
+  [![node version](https://img.shields.io/node/v/change-firewall.svg?style=flat-square)](https://nodejs.org)
+</div>
 
-> **"Your AI wrote the code. Change Firewall tells you what it actually broke."**
-
-A local-first developer tool, CLI, and TypeScript engine that translates raw Git diffs into **behavior-aware change reports, downstream blast-radius mapping, and deterministic risk scores (0–100)**.
+A local-first developer tool, CLI, and TypeScript engine that translates raw Git diffs into **behavior-aware change reports, downstream blast-radius mapping, and deterministic risk scores (0–100)**. Native Model Context Protocol (MCP) server for Claude, Antigravity, Cursor, and Windsurf.
 
 ---
 

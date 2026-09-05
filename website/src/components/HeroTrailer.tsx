@@ -40,11 +40,11 @@ export default function HeroTrailer() {
     <section id="simulator" className="relative pt-10 pb-20 sm:pt-16 sm:pb-28 overflow-hidden">
       <div className="w-full max-w-[1550px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
         {/* Release Pill Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--surface-100)] border border-brand-cyan/30 text-brand-cyan text-xs font-medium mb-6 shadow-sm">
-          <Sparkles className="w-3.5 h-3.5 text-brand-cyan animate-pulse" />
-          <span className="font-semibold">Change Firewall v0.1.4</span>
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--surface-100)] border border-[var(--border-subtle)] text-[var(--text-secondary)] text-xs font-medium mb-6">
+          <Terminal className="w-3.5 h-3.5 text-brand-cyan" />
+          <span className="font-semibold text-[var(--text-primary)]">Change Firewall v0.1.4</span>
           <span className="text-[var(--text-muted)]">•</span>
-          <span className="text-[var(--text-secondary)]">Native Model Context Protocol (MCP)</span>
+          <span>Native MCP Engine</span>
           <span className="text-[var(--text-muted)]">•</span>
           <span className="text-[var(--text-muted)]">100% Offline AST</span>
         </div>
@@ -90,10 +90,10 @@ export default function HeroTrailer() {
           {/* Primary CTA: View Docs */}
           <Link
             href="/docs"
-            className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-gradient-to-r from-brand-cyan to-brand-blue hover:opacity-95 text-slate-950 font-bold text-xs sm:text-sm shadow-md shadow-brand-cyan/20 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5"
+            className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-[var(--text-primary)] text-[var(--bg-main)] hover:opacity-90 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all"
           >
             <BookOpen className="w-4 h-4" />
-            <span>Docs & Tree Architecture</span>
+            <span>Documentation</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
 

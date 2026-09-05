@@ -61,25 +61,23 @@ export default function SuperpowerGrid() {
             return (
               <div
                 key={idx}
-                className="glass-panel rounded-2xl p-7 sm:p-8 border border-[var(--border-card)] hover:border-brand-cyan/40 transition-all duration-300 hover:-translate-y-1 relative group overflow-hidden shadow-sm"
+                className="bg-[var(--surface-main)] rounded-xl p-6 sm:p-7 border border-[var(--border-subtle)] hover:border-[var(--border-card)] transition-all relative group overflow-hidden shadow-sm"
               >
                 <div className="flex items-start justify-between">
-                  <div
-                    className={`w-12 h-12 rounded-xl bg-gradient-to-br ${sp.color} border p-3 flex items-center justify-center shadow-md`}
-                  >
-                    <Icon className="w-6 h-6" />
+                  <div className="w-10 h-10 rounded-lg bg-[var(--surface-100)] border border-[var(--border-subtle)] text-[var(--text-primary)] flex items-center justify-center p-2.5">
+                    <Icon className="w-5 h-5" />
                   </div>
-                  <span className="text-[11px] font-mono px-2.5 py-1 rounded-full bg-[var(--surface-100)] border border-[var(--border-subtle)] text-[var(--text-muted)]">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[var(--surface-100)] border border-[var(--border-subtle)] text-[var(--text-muted)]">
                     {sp.tag}
                   </span>
                 </div>
 
-                <h3 className="text-xl font-bold text-[var(--text-primary)] mt-6 group-hover:text-brand-cyan transition-colors flex items-center gap-1.5">
+                <h3 className="text-lg font-bold text-[var(--text-primary)] mt-5 flex items-center justify-between">
                   <span>{sp.title}</span>
-                  <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity text-brand-cyan" />
+                  <ArrowUpRight className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--text-primary)] transition-colors" />
                 </h3>
 
-                <p className="mt-3 text-[var(--text-secondary)] text-sm leading-relaxed">
+                <p className="mt-2.5 text-[var(--text-secondary)] text-sm leading-relaxed">
                   {sp.description}
                 </p>
               </div>
