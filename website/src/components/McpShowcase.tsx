@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   Zap,
   Info,
+  Code2,
 } from 'lucide-react';
 
 type OsType = 'macos' | 'windows' | 'linux';
@@ -319,6 +320,84 @@ const MCP_TOOLS = [
   },
 ];
 
+function renderJsonValue(val: string) {
+  const tokens = val.split(/(".*?"|[{}\[\],]|true|false|\d+)/g);
+  return tokens.map((token, i) => {
+    if (!token) return null;
+    if (token.startsWith('"') && token.endsWith('"')) {
+      return (
+        <span key={i} className="text-emerald-300">
+          {token}
+        </span>
+      );
+    }
+    if (['{', '}', '[', ']', ','].includes(token)) {
+      return (
+        <span key={i} className="text-slate-400 font-bold">
+          {token}
+        </span>
+      );
+    }
+    if (token === 'true' || token === 'false') {
+      return (
+        <span key={i} className="text-amber-300 font-semibold">
+          {token}
+        </span>
+      );
+    }
+    return <span key={i} className="text-slate-200">{token}</span>;
+  });
+}
+
+function renderJsonLine(line: string) {
+  const keyValMatch = line.match(/^(\s*)("[\w\.-]+")\s*:\s*(.*)$/);
+  if (keyValMatch) {
+    const [, indent, key, rest] = keyValMatch;
+    return (
+      <>
+        {indent}
+        <span className="text-sky-300 font-medium">{key}</span>
+        <span className="text-slate-400">: </span>
+        {renderJsonValue(rest)}
+      </>
+    );
+  }
+  return renderJsonValue(line);
+}
+
+function renderMarkdownLine(line: string) {
+  if (line.startsWith('###')) {
+    return <span className="text-purple-300 font-semibold">{line}</span>;
+  }
+  if (line.match(/^\d+\./)) {
+    return (
+      <span>
+        <span className="text-sky-300 font-bold">{line.slice(0, 3)}</span>
+        <span className="text-slate-200">{line.slice(3)}</span>
+      </span>
+    );
+  }
+  return <span className="text-slate-200">{line}</span>;
+}
+
+function renderSyntaxHighlighted(code: string, isJson: boolean) {
+  const lines = code.trim().split('\n');
+  return (
+    <div className="font-mono text-xs leading-relaxed py-3 overflow-x-auto select-text">
+      {lines.map((line, lineIndex) => (
+        <div key={lineIndex} className="flex hover:bg-white/[0.03] px-3.5 py-0.5 group">
+          <span className="w-6 shrink-0 text-right pr-3 select-none text-slate-500/70 font-mono text-[11px] group-hover:text-slate-400 border-r border-slate-800/80 mr-3">
+            {lineIndex + 1}
+          </span>
+          <span className="flex-1 whitespace-pre">
+            {isJson ? renderJsonLine(line) : renderMarkdownLine(line)}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function McpShowcase() {
   const [activeId, setActiveId] = useState<string>('claude');
   const [selectedOs, setSelectedOs] = useState<OsType>('macos');
@@ -423,14 +502,24 @@ export default function McpShowcase() {
                 </div>
               </div>
 
-              {/* Minimal Code Box */}
-              <div className="code-dark-panel rounded-lg border border-[var(--border-subtle)] overflow-hidden">
-                <div className="h-8 px-3 bg-black/40 border-b border-white/[0.06] flex items-center justify-between select-none text-xs font-mono text-slate-400">
-                  <span className="text-[11px]">{activePlatform.id === 'copilot' ? 'AGENTS.md' : 'mcp_config.json'}</span>
+              {/* Distinct Code Box with High-Contrast Background & Syntax Highlighting */}
+              <div className="code-editor-box rounded-xl overflow-hidden shadow-sm">
+                <div className="code-editor-header h-9 px-3.5 flex items-center justify-between select-none text-xs font-mono">
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 mr-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/60" />
+                    </div>
+                    <span className="text-[11px] text-slate-300 font-semibold flex items-center gap-1.5">
+                      <Code2 className="w-3.5 h-3.5 text-sky-400" />
+                      <span>{activePlatform.id === 'copilot' ? 'AGENTS.md' : 'mcp_config.json'}</span>
+                    </span>
+                  </div>
 
                   <button
                     onClick={handleCopy}
-                    className="flex items-center gap-1 text-[11px] font-mono text-slate-300 hover:text-white transition-colors"
+                    className="flex items-center gap-1.5 text-[11px] font-mono px-2.5 py-1 rounded bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 transition-colors"
                     title="Copy configuration"
                   >
                     {copied ? (
@@ -447,9 +536,7 @@ export default function McpShowcase() {
                   </button>
                 </div>
 
-                <pre className="p-4 font-mono text-xs text-slate-200 overflow-x-auto leading-relaxed">
-                  <code>{currentConfig}</code>
-                </pre>
+                {renderSyntaxHighlighted(currentConfig, activePlatform.id !== 'copilot')}
               </div>
 
               {/* Explanation Note */}
@@ -471,11 +558,18 @@ export default function McpShowcase() {
               </div>
 
               {/* Simulated Window */}
-              <div className="code-dark-panel rounded-lg border border-[var(--border-subtle)] p-3.5 space-y-3">
-                <div className="flex items-center justify-between pb-2 border-b border-white/[0.06]">
-                  <span className="text-xs font-medium text-white font-mono">
-                    {activePlatform.mockup.platformTitle}
-                  </span>
+              <div className="code-editor-box rounded-xl p-3.5 space-y-3 shadow-sm">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-700/60">
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 mr-1">
+                      <span className="w-2 h-2 rounded-full bg-slate-600" />
+                      <span className="w-2 h-2 rounded-full bg-slate-600" />
+                      <span className="w-2 h-2 rounded-full bg-slate-600" />
+                    </div>
+                    <span className="text-xs font-medium text-white font-mono">
+                      {activePlatform.mockup.platformTitle}
+                    </span>
+                  </div>
                   <span className="text-[10px] font-mono text-slate-400">
                     {activePlatform.mockup.executionTime}
                   </span>

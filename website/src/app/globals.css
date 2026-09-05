@@ -124,12 +124,30 @@ body {
   background: var(--surface-200);
 }
 
-/* Code block highlight */
+/* Code block highlight: distinct deep background that doesn't merge with page or card backgrounds */
 .code-dark-panel {
-  background: #090d16;
+  background: #020409 !important;
   color: #f1f5f9;
 }
 .light .code-dark-panel {
-  background: #0f172a;
+  background: #0f172a !important;
   color: #f8fafc;
+}
+
+.code-editor-box {
+  background: #020409;
+  border: 1px solid #334155;
+}
+.light .code-editor-box {
+  background: #0f172a;
+  border: 1px solid #334155;
+}
+
+.code-editor-header {
+  background: #0b101b;
+  border-bottom: 1px solid #1e293b;
+}
+.light .code-editor-header {
+  background: #1e293b;
+  border-bottom: 1px solid #334155;
 }
