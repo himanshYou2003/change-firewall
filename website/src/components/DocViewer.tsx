@@ -47,7 +47,7 @@ export default function DocViewer() {
 
   const selectFile = (fileId: string) => {
     setSelectedId(fileId);
-    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
       setSidebarOpen(false);
     }
   };
@@ -64,9 +64,9 @@ export default function DocViewer() {
     return initial;
   });
 
-  // Auto-close navigator on mobile screens initially
+  // Auto-close navigator on mobile & tablet portrait screens initially
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
       setSidebarOpen(false);
     }
   }, []);
@@ -268,17 +268,17 @@ export default function DocViewer() {
 
         {/* Xcode Main Workspace Body - Edge to Edge */}
         <div className="relative flex-1 flex overflow-hidden">
-          {/* Mobile Backdrop Overlay */}
+          {/* Mobile & Tablet Portrait Backdrop Overlay */}
           {sidebarOpen && (
             <div
-              className="absolute inset-0 bg-black/40 z-30 md:hidden backdrop-blur-xs"
+              className="absolute inset-0 bg-black/40 z-30 lg:hidden backdrop-blur-xs"
               onClick={() => setSidebarOpen(false)}
             />
           )}
 
           {/* Left Sidebar: Xcode / VS Code Style Project Explorer touching the left edge */}
           {sidebarOpen && (
-            <aside className="absolute md:static inset-y-0 left-0 z-40 w-72 sm:w-80 h-full border-r border-[var(--border-subtle)] bg-[var(--surface-50)] flex flex-col shrink-0 select-none overflow-hidden shadow-2xl md:shadow-none">
+            <aside className="absolute lg:static inset-y-0 left-0 z-40 w-72 sm:w-80 h-full border-r border-[var(--border-subtle)] bg-[var(--surface-50)] flex flex-col shrink-0 select-none overflow-hidden shadow-2xl lg:shadow-none">
               {/* Explorer Header */}
               <div className="p-3 border-b border-[var(--border-subtle)] flex items-center justify-between">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)] font-mono">
@@ -301,7 +301,7 @@ export default function DocViewer() {
                   </button>
                   <button
                     onClick={() => setSidebarOpen(false)}
-                    className="md:hidden ml-1 p-1 rounded hover:bg-[var(--surface-200)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                    className="lg:hidden ml-1 p-1 rounded hover:bg-[var(--surface-200)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                     aria-label="Close Project Navigator"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -465,7 +465,7 @@ export default function DocViewer() {
             <div className="px-3 sm:px-5 py-2 border-b border-[var(--border-subtle)] bg-[var(--surface-50)] text-xs font-mono text-[var(--text-muted)] flex items-center gap-2 shrink-0 overflow-x-auto whitespace-nowrap">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="md:hidden mr-1 p-1 rounded hover:bg-[var(--surface-200)] text-brand-cyan shrink-0"
+                className="lg:hidden mr-1 p-1 rounded hover:bg-[var(--surface-200)] text-brand-cyan shrink-0"
                 title="Open Project Navigator"
                 aria-label="Open Project Navigator"
               >
