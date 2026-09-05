@@ -52,10 +52,12 @@ export default function HeroTrailer() {
         {/* Hero Title with killer modern typography */}
         <h1
           ref={titleRef}
-          className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-[var(--text-primary)] max-w-5xl leading-[1.12]"
+          className="font-black tracking-tight text-[var(--text-primary)] max-w-6xl leading-[1.08]"
         >
-          Your AI wrote the code. <br />
-          <span className="bg-gradient-to-r from-orange-500 via-amber-500 to-orange-400 bg-clip-text text-transparent font-black">
+          <span className="block text-2xl sm:text-4xl md:text-5xl lg:text-[3.25rem] font-extrabold text-[var(--text-primary)] mb-2 sm:mb-3">
+            Your AI wrote the code.
+          </span>
+          <span className="block text-[1.65rem] sm:text-4xl md:text-5xl lg:text-[4.25rem] xl:text-[5rem] font-black text-[#ff5c26] dark:text-[#ff6e38] whitespace-nowrap tracking-tight leading-[1.05]">
             We tell you what it broke.
           </span>
         </h1>
