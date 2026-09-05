@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     title: 'Change Firewall ⚡ Your AI wrote the code. We tell you what it broke.',
     description:
       'Deterministic AST behavioral diffing, caller blast radius mapping, and native Model Context Protocol (MCP) server for modern AI engineering.',
-    url: 'https://change-firewall.vercel.app',
+    url: 'https://changefirewall.vercel.app',
     siteName: 'Change Firewall',
     type: 'website',
   },

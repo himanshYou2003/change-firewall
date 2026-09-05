@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
@@ -7,6 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 const binPath = path.join(projectRoot, 'bin', 'change-firewall.js');
+const pkg = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'));
 
 console.log('='.repeat(70));
 console.log('  CHANGE FIREWALL — 100% END-TO-END MCP PROTOCOL PROOF');
@@ -37,8 +39,8 @@ async function runProof() {
   // Server info verification
   const serverVersion = client.getServerVersion();
   console.log(`      ✓ Server identified as: "${serverVersion?.name}" version "${serverVersion?.version}"`);
-  if (serverVersion?.name !== 'change-firewall' || serverVersion?.version !== '0.1.4') {
-    throw new Error(`Unexpected server version: ${JSON.stringify(serverVersion)}`);
+  if (serverVersion?.name !== 'change-firewall' || serverVersion?.version !== pkg.version) {
+    throw new Error(`Unexpected server version: ${JSON.stringify(serverVersion)} (expected: ${pkg.version})`);
   }
 
   // Tools discovery

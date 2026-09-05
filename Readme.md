@@ -3,6 +3,11 @@
   <h1>Change Firewall ⚡</h1>
   <p><strong>Your AI wrote the code. Change Firewall tells you what it actually broke.</strong></p>
 
+  <p>
+    <a href="https://changefirewall.vercel.app/"><strong>🌐 Live Web App & Simulator: changefirewall.vercel.app</strong></a>
+  </p>
+
+  [![Website](https://img.shields.io/badge/Website-changefirewall.vercel.app-06b6d4?style=flat-square&logo=vercel)](https://changefirewall.vercel.app/)
   [![npm version](https://img.shields.io/npm/v/change-firewall.svg?style=flat-square&color=3b82f6)](https://www.npmjs.com/package/change-firewall)
   [![npm downloads](https://img.shields.io/npm/dm/change-firewall.svg?style=flat-square&color=10b981)](https://www.npmjs.com/package/change-firewall)
   [![license](https://img.shields.io/npm/l/change-firewall.svg?style=flat-square)](https://github.com/himanshYou2003/change-firewall/blob/main/LICENSE)
@@ -644,6 +649,15 @@ $$\text{Finding} + \text{Evidence} + \text{Blast Radius} + \text{Confidence} + \
 - 🚫 **Zero Code Uploads** — Your source code never leaves your computer.
 - 🚫 **Zero External AI Hallucinations** — Analysis is backed by real compiler syntax trees and Git history.
 - 💻 **Self-Contained** — Dashboard is served locally at `http://localhost:4783` with zero external dependencies.
+
+---
+
+## 🌐 Links & Resources
+
+- **Official Web App & Visual Simulator**: [changefirewall.vercel.app](https://changefirewall.vercel.app/)
+- **Interactive Documentation & IDE**: [changefirewall.vercel.app/docs](https://changefirewall.vercel.app/docs)
+- **NPM Package**: [npmjs.com/package/change-firewall](https://www.npmjs.com/package/change-firewall)
+- **GitHub Repository**: [github.com/himanshYou2003/change-firewall](https://github.com/himanshYou2003/change-firewall)
 
 ---
 

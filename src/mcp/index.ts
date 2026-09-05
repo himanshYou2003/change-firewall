@@ -22,7 +22,7 @@ export interface McpServerOptions {
 export function createMcpServer(options: McpServerOptions = {}): McpServer {
   const server = new McpServer({
     name: options.name || 'change-firewall',
-    version: options.version || '0.1.4',
+    version: options.version || '0.1.5',
   });
 
   // Tool 1: analyze_changes
