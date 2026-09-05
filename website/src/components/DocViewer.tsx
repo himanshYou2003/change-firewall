@@ -28,6 +28,7 @@ import {
   Moon,
   ExternalLink,
   Code2,
+  X,
 } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 
@@ -43,6 +44,13 @@ export default function DocViewer() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [copied, setCopied] = useState<boolean>(false);
   const [copiedPath, setCopiedPath] = useState<boolean>(false);
+
+  const selectFile = (fileId: string) => {
+    setSelectedId(fileId);
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setSidebarOpen(false);
+    }
+  };
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(true);
   const [showLineNumbers, setShowLineNumbers] = useState<boolean>(true);
@@ -55,6 +63,13 @@ export default function DocViewer() {
     });
     return initial;
   });
+
+  // Auto-close navigator on mobile screens initially
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setSidebarOpen(false);
+    }
+  }, []);
 
   // Handle ESC key to exit fullscreen
   useEffect(() => {
@@ -252,17 +267,25 @@ export default function DocViewer() {
         </div>
 
         {/* Xcode Main Workspace Body - Edge to Edge */}
-        <div className="flex-1 flex overflow-hidden">
+        <div className="relative flex-1 flex overflow-hidden">
+          {/* Mobile Backdrop Overlay */}
+          {sidebarOpen && (
+            <div
+              className="absolute inset-0 bg-black/40 z-30 md:hidden backdrop-blur-xs"
+              onClick={() => setSidebarOpen(false)}
+            />
+          )}
+
           {/* Left Sidebar: Xcode / VS Code Style Project Explorer touching the left edge */}
           {sidebarOpen && (
-            <aside className="w-72 sm:w-80 border-r border-[var(--border-subtle)] bg-[var(--surface-50)] flex flex-col shrink-0 select-none overflow-hidden">
+            <aside className="absolute md:static inset-y-0 left-0 z-40 w-72 sm:w-80 h-full border-r border-[var(--border-subtle)] bg-[var(--surface-50)] flex flex-col shrink-0 select-none overflow-hidden shadow-2xl md:shadow-none">
               {/* Explorer Header */}
               <div className="p-3 border-b border-[var(--border-subtle)] flex items-center justify-between">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)] font-mono">
                   Project Navigator
                 </span>
 
-                <div className="flex items-center gap-1 text-[10px] font-mono text-[var(--text-muted)]">
+                <div className="flex items-center gap-1.5 text-[10px] font-mono text-[var(--text-muted)]">
                   <button
                     onClick={expandAll}
                     className="hover:text-[var(--text-primary)] px-1 py-0.5 rounded hover:bg-[var(--surface-200)]"
@@ -275,6 +298,13 @@ export default function DocViewer() {
                     className="hover:text-[var(--text-primary)] px-1 py-0.5 rounded hover:bg-[var(--surface-200)]"
                   >
                     -All
+                  </button>
+                  <button
+                    onClick={() => setSidebarOpen(false)}
+                    className="md:hidden ml-1 p-1 rounded hover:bg-[var(--surface-200)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                    aria-label="Close Project Navigator"
+                  >
+                    <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
@@ -344,7 +374,7 @@ export default function DocViewer() {
                             return (
                               <button
                                 key={file.id}
-                                onClick={() => setSelectedId(file.id)}
+                                onClick={() => selectFile(file.id)}
                                 className={`w-full text-left px-2 py-1 rounded text-xs transition-all flex items-center justify-between group ${
                                   isSelected
                                     ? 'bg-brand-cyan/15 text-brand-cyan font-medium shadow-sm border-l-2 border-brand-cyan'
@@ -432,7 +462,15 @@ export default function DocViewer() {
             </div>
 
             {/* Xcode Breadcrumbs Ribbon */}
-            <div className="px-5 py-2 border-b border-[var(--border-subtle)] bg-[var(--surface-50)] text-xs font-mono text-[var(--text-muted)] flex items-center gap-2 shrink-0">
+            <div className="px-3 sm:px-5 py-2 border-b border-[var(--border-subtle)] bg-[var(--surface-50)] text-xs font-mono text-[var(--text-muted)] flex items-center gap-2 shrink-0 overflow-x-auto whitespace-nowrap">
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="md:hidden mr-1 p-1 rounded hover:bg-[var(--surface-200)] text-brand-cyan shrink-0"
+                title="Open Project Navigator"
+                aria-label="Open Project Navigator"
+              >
+                <FolderOpen className="w-3.5 h-3.5" />
+              </button>
               <span className="text-brand-cyan">Change-Firewall</span>
               <span>›</span>
               <span>docs</span>
@@ -441,7 +479,7 @@ export default function DocViewer() {
               <span>›</span>
               <span className="text-[var(--text-primary)] font-semibold">{activeDoc.fileName}</span>
 
-              <div className="ml-auto flex items-center gap-1 text-[11px]">
+              <div className="ml-auto flex items-center gap-1 text-[11px] shrink-0 pl-2">
                 <Clock className="w-3 h-3 text-[var(--text-muted)]" />
                 <span>{activeDoc.readingTime}</span>
               </div>
@@ -461,7 +499,7 @@ export default function DocViewer() {
               )}
 
               {/* Article View */}
-              <article className="flex-1 p-6 sm:p-10 max-w-4xl">
+              <article className="flex-1 p-4 sm:p-8 md:p-10 max-w-4xl overflow-x-hidden">
                 {/* Article Header */}
                 <div className="border-b border-[var(--border-subtle)] pb-6 mb-8">
                   <div className="flex flex-wrap items-center gap-2 mb-3">

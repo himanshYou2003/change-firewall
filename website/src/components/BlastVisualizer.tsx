@@ -103,21 +103,21 @@ export default function BlastVisualizer() {
   return (
     <div
       ref={containerRef}
-      className="w-full glass-panel rounded-2xl p-6 sm:p-8 border border-[var(--border-card)] shadow-sm relative overflow-hidden text-left"
+      className="w-full glass-panel rounded-2xl p-4 sm:p-7 md:p-8 border border-[var(--border-card)] shadow-sm relative overflow-hidden text-left"
     >
 
       {/* Header & Mode Switcher */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[var(--border-subtle)]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 sm:pb-6 border-b border-[var(--border-subtle)]">
         <div>
           <div className="flex items-center gap-2">
-            <Activity className="w-4 h-4 text-brand-cyan" />
-            <h3 className="text-base font-bold text-[var(--text-primary)]">
+            <Activity className="w-4 h-4 text-brand-cyan shrink-0" />
+            <h3 className="text-sm sm:text-base font-bold text-[var(--text-primary)]">
               AST Behavioral Diff & Blast Radius Simulator
             </h3>
           </div>
-          <p className="text-xs text-[var(--text-muted)] mt-1 font-mono">
+          <p className="text-xs text-[var(--text-muted)] mt-1 font-mono break-words">
             Scenario: AI changed 1 line in <span className="text-brand-cyan">user.ts</span> (
-            <code className="px-1 py-0.5 rounded bg-[var(--surface-100)] text-[var(--text-secondary)]">
+            <code className="px-1 py-0.5 rounded bg-[var(--surface-100)] text-[var(--text-secondary)] break-all sm:break-normal">
               return user ➔ return &#123; user &#125;
             </code>
             )
@@ -125,7 +125,7 @@ export default function BlastVisualizer() {
         </div>
 
         {/* Mode Toggle Switch */}
-        <div className="flex items-center p-1 bg-[var(--surface-100)] rounded-xl border border-[var(--border-subtle)] self-start sm:self-auto">
+        <div className="flex items-center p-1 bg-[var(--surface-100)] rounded-xl border border-[var(--border-subtle)] self-stretch sm:self-auto justify-center">
           <button
             onClick={() => setMode('git-diff')}
             className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${

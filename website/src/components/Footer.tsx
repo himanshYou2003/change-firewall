@@ -30,7 +30,7 @@ export default function Footer() {
           <span>MIT Licensed & Open Source</span>
         </div>
 
-        <div className="flex items-center gap-6">
+        <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-center">
           <Link href="/docs" className="hover:text-[var(--text-primary)] transition-colors">
             Documentation & Architecture
           </Link>

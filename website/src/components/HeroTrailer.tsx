@@ -40,24 +40,24 @@ export default function HeroTrailer() {
     <section id="simulator" className="relative pt-10 pb-20 sm:pt-16 sm:pb-28 overflow-hidden">
       <div className="w-full max-w-[1550px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
         {/* Release Pill Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--surface-100)] border border-[var(--border-subtle)] text-[var(--text-secondary)] text-xs font-medium mb-6">
-          <Terminal className="w-3.5 h-3.5 text-brand-cyan" />
-          <span className="font-semibold text-[var(--text-primary)]">Change Firewall v0.1.4</span>
+        <div className="inline-flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-1.5 rounded-full bg-[var(--surface-100)] border border-[var(--border-subtle)] text-[var(--text-secondary)] text-[11px] sm:text-xs font-medium mb-6 max-w-full">
+          <Terminal className="w-3.5 h-3.5 text-brand-cyan shrink-0" />
+          <span className="font-semibold text-[var(--text-primary)] whitespace-nowrap">Change Firewall v0.1.4</span>
           <span className="text-[var(--text-muted)]">•</span>
-          <span>Native MCP Engine</span>
-          <span className="text-[var(--text-muted)]">•</span>
-          <span className="text-[var(--text-muted)]">100% Offline AST</span>
+          <span className="whitespace-nowrap">Native MCP Engine</span>
+          <span className="text-[var(--text-muted)] hidden xs:inline">•</span>
+          <span className="text-[var(--text-muted)] hidden xs:inline whitespace-nowrap">100% Offline AST</span>
         </div>
 
-        {/* Hero Title with killer modern typography */}
+        {/* Hero Title with fluid modern typography */}
         <h1
           ref={titleRef}
-          className="font-black tracking-tight text-[var(--text-primary)] max-w-6xl leading-[1.08]"
+          className="font-black tracking-tight text-[var(--text-primary)] max-w-6xl leading-[1.08] w-full"
         >
-          <span className="block text-2xl sm:text-4xl md:text-5xl lg:text-[3.25rem] font-extrabold text-[var(--text-primary)] mb-2 sm:mb-3">
+          <span className="block text-[clamp(1.15rem,3.8vw,3.25rem)] font-extrabold text-[var(--text-primary)] mb-1 sm:mb-2">
             Your AI wrote the code.
           </span>
-          <span className="block text-[1.65rem] sm:text-4xl md:text-5xl lg:text-[4.25rem] xl:text-[5rem] font-black text-[#ff5c26] dark:text-[#ff6e38] whitespace-nowrap tracking-tight leading-[1.05]">
+          <span className="block text-[clamp(1.35rem,5.2vw,5rem)] font-black text-[#ff5c26] dark:text-[#ff6e38] whitespace-nowrap tracking-tight leading-[1.05]">
             We tell you what it broke.
           </span>
         </h1>

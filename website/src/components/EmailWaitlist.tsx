@@ -45,7 +45,7 @@ export default function EmailWaitlist() {
   return (
     <section id="waitlist" className="py-20 relative">
       <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="glass-panel rounded-3xl p-8 sm:p-12 text-center relative overflow-hidden border border-[var(--border-card)] shadow-sm">
+        <div className="glass-panel rounded-2xl sm:rounded-3xl p-5 sm:p-10 md:p-12 text-center relative overflow-hidden border border-[var(--border-card)] shadow-sm">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--surface-100)] border border-[var(--border-subtle)] text-[var(--text-secondary)] text-xs font-semibold mb-6">
             <Mail className="w-3.5 h-3.5 text-brand-cyan" />
             <span>Developer Updates</span>

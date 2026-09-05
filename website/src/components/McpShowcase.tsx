@@ -441,6 +441,8 @@ export default function McpShowcase() {
                 key={platform.id}
                 onClick={() => setActiveId(platform.id)}
                 className={`p-3 rounded-lg text-left transition-all border ${
+                  platform.id === 'copilot' ? 'col-span-2 sm:col-span-1' : ''
+                } ${
                   isSelected
                     ? 'bg-[var(--surface-100)] border-[var(--text-primary)] text-[var(--text-primary)]'
                     : 'bg-[var(--surface-main)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-card)]'
@@ -469,7 +471,7 @@ export default function McpShowcase() {
         </div>
 
         {/* Minimal Showcase Deck */}
-        <div className="bg-[var(--surface-main)] rounded-xl border border-[var(--border-subtle)] p-5 sm:p-7">
+        <div className="bg-[var(--surface-main)] rounded-xl border border-[var(--border-subtle)] p-3.5 sm:p-6 lg:p-7">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* Left Column: Configuration Box */}
             <div className="lg:col-span-7 flex flex-col gap-3.5">
@@ -479,7 +481,7 @@ export default function McpShowcase() {
                   <h3 className="text-xs font-semibold text-[var(--text-primary)] font-mono uppercase tracking-wider">
                     {activePlatform.name} Configuration
                   </h3>
-                  <p className="text-[11px] font-mono text-[var(--text-muted)] mt-0.5 truncate max-w-[320px] sm:max-w-md">
+                  <p className="text-[11px] font-mono text-[var(--text-muted)] mt-0.5 truncate max-w-[240px] xs:max-w-[320px] sm:max-w-md">
                     {currentPath}
                   </p>
                 </div>
