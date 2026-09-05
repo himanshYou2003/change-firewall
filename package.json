@@ -11,7 +11,8 @@
   "files": [
     "bin",
     "dist",
-    "README.md"
+    "README.md",
+    "Readme.md"
   ],
   "scripts": {
     "build": "tsup",
@@ -29,8 +30,19 @@
     "code-review",
     "agentic-coding"
   ],
-  "author": "",
+  "author": "Himanshu",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/himanshYou2003/change-firewall.git"
+  },
+  "bugs": {
+    "url": "https://github.com/himanshYou2003/change-firewall/issues"
+  },
+  "homepage": "https://github.com/himanshYou2003/change-firewall#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "commander": "^13.1.0",
     "open": "^10.1.0",
