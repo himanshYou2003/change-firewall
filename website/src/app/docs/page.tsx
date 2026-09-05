@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function DocsPage() {
   return (
-    <div className="pt-8 pb-20">
+    <div className="w-full h-[calc(100vh-4rem)] m-0 p-0 overflow-hidden flex flex-col">
       <DocViewer />
     </div>
   );

@@ -2,9 +2,17 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { ShieldAlert, Github } from 'lucide-react';
 
 export default function Footer() {
+  const pathname = usePathname();
+
+  // Hide footer on documentation route so Xcode IDE touches the application edge completely
+  if (pathname?.startsWith('/docs')) {
+    return null;
+  }
+
   return (
     <footer className="w-full border-t border-[var(--border-subtle)] bg-[var(--bg-main)] py-12 relative z-10 transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-[var(--text-muted)]">

@@ -139,20 +139,14 @@ export default function DocViewer() {
 
   return (
     <div
-      className={`transition-all duration-300 ${
+      className={`w-full h-full m-0 p-0 transition-all duration-200 ${
         isFullscreen
-          ? 'fixed inset-0 z-50 p-2 sm:p-4 bg-black/85 backdrop-blur-2xl flex flex-col justify-center items-center'
-          : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6'
+          ? 'fixed inset-0 z-50 bg-[var(--bg-main)] flex flex-col'
+          : 'flex-1 flex flex-col overflow-hidden'
       }`}
     >
-      {/* Main macOS Xcode Window Container */}
-      <div
-        className={`w-full glass-panel rounded-2xl border border-[var(--border-card)] shadow-2xl overflow-hidden flex flex-col transition-all duration-300 ${
-          isFullscreen
-            ? 'h-[96vh] max-w-[1700px]'
-            : 'min-h-[780px]'
-        }`}
-      >
+      {/* macOS Xcode Window Container touching all edges: 0 margin, 0 padding */}
+      <div className="w-full h-full flex flex-col bg-[var(--surface-main)] border-b border-[var(--border-subtle)] overflow-hidden">
         {/* macOS Xcode Window Header Bar */}
         <div className="h-11 px-4 bg-[var(--surface-100)] border-b border-[var(--border-subtle)] flex items-center justify-between select-none shrink-0">
           {/* Left: Traffic lights */}
@@ -160,21 +154,21 @@ export default function DocViewer() {
             <div className="flex items-center gap-2 group/lights mr-3">
               <button
                 onClick={() => isFullscreen && setIsFullscreen(false)}
-                title="Close / Exit Fullscreen"
+                title={isFullscreen ? 'Exit Fullscreen' : 'Xcode IDE'}
                 className="w-3 h-3 rounded-full bg-[#ff5f56] border border-[#e0443e] flex items-center justify-center hover:opacity-80 transition-opacity"
               >
                 <span className="text-[8px] font-bold text-black/60 opacity-0 group-hover/lights:opacity-100 leading-none">✕</span>
               </button>
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                title="Toggle Sidebar"
+                title="Toggle Navigator Sidebar"
                 className="w-3 h-3 rounded-full bg-[#ffbd2e] border border-[#dea123] flex items-center justify-center hover:opacity-80 transition-opacity"
               >
                 <span className="text-[8px] font-bold text-black/60 opacity-0 group-hover/lights:opacity-100 leading-none">—</span>
               </button>
               <button
                 onClick={() => setIsFullscreen(!isFullscreen)}
-                title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+                title={isFullscreen ? 'Exit Fullscreen (Esc)' : 'Expand to Fullscreen'}
                 className="w-3 h-3 rounded-full bg-[#27c93f] border border-[#1aab29] flex items-center justify-center hover:opacity-80 transition-opacity"
               >
                 <span className="text-[7px] font-bold text-black/60 opacity-0 group-hover/lights:opacity-100 leading-none">⛶</span>
@@ -215,7 +209,7 @@ export default function DocViewer() {
               <GitBranch className="w-3 h-3 text-brand-cyan" />
               <span>main</span>
             </span>
-            <span className="text-[11px] text-brand-cyan font-mono truncate max-w-[200px] sm:max-w-none">
+            <span className="text-[11px] text-brand-cyan font-mono truncate max-w-[180px] sm:max-w-none">
               {activeDoc.fileName}
             </span>
           </div>
@@ -238,8 +232,8 @@ export default function DocViewer() {
             {/* Fullscreen Button */}
             <button
               onClick={() => setIsFullscreen(!isFullscreen)}
-              className="px-2 py-1 rounded-lg text-xs font-mono bg-[var(--surface-200)] hover:bg-[var(--surface-300)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all flex items-center gap-1"
-              title={isFullscreen ? 'Exit Fullscreen (Esc)' : 'Enter Fullscreen'}
+              className="px-2.5 py-1 rounded-lg text-xs font-mono bg-[var(--surface-200)] hover:bg-[var(--surface-300)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all flex items-center gap-1"
+              title={isFullscreen ? 'Exit Fullscreen (Esc)' : 'Expand to Fullscreen'}
             >
               {isFullscreen ? (
                 <>
@@ -256,9 +250,9 @@ export default function DocViewer() {
           </div>
         </div>
 
-        {/* Xcode Main Workspace Body */}
+        {/* Xcode Main Workspace Body - Edge to Edge */}
         <div className="flex-1 flex overflow-hidden">
-          {/* Left Sidebar: Xcode / VS Code Style Project Explorer */}
+          {/* Left Sidebar: Xcode / VS Code Style Project Explorer touching the left edge */}
           {sidebarOpen && (
             <aside className="w-72 sm:w-80 border-r border-[var(--border-subtle)] bg-[var(--surface-50)] flex flex-col shrink-0 select-none overflow-hidden">
               {/* Explorer Header */}
@@ -298,7 +292,7 @@ export default function DocViewer() {
                 </div>
               </div>
 
-              {/* Tree View Structure (VS Code / Xcode tree representation) */}
+              {/* Tree View Structure */}
               <div className="flex-1 overflow-y-auto p-2 space-y-2 font-mono text-xs">
                 {/* Project Root Label */}
                 <div className="px-2 py-1 flex items-center gap-1.5 text-[11px] font-bold text-[var(--text-muted)]">
@@ -401,7 +395,7 @@ export default function DocViewer() {
             </aside>
           )}
 
-          {/* Right Editor Area */}
+          {/* Right Editor Area - Edge to Edge */}
           <main className="flex-1 flex flex-col bg-[var(--surface-main)] overflow-hidden">
             {/* Xcode Editor Tab Bar */}
             <div className="h-9 bg-[var(--surface-100)]/70 border-b border-[var(--border-subtle)] flex items-center justify-between px-3 shrink-0 select-none overflow-x-auto">
@@ -456,7 +450,7 @@ export default function DocViewer() {
               {/* Optional Line Numbers Column */}
               {showLineNumbers && (
                 <div className="w-10 sm:w-12 py-8 bg-[var(--surface-50)] border-r border-[var(--border-subtle)] select-none text-right pr-2.5 font-mono text-xs text-[var(--text-muted)] opacity-40 shrink-0 hidden sm:block">
-                  {Array.from({ length: 45 }, (_, i) => (
+                  {Array.from({ length: 60 }, (_, i) => (
                     <div key={i} className="leading-7">
                       {i + 1}
                     </div>
