@@ -1,0 +1,92 @@
+name: Change Firewall
+
+on:
+  pull_request:
+    branches: [ main, master, develop ]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  analyze-changes:
+    name: Behavior & Blast Radius Verification
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Change Firewall Preflight
+        id: firewall
+        continue-on-error: true
+        run: |
+          npx change-firewall preflight --base origin/${{ github.base_ref }} --json > change-firewall-report.json
+          echo "EXIT_CODE=$?" >> $GITHUB_ENV
+
+      - name: Post PR Summary Comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let reportData;
+            try {
+              reportData = JSON.parse(fs.readFileSync('change-firewall-report.json', 'utf8'));
+            } catch (err) {
+              console.log('No report generated:', err.message);
+              return;
+            }
+
+            const { readyToMerge, score, highRiskCount, mediumRiskCount, blockers, recommendations } = reportData;
+
+            const badge = readyToMerge
+              ? '🟢 **PASS / READY TO MERGE**'
+              : '🔴 **BLOCKED / REVIEW REQUIRED**';
+
+            let comment = `### ⚡ Change Firewall Report: ${badge}\n\n`;
+            comment += `* **Overall Risk Score:** \`${score} / 100\`\n`;
+            comment += `* **High-Risk Behavioral Shifts:** \`${highRiskCount}\`\n`;
+            comment += `* **Medium-Risk Shifts:** \`${mediumRiskCount}\`\n\n`;
+
+            if (blockers && blockers.length > 0) {
+              comment += `#### 🚨 Merge Blockers:\n`;
+              for (const b of blockers) {
+                comment += `* ❌ ${b}\n`;
+              }
+              comment += '\n';
+            }
+
+            if (recommendations && recommendations.length > 0) {
+              comment += `#### 💡 Recommendations:\n`;
+              for (const r of recommendations) {
+                comment += `* ➔ ${r}\n`;
+              }
+              comment += '\n';
+            }
+
+            comment += `> *Change Firewall interprets what AI changes actually do.*`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: comment
+            });
+
+      - name: Enforce Merge Gate
+        run: |
+          if [ "$EXIT_CODE" -ne 0 ]; then
+            echo "❌ Change Firewall blocked merge due to high-risk behavioral changes."
+            exit 1
+          fi
