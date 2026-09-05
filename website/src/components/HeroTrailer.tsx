@@ -42,7 +42,7 @@ export default function HeroTrailer() {
         {/* Release Pill Badge */}
         <div className="inline-flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-1.5 rounded-full bg-[var(--surface-100)] border border-[var(--border-subtle)] text-[var(--text-secondary)] text-[11px] sm:text-xs font-medium mb-6 max-w-full">
           <Terminal className="w-3.5 h-3.5 text-brand-cyan shrink-0" />
-          <span className="font-semibold text-[var(--text-primary)] whitespace-nowrap">Change Firewall v0.1.5</span>
+          <span className="font-semibold text-[var(--text-primary)] whitespace-nowrap">Change Firewall v0.1.6</span>
           <span className="text-[var(--text-muted)]">•</span>
           <span className="whitespace-nowrap">Native MCP Engine</span>
           <span className="text-[var(--text-muted)] hidden xs:inline">•</span>

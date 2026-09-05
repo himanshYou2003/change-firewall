@@ -1,6 +1,6 @@
 {
   "name": "change-firewall",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Converts code diffs into behavior-aware change reports, blast radius mapping, and deterministic risk scoring.",
   "type": "module",
   "bin": {
@@ -45,7 +45,7 @@
   "bugs": {
     "url": "https://github.com/himanshYou2003/change-firewall/issues"
   },
-  "homepage": "https://changefirewall.vercel.app/",
+  "homepage": "https://change-firewall.vercel.app/",
   "publishConfig": {
     "access": "public"
   },

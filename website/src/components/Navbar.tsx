@@ -118,7 +118,7 @@ export default function Navbar() {
               Change Firewall
             </span>
             <span className="ml-2 text-[10px] sm:text-[11px] font-mono font-medium px-2 py-0.5 rounded-md bg-[var(--surface-100)] text-[var(--text-muted)] border border-[var(--border-subtle)]">
-              v0.1.5
+              v0.1.6
             </span>
           </div>
         </Link>
@@ -211,7 +211,7 @@ export default function Navbar() {
             <span className="text-[10px] font-black font-mono px-1.5 py-0.2 rounded bg-red-500/10 text-red-500 dark:text-red-400 border border-red-500/20">
               npm
             </span>
-            <span>v0.1.5</span>
+            <span>v0.1.6</span>
             <ExternalLink className="w-3 h-3 text-[var(--text-muted)] group-hover:text-brand-cyan transition-colors" />
           </a>
 
@@ -357,7 +357,7 @@ export default function Navbar() {
                     <span className="text-[10px] font-black font-mono px-1.5 py-0.5 rounded bg-red-500/10 text-red-500 dark:text-red-400 border border-red-500/20">
                       npm
                     </span>
-                    <span>v0.1.5</span>
+                    <span>v0.1.6</span>
                     <ExternalLink className="w-3 h-3 text-[var(--text-muted)] group-hover:text-brand-cyan transition-colors" />
                   </a>
                 </div>

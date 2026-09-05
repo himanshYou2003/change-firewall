@@ -40,7 +40,7 @@ export default function Footer() {
             rel="noreferrer"
             className="hover:text-[var(--text-primary)] transition-colors"
           >
-            NPM Package v0.1.5
+            NPM Package v0.1.6
           </a>
           <a
             href="https://github.com/himanshYou2003/change-firewall"
