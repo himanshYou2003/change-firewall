@@ -37,7 +37,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
-      <body className="bg-background text-[var(--text-primary)] min-h-screen flex flex-col selection:bg-brand-cyan/20 selection:text-brand-cyan transition-colors duration-200">
+      <body className="bg-background text-[var(--text-primary)] min-h-screen flex flex-col selection:bg-[#d1c8b7] selection:text-[#181512] transition-colors duration-200">
         <ThemeProvider>
           <div className="fixed inset-0 bg-grid-pattern pointer-events-none opacity-60 z-0" />
           <div className="fixed inset-0 bg-radial-gradient pointer-events-none z-0" />

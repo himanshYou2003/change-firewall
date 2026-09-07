@@ -69,6 +69,17 @@ body {
   transition: background-color 0.25s ease, color 0.25s ease;
 }
 
+/* Global text selection */
+::selection {
+  background-color: #d1c8b7;
+  color: #181512;
+}
+
+::-moz-selection {
+  background-color: #d1c8b7;
+  color: #181512;
+}
+
 /* Custom scrollbars */
 ::-webkit-scrollbar {
   width: 7px;
