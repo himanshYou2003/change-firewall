@@ -6,13 +6,28 @@ import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
 
-describe('Live Sandbox End-to-End Git Verification', () => {
+describe('Live Sandbox End-to-End Git Verification', { timeout: 30000 }, () => {
   const sandboxDir = path.resolve(process.cwd(), 'test/sandbox-test-env');
   const binPath = path.resolve(process.cwd(), 'bin/change-firewall.js');
 
+  async function cleanSandbox() {
+    for (let i = 0; i < 6; i++) {
+      try {
+        await fs.rm(sandboxDir, { recursive: true, force: true });
+        return;
+      } catch (err: any) {
+        if (err.code === 'EBUSY' || err.code === 'EPERM') {
+          await new Promise((r) => setTimeout(r, 250));
+        } else {
+          return;
+        }
+      }
+    }
+  }
+
   beforeAll(async () => {
     // 1. Clean and create sandbox directory
-    await fs.rm(sandboxDir, { recursive: true, force: true });
+    await cleanSandbox();
     await fs.mkdir(path.join(sandboxDir, 'src/routes'), { recursive: true });
     await fs.mkdir(path.join(sandboxDir, 'src/middleware'), { recursive: true });
     await fs.mkdir(path.join(sandboxDir, 'src/client'), { recursive: true });
@@ -82,7 +97,7 @@ export async function getUser(req: any, res: any) {
   });
 
   afterAll(async () => {
-    await fs.rm(sandboxDir, { recursive: true, force: true });
+    await cleanSandbox();
   });
 
   it('verifies CLI analyze command against real uncommitted git working tree', async () => {

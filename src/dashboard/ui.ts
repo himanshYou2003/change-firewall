@@ -10,6 +10,8 @@ export function getDashboardHtml(report: AnalysisReport): string {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Change Firewall — AI Code Change Behavioral Verification Engine</title>
+  <link rel="icon" type="image/png" href="${LOGO_DATA_URI}" />
+  <link rel="apple-touch-icon" href="${LOGO_DATA_URI}" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -93,17 +95,16 @@ export function getDashboardHtml(report: AnalysisReport): string {
       --brand-success: #34d399;
       --brand-success-bg: rgba(52, 211, 153, 0.12);
 
-      --graph-bg: #090e1a;
-      --graph-panel-border: rgba(255, 255, 255, 0.1);
-      --graph-node-bg: #0f172a;
-      --graph-edge: #334155;
+      --graph-bg: #080b13;
+      --graph-panel-border: rgba(255, 255, 255, 0.08);
+      --graph-node-bg: #0d121f;
+      --graph-edge: #222f46;
       --graph-text: #f8fafc;
       --graph-subtext: #94a3b8;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* Custom Selection Match */
     ::selection {
       background-color: #d1c8b7;
       color: #181512;
@@ -124,7 +125,6 @@ export function getDashboardHtml(report: AnalysisReport): string {
       transition: background-color 0.25s ease, color 0.25s ease;
     }
 
-    /* Ambient Website Grid & Glow Backgrounds */
     .bg-grid {
       position: fixed;
       inset: 0;
@@ -151,7 +151,7 @@ export function getDashboardHtml(report: AnalysisReport): string {
     .app-wrapper {
       position: relative;
       z-index: 1;
-      max-width: 1400px;
+      max-width: 1440px;
       margin: 0 auto;
       padding: 24px 28px 48px;
     }
@@ -162,7 +162,6 @@ export function getDashboardHtml(report: AnalysisReport): string {
       }
     }
 
-    /* Glass Header */
     header {
       display: flex;
       justify-content: space-between;
@@ -284,7 +283,6 @@ export function getDashboardHtml(report: AnalysisReport): string {
       border: 1px solid var(--border-subtle);
     }
 
-    /* Dark / Light Mode Toggle Button */
     .theme-toggle-btn {
       display: flex;
       align-items: center;
@@ -383,7 +381,6 @@ export function getDashboardHtml(report: AnalysisReport): string {
       gap: 6px;
     }
 
-    /* Severity Badges matching website */
     .badge-high {
       color: var(--brand-danger);
       background: var(--brand-danger-bg);
@@ -429,7 +426,7 @@ export function getDashboardHtml(report: AnalysisReport): string {
       width: fit-content;
     }
 
-    /* Tabs Bar matching website pill style */
+    /* Tabs Bar */
     .tabs {
       display: flex;
       gap: 8px;
@@ -494,11 +491,11 @@ export function getDashboardHtml(report: AnalysisReport): string {
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Interactive Graph Section (Tab 1) */
+    /* God-Level Graph Container & Canvas */
     .graph-container {
       background: var(--surface-card);
       border: 1px solid var(--border-subtle);
-      border-radius: 18px;
+      border-radius: 20px;
       padding: 24px;
       position: relative;
       box-shadow: 0 4px 24px rgba(0,0,0,0.03);
@@ -508,7 +505,7 @@ export function getDashboardHtml(report: AnalysisReport): string {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
       gap: 16px;
       flex-wrap: wrap;
     }
@@ -528,7 +525,7 @@ export function getDashboardHtml(report: AnalysisReport): string {
 
     .graph-legend {
       display: flex;
-      gap: 14px;
+      gap: 12px;
       font-size: 12px;
       flex-wrap: wrap;
     }
@@ -565,22 +562,329 @@ export function getDashboardHtml(report: AnalysisReport): string {
       border-radius: 50%;
     }
 
-    .graph-svg {
-      width: 100%;
-      height: 490px;
-      background: var(--graph-bg);
+    /* Floating Graph Control HUD */
+    .graph-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 16px;
+      background: var(--surface-100);
+      border: 1px solid var(--border-subtle);
       border-radius: 14px;
-      border: 1px solid var(--graph-panel-border);
-      transition: background-color 0.25s ease, border-color 0.25s ease;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
     }
 
-    .node-g {
+    .graph-toolbar-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .graph-toolbar-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    .graph-search-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      min-width: 200px;
+    }
+
+    .graph-search-input {
+      width: 100%;
+      background: var(--surface-main);
+      border: 1px solid var(--border-subtle);
+      border-radius: 9px;
+      padding: 6px 10px 6px 30px;
+      font-size: 12px;
+      font-family: var(--font-jetbrains);
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .graph-search-input:focus {
+      border-color: var(--brand-cyan);
+      box-shadow: 0 0 10px var(--brand-cyan-bg);
+    }
+
+    .graph-search-icon {
+      position: absolute;
+      left: 9px;
+      width: 13px;
+      height: 13px;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .graph-filter-group, .graph-layout-group, .graph-scope-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .graph-pill-btn {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 8px;
+      background: var(--surface-main);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
       cursor: pointer;
-      transition: transform 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .graph-pill-btn:hover {
+      color: var(--text-primary);
+      border-color: var(--border-card);
+      background: var(--surface-200);
+    }
+
+    .graph-pill-btn.active {
+      background: var(--brand-cyan-bg);
+      color: var(--brand-cyan);
+      border-color: rgba(56, 189, 248, 0.4);
+      box-shadow: 0 0 8px var(--brand-cyan-bg);
+    }
+
+    .graph-pill-btn svg {
+      opacity: 0.85;
+    }
+
+    .graph-zoom-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .graph-tool-btn {
+      height: 28px;
+      padding: 0 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      background: var(--surface-main);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+      transition: all 0.15s ease;
+    }
+
+    .graph-tool-btn:hover {
+      background: var(--surface-200);
+      color: var(--text-primary);
+      border-color: var(--border-card);
+    }
+
+    .graph-stats-chip {
+      font-size: 11px;
+      font-family: var(--font-jetbrains);
+      color: var(--text-muted);
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: var(--surface-main);
+      border: 1px solid var(--border-subtle);
+    }
+
+    /* Infinite Canvas Viewport */
+    .graph-canvas-wrapper {
+      width: 100%;
+      height: 620px;
+      overflow: hidden;
+      border-radius: 16px;
+      border: 1px solid var(--graph-panel-border);
+      background: var(--graph-bg);
+      position: relative;
+      cursor: grab;
+      user-select: none;
+      -webkit-user-select: none;
+      box-shadow: inset 0 2px 14px rgba(0,0,0,0.08);
+      transition: background-color 0.25s ease;
+    }
+
+    .graph-canvas-wrapper.is-dragging {
+      cursor: grabbing;
+    }
+
+    .graph-canvas-wrapper.is-fullscreen {
+      position: fixed !important;
+      inset: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      z-index: 99999 !important;
+      border-radius: 0 !important;
+      border: none !important;
+    }
+
+    .fullscreen-exit-btn {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      z-index: 100000;
+      display: none;
+      background: var(--surface-card);
+      border: 1px solid var(--border-card);
+      color: var(--text-primary);
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+      backdrop-filter: blur(10px);
+    }
+
+    .graph-canvas-wrapper.is-fullscreen .fullscreen-exit-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .graph-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      overflow: visible;
+    }
+
+    .viewport-group {
+      transform-origin: 0 0;
+      transition: transform 0.05s ease-out;
+    }
+
+    /* Radar Rings & Directory Clusters */
+    .radar-ring {
+      fill: none;
+      stroke: var(--grid-line);
+      stroke-width: 1.2;
+      stroke-dasharray: 4 4;
+      pointer-events: none;
+    }
+
+    .radar-label {
+      font-family: var(--font-jetbrains);
+      font-size: 10px;
+      fill: var(--text-muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      pointer-events: none;
+    }
+
+    .cluster-rect {
+      fill: var(--surface-50);
+      stroke: var(--border-subtle);
+      stroke-width: 1.5;
+      stroke-dasharray: 6 4;
+      rx: 16;
+      opacity: 0.65;
+      transition: all 0.2s ease;
+    }
+
+    .cluster-rect:hover {
+      stroke: var(--brand-cyan);
+      opacity: 0.9;
+    }
+
+    .cluster-label {
+      font-family: var(--font-jetbrains);
+      font-size: 11px;
+      font-weight: 700;
+      fill: var(--brand-cyan);
+      letter-spacing: 0.4px;
+      pointer-events: none;
+    }
+
+    /* Interactive Radar Minimap */
+    .graph-minimap {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      width: 170px;
+      height: 104px;
+      background: var(--surface-card);
+      border: 1px solid var(--border-card);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+      z-index: 10;
+      cursor: crosshair;
+      user-select: none;
+      backdrop-filter: blur(12px);
+    }
+
+    .minimap-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .minimap-viewrect {
+      position: absolute;
+      border: 1.5px solid var(--brand-cyan);
+      background: rgba(56, 189, 248, 0.15);
+      border-radius: 3px;
+      pointer-events: none;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+    }
+
+    /* Edge Hover Tooltip */
+    .edge-tooltip {
+      position: absolute;
+      pointer-events: none;
+      background: var(--surface-card);
+      border: 1px solid var(--border-card);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-family: var(--font-jetbrains);
+      font-size: 11px;
+      color: var(--text-primary);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.28);
+      z-index: 30;
+      display: none;
+      white-space: nowrap;
+      transform: translate(-50%, -130%);
+      transition: opacity 0.15s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    /* Nodes */
+    .node-g {
+      cursor: grab;
+      transition: opacity 0.25s ease, filter 0.25s ease;
+    }
+
+    .node-g.is-dragging {
+      cursor: grabbing !important;
     }
 
     .node-g:hover {
-      filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.35));
+      filter: drop-shadow(0 0 14px rgba(56, 189, 248, 0.5));
+    }
+
+    .node-g.is-dimmed {
+      opacity: 0.1 !important;
+      filter: grayscale(80%);
+    }
+
+    .node-g.is-focused {
+      opacity: 1 !important;
+      filter: drop-shadow(0 0 16px var(--brand-cyan));
     }
 
     .node-rect {
@@ -602,18 +906,35 @@ export function getDashboardHtml(report: AnalysisReport): string {
       pointer-events: none;
     }
 
+    /* Edges */
     .edge-line {
-      stroke: var(--graph-edge);
-      stroke-width: 1.6;
       fill: none;
-      transition: stroke 0.2s, stroke-width 0.2s;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      cursor: pointer;
+      transition: stroke-width 0.2s, opacity 0.25s ease, stroke 0.2s;
+    }
+
+    .edge-line:hover {
+      stroke-width: 3.5 !important;
+    }
+
+    .edge-line.is-dimmed {
+      opacity: 0.04 !important;
     }
 
     .edge-line.active {
-      stroke: var(--brand-cyan);
-      stroke-width: 2.6;
+      stroke-width: 3.2 !important;
+      stroke-dasharray: 6 4;
+      animation: edgeFlow 1s linear infinite;
     }
 
+    @keyframes edgeFlow {
+      from { stroke-dashoffset: 20; }
+      to { stroke-dashoffset: 0; }
+    }
+
+    /* Inspector Card & Breadcrumb Trails */
     .inspector-card {
       margin-top: 20px;
       background: var(--surface-100);
@@ -645,6 +966,36 @@ export function getDashboardHtml(report: AnalysisReport): string {
       color: var(--text-muted);
       margin-bottom: 12px;
       font-family: var(--font-jetbrains);
+    }
+
+    .breadcrumb-trail {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin: 10px 0 14px;
+      padding: 8px 12px;
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+    }
+
+    .breadcrumb-pill {
+      font-family: var(--font-jetbrains);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: var(--surface-200);
+      border: 1px solid var(--border-subtle);
+      color: var(--brand-cyan);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .breadcrumb-pill:hover {
+      background: var(--brand-cyan-bg);
+      border-color: var(--brand-cyan);
     }
 
     .inspector-details {
@@ -839,7 +1190,6 @@ export function getDashboardHtml(report: AnalysisReport): string {
       font-size: 12.5px;
     }
 
-    /* Footer */
     footer {
       margin-top: 40px;
       padding-top: 20px;
@@ -876,7 +1226,7 @@ export function getDashboardHtml(report: AnalysisReport): string {
         <div>
           <div class="brand-title-wrap">
             <span class="brand-title">Change Firewall</span>
-            <span class="brand-version-pill">v0.1.8</span>
+            <span class="brand-version-pill">v0.1.9</span>
           </div>
           <div class="brand-subtitle">AI Code Change Behavioral Verification Engine</div>
         </div>
@@ -973,16 +1323,15 @@ export function getDashboardHtml(report: AnalysisReport): string {
       </button>
     </div>
 
-    <!-- TAB 1: Visual Interactive SVG Map -->
+    <!-- TAB 1: World-Class Interactive SVG Graph -->
     <div id="tab-graph" class="tab-content active">
       <div class="graph-container">
         <div class="graph-header">
           <div>
             <div class="graph-title">Interactive Impact & Consumer Graph</div>
-            <div class="graph-subtitle">Click any node to inspect blast radius, callers, and related behavioral findings.</div>
+            <div class="graph-subtitle">Click any node to inspect blast radius, callers, and related behavioral findings. Drag to pan, scroll to zoom.</div>
           </div>
           <div class="graph-legend">
-            <!-- Modified Source with Icon -->
             <div class="legend-item">
               <span class="legend-icon-wrap" style="background: var(--brand-purple-bg); color: var(--brand-purple);">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -994,7 +1343,6 @@ export function getDashboardHtml(report: AnalysisReport): string {
               <span>Modified Source</span>
             </div>
 
-            <!-- Dependent Consumer with Icon -->
             <div class="legend-item">
               <span class="legend-icon-wrap" style="background: var(--brand-cyan-bg); color: var(--brand-cyan);">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -1007,7 +1355,6 @@ export function getDashboardHtml(report: AnalysisReport): string {
               <span>Dependent Consumer</span>
             </div>
 
-            <!-- Protected Route / High Blast with Icon -->
             <div class="legend-item">
               <span class="legend-icon-wrap" style="background: var(--brand-danger-bg); color: var(--brand-danger);">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -1022,18 +1369,93 @@ export function getDashboardHtml(report: AnalysisReport): string {
           </div>
         </div>
 
-        <svg id="network-svg" class="graph-svg">
-          <defs>
-            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 9 5 L 0 9 z" fill="#64748b" />
-            </marker>
-            <marker id="arrow-active" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 9 5 L 0 9 z" fill="#38bdf8" />
-            </marker>
-          </defs>
-          <g id="svg-edges"></g>
-          <g id="svg-nodes"></g>
-        </svg>
+        <!-- Floating Glass Graph Controls Bar -->
+        <div class="graph-toolbar">
+          <div class="graph-toolbar-section">
+            <div class="graph-search-wrap">
+              <svg class="graph-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input type="text" id="graph-search" class="graph-search-input" placeholder="Search node or route..." />
+            </div>
+
+            <div class="graph-filter-group">
+              <span class="graph-toolbar-label">Role:</span>
+              <button class="graph-pill-btn active" data-filter="all" onclick="filterGraphRole('all')">All</button>
+              <button class="graph-pill-btn" data-filter="source" onclick="filterGraphRole('source')">Modified</button>
+              <button class="graph-pill-btn" data-filter="consumer" onclick="filterGraphRole('consumer')">Consumers</button>
+              <button class="graph-pill-btn" data-filter="route" onclick="filterGraphRole('route')">Routes</button>
+            </div>
+
+            <div class="graph-layout-group">
+              <span class="graph-toolbar-label">Layout:</span>
+              <button class="graph-pill-btn active" data-layout="dag" onclick="switchGraphLayout('dag')" title="Topological Sugiyama DAG with multi-lane wrapping">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3v6M18 15v6M6 9a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3"/></svg>
+                DAG Flow
+              </button>
+              <button class="graph-pill-btn" data-layout="radial" onclick="switchGraphLayout('radial')" title="Concentric blast radius rings from modified core">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="3" x2="12" y2="9"/><line x1="12" y1="15" x2="12" y2="21"/></svg>
+                Radial Radar
+              </button>
+              <button class="graph-pill-btn" data-layout="force" onclick="switchGraphLayout('force')" title="Organic physics force-directed relaxation">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><circle cx="18" cy="6" r="3"/><line x1="8.5" y1="7.5" x2="15.5" y2="16.5"/></svg>
+                Force Physics
+              </button>
+              <button class="graph-pill-btn" data-layout="cluster" onclick="switchGraphLayout('cluster')" title="Folder & directory compartment clusters">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                Directory
+              </button>
+            </div>
+
+            <div class="graph-scope-group">
+              <span class="graph-toolbar-label">Scope:</span>
+              <button class="graph-pill-btn active" data-scope="all" onclick="setBlastScope('all')" title="Entire reachable blast graph">All</button>
+              <button class="graph-pill-btn" data-scope="1hop" onclick="setBlastScope('1hop')" title="1st-degree direct dependents only">1-Hop</button>
+              <button class="graph-pill-btn" data-scope="routes" onclick="setBlastScope('routes')" title="Paths reaching public routes only">Routes</button>
+            </div>
+          </div>
+
+          <div class="graph-zoom-controls">
+            <span id="graph-stats-chip" class="graph-stats-chip">-- nodes</span>
+            <button class="graph-tool-btn" onclick="zoomCanvas(1.25)" title="Zoom In">+</button>
+            <button class="graph-tool-btn" onclick="zoomCanvas(0.8)" title="Zoom Out">-</button>
+            <button class="graph-tool-btn" onclick="resetCanvasView()" title="Fit to View">⊡</button>
+            <button class="graph-tool-btn" onclick="toggleFullscreen()" title="Toggle Fullscreen">⛶</button>
+            <button class="graph-tool-btn" onclick="exportGraphSvg()" title="Export Vector SVG" style="font-size: 11px;">SVG</button>
+            <button class="graph-tool-btn" onclick="exportGraphPng()" title="Export PNG Image" style="font-size: 11px;">PNG</button>
+          </div>
+        </div>
+
+        <div class="graph-canvas-wrapper" id="graph-wrapper">
+          <button class="fullscreen-exit-btn" id="exit-fullscreen-btn" onclick="toggleFullscreen()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
+            Exit Fullscreen (Esc)
+          </button>
+          <div id="edge-tooltip" class="edge-tooltip"></div>
+          <svg id="network-svg" class="graph-svg">
+            <defs id="svg-defs">
+              <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#64748b" />
+              </marker>
+              <marker id="arrow-active" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#38bdf8" />
+              </marker>
+            </defs>
+            <g id="viewport-group" class="viewport-group">
+              <g id="svg-radar-rings"></g>
+              <g id="svg-clusters"></g>
+              <g id="svg-edges"></g>
+              <g id="svg-nodes"></g>
+            </g>
+          </svg>
+
+          <!-- Interactive Minimap Radar -->
+          <div class="graph-minimap" id="graph-minimap" title="Click or drag to navigate graph">
+            <canvas id="minimap-canvas" class="minimap-canvas" width="170" height="104"></canvas>
+            <div id="minimap-viewrect" class="minimap-viewrect"></div>
+          </div>
+        </div>
 
         <div id="inspector-card" class="inspector-card">
           <div class="inspector-header">
@@ -1041,6 +1463,7 @@ export function getDashboardHtml(report: AnalysisReport): string {
             <span id="inspector-badge"></span>
           </div>
           <div id="inspector-desc" class="inspector-desc"></div>
+          <div id="inspector-breadcrumb" class="breadcrumb-trail" style="display: none;"></div>
           <div id="inspector-details" class="inspector-details"></div>
         </div>
       </div>
@@ -1112,7 +1535,7 @@ export function getDashboardHtml(report: AnalysisReport): string {
       <div>
         <a href="https://github.com/himanshYou2003/change-firewall" target="_blank" rel="noreferrer">GitHub</a>
         <span style="margin: 0 8px; opacity: 0.4;">|</span>
-        <a href="https://www.npmjs.com/package/change-firewall" target="_blank" rel="noreferrer">NPM v0.1.8</a>
+        <a href="https://www.npmjs.com/package/change-firewall" target="_blank" rel="noreferrer">NPM v0.1.9</a>
       </div>
     </footer>
   </div>
@@ -1120,8 +1543,8 @@ export function getDashboardHtml(report: AnalysisReport): string {
   <script>
     // Theme Management
     (function initTheme() {
-      const saved = localStorage.getItem('cf-theme');
-      const root = document.documentElement;
+      var saved = localStorage.getItem('cf-theme');
+      var root = document.documentElement;
       if (saved === 'light') {
         root.classList.remove('dark');
       } else if (saved === 'dark') {
@@ -1133,9 +1556,9 @@ export function getDashboardHtml(report: AnalysisReport): string {
       }
     })();
 
-    document.getElementById('theme-toggle').addEventListener('click', () => {
-      const root = document.documentElement;
-      const isDark = root.classList.contains('dark');
+    document.getElementById('theme-toggle').addEventListener('click', function() {
+      var root = document.documentElement;
+      var isDark = root.classList.contains('dark');
       if (isDark) {
         root.classList.remove('dark');
         localStorage.setItem('cf-theme', 'light');
@@ -1146,13 +1569,531 @@ export function getDashboardHtml(report: AnalysisReport): string {
       renderVisualGraph(currentReport);
     });
 
-    let currentReport = ${serialized};
+    var currentReport = ${serialized};
+
+    // Global Canvas & Graph State
+    var canvasScale = 1.0;
+    var canvasPanX = 0;
+    var canvasPanY = 0;
+    var isDraggingCanvas = false;
+    var startDragX = 0;
+    var startDragY = 0;
+    var currentLayout = 'dag'; // 'dag' | 'radial' | 'force' | 'cluster'
+    var activeBlastScope = 'all'; // 'all' | '1hop' | 'routes'
+    var activeRoleFilter = 'all'; // 'all' | 'source' | 'consumer' | 'route'
+    var activeSearchQuery = '';
+    var isFullscreen = false;
+
+    // Node Dragging State
+    var isDraggingNode = false;
+    var draggedNode = null;
+    var dragStartMouseX = 0;
+    var dragStartMouseY = 0;
+    var dragStartNodeX = 0;
+    var dragStartNodeY = 0;
+
+    // Graph Data Store
+    var graphNodesMap = new Map();
+    var graphEdgesList = [];
+    var graphIncomingMap = new Map();
+    var graphOutgoingMap = new Map();
+    var graphBounds = { minX: 0, minY: 0, maxX: 1200, maxY: 600, width: 1200, height: 600 };
+
+    function applyCanvasTransform() {
+      var group = document.getElementById('viewport-group');
+      if (group) {
+        group.setAttribute('transform', 'translate(' + canvasPanX + ', ' + canvasPanY + ') scale(' + canvasScale + ')');
+      }
+      updateMinimapViewRect();
+    }
+
+    function zoomCanvas(factor) {
+      var wrapper = document.getElementById('graph-wrapper');
+      if (!wrapper) return;
+      var rect = wrapper.getBoundingClientRect();
+      var cx = rect.width / 2;
+      var cy = rect.height / 2;
+
+      var newScale = Math.max(0.1, Math.min(4.0, canvasScale * factor));
+      canvasPanX = cx - (cx - canvasPanX) * (newScale / canvasScale);
+      canvasPanY = cy - (cy - canvasPanY) * (newScale / canvasScale);
+      canvasScale = newScale;
+      applyCanvasTransform();
+    }
+
+    function resetCanvasView() {
+      var wrapper = document.getElementById('graph-wrapper');
+      var svg = document.getElementById('network-svg');
+      if (!wrapper || !svg) return;
+
+      var vb = svg.viewBox.baseVal;
+      if (!vb || vb.width === 0) return;
+
+      var rect = wrapper.getBoundingClientRect();
+      var scaleX = (rect.width - 60) / vb.width;
+      var scaleY = (rect.height - 60) / vb.height;
+      canvasScale = Math.max(0.2, Math.min(1.15, Math.min(scaleX, scaleY)));
+
+      canvasPanX = (rect.width - vb.width * canvasScale) / 2;
+      canvasPanY = (rect.height - vb.height * canvasScale) / 2;
+      applyCanvasTransform();
+    }
+
+    function centerOnNode(nodeId) {
+      var node = graphNodesMap.get(nodeId);
+      var wrapper = document.getElementById('graph-wrapper');
+      if (!node || !wrapper) return;
+
+      var rect = wrapper.getBoundingClientRect();
+      canvasScale = Math.max(0.9, canvasScale);
+      canvasPanX = rect.width / 2 - node.x * canvasScale;
+      canvasPanY = rect.height / 2 - node.y * canvasScale;
+      applyCanvasTransform();
+    }
+
+    function toggleFullscreen() {
+      var wrapper = document.getElementById('graph-wrapper');
+      if (!wrapper) return;
+      isFullscreen = !isFullscreen;
+      wrapper.classList.toggle('is-fullscreen', isFullscreen);
+      setTimeout(resetCanvasView, 60);
+    }
+
+    window.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && isFullscreen) {
+        toggleFullscreen();
+      }
+    });
+
+    function switchGraphLayout(layout) {
+      currentLayout = layout;
+      document.querySelectorAll('.graph-layout-group .graph-pill-btn').forEach(function(btn) {
+        btn.classList.toggle('active', btn.dataset.layout === layout);
+      });
+      renderVisualGraph(currentReport);
+    }
+
+    function setBlastScope(scope) {
+      activeBlastScope = scope;
+      document.querySelectorAll('.graph-scope-group .graph-pill-btn').forEach(function(btn) {
+        btn.classList.toggle('active', btn.dataset.scope === scope);
+      });
+      renderVisualGraph(currentReport);
+    }
+
+    function filterGraphRole(role) {
+      activeRoleFilter = role;
+      document.querySelectorAll('.graph-filter-group .graph-pill-btn').forEach(function(btn) {
+        btn.classList.toggle('active', btn.dataset.filter === role);
+      });
+      filterAndHighlightGraph(false);
+    }
+
+    // Pan, Zoom & Node Drag Event Listeners
+    (function setupCanvasInteraction() {
+      var wrapper = document.getElementById('graph-wrapper');
+      if (!wrapper) return;
+
+      wrapper.addEventListener('mousedown', function(e) {
+        var nodeEl = e.target.closest('.node-g');
+        if (nodeEl) {
+          var nId = nodeEl.dataset.nodeId;
+          var node = graphNodesMap.get(nId);
+          if (node) {
+            isDraggingNode = true;
+            draggedNode = node;
+            dragStartMouseX = e.clientX;
+            dragStartMouseY = e.clientY;
+            dragStartNodeX = node.x;
+            dragStartNodeY = node.y;
+            nodeEl.classList.add('is-dragging');
+          }
+          return;
+        }
+
+        if (e.target.closest('#graph-minimap') || e.target.closest('.graph-toolbar') || e.target.closest('.fullscreen-exit-btn')) return;
+
+        isDraggingCanvas = true;
+        startDragX = e.clientX - canvasPanX;
+        startDragY = e.clientY - canvasPanY;
+        wrapper.classList.add('is-dragging');
+      });
+
+      window.addEventListener('mousemove', function(e) {
+        if (isDraggingNode && draggedNode) {
+          var dx = (e.clientX - dragStartMouseX) / canvasScale;
+          var dy = (e.clientY - dragStartMouseY) / canvasScale;
+          draggedNode.x = dragStartNodeX + dx;
+          draggedNode.y = dragStartNodeY + dy;
+
+          var nodeEl = document.querySelector('.node-g[data-node-id="' + CSS.escape(draggedNode.id) + '"]');
+          if (nodeEl) {
+            nodeEl.setAttribute('transform', 'translate(' + (draggedNode.x - 87.5) + ', ' + (draggedNode.y - 24) + ')');
+          }
+          updateConnectedEdges(draggedNode.id);
+          drawMinimap();
+          return;
+        }
+
+        if (isDraggingCanvas) {
+          canvasPanX = e.clientX - startDragX;
+          canvasPanY = e.clientY - startDragY;
+          applyCanvasTransform();
+        }
+      });
+
+      window.addEventListener('mouseup', function() {
+        if (isDraggingNode) {
+          if (draggedNode) {
+            var nodeEl = document.querySelector('.node-g[data-node-id="' + CSS.escape(draggedNode.id) + '"]');
+            if (nodeEl) nodeEl.classList.remove('is-dragging');
+          }
+          isDraggingNode = false;
+          draggedNode = null;
+        }
+        if (isDraggingCanvas) {
+          isDraggingCanvas = false;
+          wrapper.classList.remove('is-dragging');
+        }
+      });
+
+      // Smooth Mouse Wheel Zoom
+      wrapper.addEventListener('wheel', function(e) {
+        e.preventDefault();
+        var rect = wrapper.getBoundingClientRect();
+        var mouseX = e.clientX - rect.left;
+        var mouseY = e.clientY - rect.top;
+
+        var zoomDelta = e.deltaY < 0 ? 1.14 : 0.88;
+        var newScale = Math.max(0.1, Math.min(4.0, canvasScale * zoomDelta));
+
+        canvasPanX = mouseX - (mouseX - canvasPanX) * (newScale / canvasScale);
+        canvasPanY = mouseY - (mouseY - canvasPanY) * (newScale / canvasScale);
+        canvasScale = newScale;
+        applyCanvasTransform();
+      }, { passive: false });
+
+      // Double-click to fit view
+      wrapper.addEventListener('dblclick', function(e) {
+        if (!e.target.closest('.node-g') && !e.target.closest('#graph-minimap')) {
+          resetCanvasView();
+        }
+      });
+
+      // Live search input with auto-pan & center
+      var searchInput = document.getElementById('graph-search');
+      if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+          activeSearchQuery = e.target.value.toLowerCase().trim();
+          filterAndHighlightGraph(true);
+        });
+      }
+    })();
+
+    // Edge Dragging Real-time Updates
+    function updateConnectedEdges(nodeId) {
+      graphEdgesList.forEach(function(edge, idx) {
+        if (edge.from === nodeId || edge.to === nodeId) {
+          var fromNode = graphNodesMap.get(edge.from);
+          var toNode = graphNodesMap.get(edge.to);
+          if (!fromNode || !toNode) return;
+
+          var pathEl = document.querySelector('.edge-line[data-from="' + CSS.escape(edge.from) + '"][data-to="' + CSS.escape(edge.to) + '"]');
+          var gradEl = document.getElementById('edge-grad-' + idx);
+          if (pathEl) {
+            var geom = getEdgeGeometry(fromNode, toNode, currentLayout);
+            pathEl.setAttribute('d', geom.d);
+            if (gradEl) {
+              gradEl.setAttribute('x1', String(geom.x1));
+              gradEl.setAttribute('y1', String(geom.y1));
+              gradEl.setAttribute('x2', String(geom.x2));
+              gradEl.setAttribute('y2', String(geom.y2));
+            }
+          }
+        }
+      });
+    }
+
+    // Geometry & Routing Calculator
+    function getEdgeGeometry(fromNode, toNode, layout) {
+      var nodeW = 175;
+      var nodeH = 48;
+      var d = '';
+      var x1 = fromNode.x;
+      var y1 = fromNode.y;
+      var x2 = toNode.x;
+      var y2 = toNode.y;
+
+      if (layout === 'dag') {
+        if (toNode.x > fromNode.x + 20) {
+          x1 = fromNode.x + nodeW / 2;
+          y1 = fromNode.y;
+          x2 = toNode.x - nodeW / 2;
+          y2 = toNode.y;
+          var dx = x2 - x1;
+          var cp = Math.min(180, Math.max(40, dx * 0.45));
+          d = 'M ' + x1 + ' ' + y1 + ' C ' + (x1 + cp) + ' ' + y1 + ', ' + (x2 - cp) + ' ' + y2 + ', ' + x2 + ' ' + y2;
+        } else if (Math.abs(toNode.x - fromNode.x) <= 20) {
+          x1 = fromNode.x + nodeW / 2;
+          y1 = fromNode.y;
+          x2 = toNode.x + nodeW / 2;
+          y2 = toNode.y;
+          var arc = Math.min(70, Math.abs(y2 - y1) * 0.4 + 35);
+          d = 'M ' + x1 + ' ' + y1 + ' C ' + (x1 + arc) + ' ' + y1 + ', ' + (x2 + arc) + ' ' + y2 + ', ' + x2 + ' ' + y2;
+        } else {
+          x1 = fromNode.x;
+          y1 = fromNode.y + nodeH / 2;
+          x2 = toNode.x;
+          y2 = toNode.y + nodeH / 2;
+          var bottom = Math.max(y1, y2) + 55;
+          d = 'M ' + x1 + ' ' + y1 + ' C ' + x1 + ' ' + bottom + ', ' + x2 + ' ' + bottom + ', ' + x2 + ' ' + y2;
+        }
+      } else {
+        var dx = toNode.x - fromNode.x;
+        var dy = toNode.y - fromNode.y;
+        var angle = Math.atan2(dy, dx);
+        var cos = Math.cos(angle);
+        var sin = Math.sin(angle);
+
+        x1 = fromNode.x + cos * (nodeW / 2);
+        y1 = fromNode.y + sin * (nodeH / 2);
+        x2 = toNode.x - cos * (nodeW / 2);
+        y2 = toNode.y - sin * (nodeH / 2);
+
+        var dist = Math.hypot(dx, dy);
+        var normX = -sin * (dist * 0.12);
+        var normY = cos * (dist * 0.12);
+        var midX = (x1 + x2) / 2 + normX;
+        var midY = (y1 + y2) / 2 + normY;
+
+        d = 'M ' + x1 + ' ' + y1 + ' Q ' + midX + ' ' + midY + ' ' + x2 + ' ' + y2;
+      }
+
+      return { d: d, x1: x1, y1: y1, x2: x2, y2: y2 };
+    }
+
+    // Minimap Radar Navigation
+    function drawMinimap() {
+      var canvas = document.getElementById('minimap-canvas');
+      if (!canvas) return;
+      var ctx = canvas.getContext('2d');
+      var w = canvas.width;
+      var h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+
+      var pad = 24;
+      var gw = Math.max(100, graphBounds.width);
+      var gh = Math.max(100, graphBounds.height);
+      var scale = Math.min((w - pad) / gw, (h - pad) / gh);
+      var offX = (w - gw * scale) / 2 - graphBounds.minX * scale;
+      var offY = (h - gh * scale) / 2 - graphBounds.minY * scale;
+
+      // Draw edges
+      ctx.lineWidth = 0.8;
+      ctx.strokeStyle = document.documentElement.classList.contains('dark') ? 'rgba(56, 189, 248, 0.25)' : 'rgba(3, 105, 161, 0.25)';
+      graphEdgesList.forEach(function(e) {
+        var from = graphNodesMap.get(e.from);
+        var to = graphNodesMap.get(e.to);
+        if (!from || !to) return;
+        ctx.beginPath();
+        ctx.moveTo(from.x * scale + offX, from.y * scale + offY);
+        ctx.lineTo(to.x * scale + offX, to.y * scale + offY);
+        ctx.stroke();
+      });
+
+      // Draw nodes
+      graphNodesMap.forEach(function(n) {
+        var nx = n.x * scale + offX;
+        var ny = n.y * scale + offY;
+        ctx.beginPath();
+        ctx.arc(nx, ny, n.type === 'source' ? 3.5 : 2.5, 0, Math.PI * 2);
+        if (n.type === 'source') ctx.fillStyle = '#a855f7';
+        else if (n.type === 'route') ctx.fillStyle = '#f87171';
+        else ctx.fillStyle = '#38bdf8';
+        ctx.fill();
+      });
+
+      updateMinimapViewRect(scale, offX, offY);
+    }
+
+    function updateMinimapViewRect(scaleParam, offXParam, offYParam) {
+      var wrapper = document.getElementById('graph-wrapper');
+      var viewRect = document.getElementById('minimap-viewrect');
+      var canvas = document.getElementById('minimap-canvas');
+      if (!wrapper || !viewRect || !canvas) return;
+
+      var w = canvas.width;
+      var h = canvas.height;
+      var gw = Math.max(100, graphBounds.width);
+      var gh = Math.max(100, graphBounds.height);
+      var scale = scaleParam !== undefined ? scaleParam : Math.min((w - 24) / gw, (h - 24) / gh);
+      var offX = offXParam !== undefined ? offXParam : (w - gw * scale) / 2 - graphBounds.minX * scale;
+      var offY = offYParam !== undefined ? offYParam : (h - gh * scale) / 2 - graphBounds.minY * scale;
+
+      var rect = wrapper.getBoundingClientRect();
+      var graphViewX = -canvasPanX / canvasScale;
+      var graphViewY = -canvasPanY / canvasScale;
+      var graphViewW = rect.width / canvasScale;
+      var graphViewH = rect.height / canvasScale;
+
+      var rx = Math.max(0, graphViewX * scale + offX);
+      var ry = Math.max(0, graphViewY * scale + offY);
+      var rw = Math.min(w, graphViewW * scale);
+      var rh = Math.min(h, graphViewH * scale);
+
+      viewRect.style.left = rx + 'px';
+      viewRect.style.top = ry + 'px';
+      viewRect.style.width = Math.max(14, rw) + 'px';
+      viewRect.style.height = Math.max(10, rh) + 'px';
+    }
+
+    (function setupMinimapInteraction() {
+      var minimap = document.getElementById('graph-minimap');
+      if (!minimap) return;
+
+      function panFromMinimap(e) {
+        var rect = minimap.getBoundingClientRect();
+        var mx = e.clientX - rect.left;
+        var my = e.clientY - rect.top;
+
+        var w = 170;
+        var h = 104;
+        var gw = Math.max(100, graphBounds.width);
+        var gh = Math.max(100, graphBounds.height);
+        var scale = Math.min((w - 24) / gw, (h - 24) / gh);
+        var offX = (w - gw * scale) / 2 - graphBounds.minX * scale;
+        var offY = (h - gh * scale) / 2 - graphBounds.minY * scale;
+
+        var targetGraphX = (mx - offX) / scale;
+        var targetGraphY = (my - offY) / scale;
+
+        var wrapper = document.getElementById('graph-wrapper');
+        var wrapRect = wrapper.getBoundingClientRect();
+
+        canvasPanX = wrapRect.width / 2 - targetGraphX * canvasScale;
+        canvasPanY = wrapRect.height / 2 - targetGraphY * canvasScale;
+        applyCanvasTransform();
+      }
+
+      var isDraggingMini = false;
+      minimap.addEventListener('mousedown', function(e) {
+        isDraggingMini = true;
+        panFromMinimap(e);
+      });
+      window.addEventListener('mousemove', function(e) {
+        if (isDraggingMini) panFromMinimap(e);
+      });
+      window.addEventListener('mouseup', function() {
+        isDraggingMini = false;
+      });
+    })();
+
+    // Export Vector SVG
+    function exportGraphSvg() {
+      var svg = document.getElementById('network-svg');
+      if (!svg) return;
+      var serializer = new XMLSerializer();
+      var source = serializer.serializeToString(svg);
+      source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+      var url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(source);
+
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'change-firewall-blast-graph-' + Date.now() + '.svg';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    // Export PNG Image
+    function exportGraphPng() {
+      var svg = document.getElementById('network-svg');
+      if (!svg) return;
+      var serializer = new XMLSerializer();
+      var source = '<?xml version="1.0" standalone="no"?>\r\n' + serializer.serializeToString(svg);
+      var img = new Image();
+      var svgBlob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+      var url = URL.createObjectURL(svgBlob);
+
+      img.onload = function() {
+        var canvas = document.createElement('canvas');
+        var vb = svg.viewBox.baseVal;
+        var width = vb && vb.width > 0 ? vb.width : 1600;
+        var height = vb && vb.height > 0 ? vb.height : 900;
+        canvas.width = width * 2;
+        canvas.height = height * 2;
+        var ctx = canvas.getContext('2d');
+        ctx.scale(2, 2);
+
+        ctx.fillStyle = document.documentElement.classList.contains('dark') ? '#080b13' : '#ede8dc';
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
+        URL.revokeObjectURL(url);
+
+        var pngUrl = canvas.toDataURL('image/png');
+        var a = document.createElement('a');
+        a.href = pngUrl;
+        a.download = 'change-firewall-blast-graph-' + Date.now() + '.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      };
+      img.src = url;
+    }
+
+    // Filter & Search Highlighter
+    function filterAndHighlightGraph(autoCenterFirst) {
+      var nodes = document.querySelectorAll('.node-g');
+      var edges = document.querySelectorAll('.edge-line');
+
+      if (!activeSearchQuery && activeRoleFilter === 'all') {
+        nodes.forEach(function(n) { n.classList.remove('is-dimmed', 'is-focused'); });
+        edges.forEach(function(e) { e.classList.remove('is-dimmed'); });
+        return;
+      }
+
+      var matchedNodeIds = new Set();
+      var firstMatchedId = null;
+
+      nodes.forEach(function(n) {
+        var id = n.dataset.nodeId || '';
+        var role = n.dataset.role || '';
+        var label = n.dataset.label || '';
+
+        var roleMatch = activeRoleFilter === 'all' || role === activeRoleFilter;
+        var searchMatch = !activeSearchQuery || id.toLowerCase().indexOf(activeSearchQuery) !== -1 || label.toLowerCase().indexOf(activeSearchQuery) !== -1;
+
+        if (roleMatch && searchMatch) {
+          n.classList.remove('is-dimmed');
+          n.classList.add('is-focused');
+          matchedNodeIds.add(id);
+          if (!firstMatchedId) firstMatchedId = id;
+        } else {
+          n.classList.add('is-dimmed');
+          n.classList.remove('is-focused');
+        }
+      });
+
+      edges.forEach(function(e) {
+        var from = e.dataset.from;
+        var to = e.dataset.to;
+        if (matchedNodeIds.has(from) || matchedNodeIds.has(to)) {
+          e.classList.remove('is-dimmed');
+        } else {
+          e.classList.add('is-dimmed');
+        }
+      });
+
+      if (autoCenterFirst && firstMatchedId) {
+        centerOnNode(firstMatchedId);
+      }
+    }
 
     function renderReport(report) {
       document.getElementById('timestamp').textContent = 'Last updated: ' + new Date(report.timestamp).toLocaleTimeString();
       document.getElementById('risk-score').textContent = report.risk.score + ' / 100';
       
-      const riskBadge = document.getElementById('risk-badge');
+      var riskBadge = document.getElementById('risk-badge');
       riskBadge.className = report.risk.level === 'HIGH' || report.risk.level === 'CRITICAL' ? 'badge-high' : (report.risk.level === 'MEDIUM' ? 'badge-medium' : 'badge-low');
       riskBadge.textContent = report.risk.level + ' RISK';
 
@@ -1160,283 +2101,739 @@ export function getDashboardHtml(report: AnalysisReport): string {
       document.getElementById('files-count').textContent = report.totalFilesChanged;
       document.getElementById('lines-diff').innerHTML = '<span style="color: var(--brand-success); font-weight: 600;">+' + report.linesAdded + '</span> / <span style="color: var(--brand-danger); font-weight: 600;">-' + report.linesDeleted + '</span> lines';
 
-      let maxConsumers = 0;
-      for (const b of Object.values(report.blastRadiusMap)) {
+      var maxConsumers = 0;
+      for (var b of Object.values(report.blastRadiusMap)) {
         if (b.totalConsumers > maxConsumers) maxConsumers = b.totalConsumers;
       }
       document.getElementById('max-blast').textContent = maxConsumers;
 
-      // 1. Render Interactive SVG Graph
+      // 1. Render God-Level Interactive SVG Graph
       renderVisualGraph(report);
 
       // 2. Render Findings
-      const findingsContainer = document.getElementById('findings-container');
+      var findingsContainer = document.getElementById('findings-container');
       if (report.findings.length === 0) {
         findingsContainer.innerHTML = '<div class="finding-card"><p style="color: var(--brand-success); font-weight: 600;">✓ No breaking behavioral changes or contract regressions detected.</p></div>';
       } else {
-        findingsContainer.innerHTML = report.findings.map(f => {
-          const badgeClass = f.severity === 'HIGH' || f.severity === 'CRITICAL' ? 'badge-high' : (f.severity === 'MEDIUM' ? 'badge-medium' : 'badge-low');
-          return \`
-            <div class="finding-card">
-              <div class="finding-header">
-                <span class="finding-title">\${f.title}</span>
-                <span class="\${badgeClass}">\${f.severity}</span>
-              </div>
-              <div class="file-tag">\${f.filePath}</div>
-              <div class="finding-desc">\${f.description}</div>
-              <div class="evidence-box">
-                <div class="evidence-title">Observed Evidence</div>
-                \${f.evidence.map(e => \`<div class="evidence-item">• \${e}</div>\`).join('')}
-              </div>
-              <div class="recommendation-box">
-                <strong>Recommendation:</strong> \${f.recommendation}
-              </div>
-            </div>
-          \`;
+        findingsContainer.innerHTML = report.findings.map(function(f) {
+          var badgeClass = f.severity === 'HIGH' || f.severity === 'CRITICAL' ? 'badge-high' : (f.severity === 'MEDIUM' ? 'badge-medium' : 'badge-low');
+          return '<div class="finding-card">' +
+            '<div class="finding-header">' +
+              '<span class="finding-title">' + f.title + '</span>' +
+              '<span class="' + badgeClass + '">' + f.severity + '</span>' +
+            '</div>' +
+            '<div class="file-tag">' + f.filePath + '</div>' +
+            '<div class="finding-desc">' + f.description + '</div>' +
+            '<div class="evidence-box">' +
+              '<div class="evidence-title">Observed Evidence</div>' +
+              f.evidence.map(function(e) { return '<div class="evidence-item">• ' + e + '</div>'; }).join('') +
+            '</div>' +
+            '<div class="recommendation-box">' +
+              '<strong>Recommendation:</strong> ' + f.recommendation +
+            '</div>' +
+          '</div>';
         }).join('');
       }
 
       // 3. Render Suspicious Changes
-      const suspiciousContainer = document.getElementById('suspicious-container');
-      const suspiciousList = report.suspiciousChanges || [];
+      var suspiciousContainer = document.getElementById('suspicious-container');
+      var suspiciousList = report.suspiciousChanges || [];
       if (suspiciousList.length === 0) {
         suspiciousContainer.innerHTML = '<div class="finding-card"><p style="color: var(--brand-success); font-weight: 600;">✓ Zero suspicious anomaly patterns detected in current diff.</p></div>';
       } else {
-        suspiciousContainer.innerHTML = suspiciousList.map(s => \`
-          <div class="finding-card" style="border-left: 3px solid var(--brand-warning);">
-            <div class="finding-header">
-              <span class="finding-title">\${s.title}</span>
-              <span class="badge-high">\${s.severity}</span>
-            </div>
-            <div class="file-tag">\${s.filePath}</div>
-            <div class="finding-desc">\${s.reason}</div>
-            <div class="evidence-box">
-              <div class="evidence-title">Suspicion Indicators</div>
-              \${s.evidence.map(e => \`<div class="evidence-item">• \${e}</div>\`).join('')}
-            </div>
-          </div>
-        \`).join('');
+        suspiciousContainer.innerHTML = suspiciousList.map(function(s) {
+          return '<div class="finding-card" style="border-left: 3px solid var(--brand-warning);">' +
+            '<div class="finding-header">' +
+              '<span class="finding-title">' + s.title + '</span>' +
+              '<span class="badge-high">' + s.severity + '</span>' +
+            '</div>' +
+            '<div class="file-tag">' + s.filePath + '</div>' +
+            '<div class="finding-desc">' + s.reason + '</div>' +
+            '<div class="evidence-box">' +
+              '<div class="evidence-title">Suspicion Indicators</div>' +
+              s.evidence.map(function(e) { return '<div class="evidence-item">• ' + e + '</div>'; }).join('') +
+            '</div>' +
+          '</div>';
+        }).join('');
       }
 
       // 4. Render Git Timeline
-      const timelineContainer = document.getElementById('timeline-container');
-      const timelineList = report.timeline || [];
+      var timelineContainer = document.getElementById('timeline-container');
+      var timelineList = report.timeline || [];
       if (timelineList.length === 0) {
         timelineContainer.innerHTML = '<p style="color: var(--text-muted); font-size: 13px;">No Git commit history recorded yet.</p>';
       } else {
-        timelineContainer.innerHTML = timelineList.map(t => \`
-          <div class="timeline-item">
-            <div class="timeline-dot"></div>
-            <div class="timeline-date">\${t.date} • <span class="timeline-author">\${t.hash}</span> by \${t.author}</div>
-            <div class="timeline-title">\${t.message}</div>
-          </div>
-        \`).join('');
+        timelineContainer.innerHTML = timelineList.map(function(t) {
+          return '<div class="timeline-item">' +
+            '<div class="timeline-dot"></div>' +
+            '<div class="timeline-date">' + t.date + ' • <span class="timeline-author">' + t.hash + '</span> by ' + t.author + '</div>' +
+            '<div class="timeline-title">' + t.message + '</div>' +
+          '</div>';
+        }).join('');
       }
 
       // 5. Render Blast Radius Table
-      const blastBody = document.getElementById('blast-table-body');
-      const blastEntries = Object.values(report.blastRadiusMap);
+      var blastBody = document.getElementById('blast-table-body');
+      var blastEntries = Object.values(report.blastRadiusMap);
       if (blastEntries.length === 0) {
         blastBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No dependency relationships detected.</td></tr>';
       } else {
-        blastBody.innerHTML = blastEntries.map(b => {
-          const badgeClass = b.level === 'HIGH' ? 'badge-high' : (b.level === 'MEDIUM' ? 'badge-medium' : 'badge-low');
-          return \`
-            <tr>
-              <td class="mono" style="color: var(--brand-cyan); font-weight: 500;">\${b.filePath}</td>
-              <td>\${b.directDependents.length}</td>
-              <td>\${b.affectedRoutes.length > 0 ? b.affectedRoutes.join(', ') : '<span style="color: var(--text-muted);">None</span>'}</td>
-              <td><strong>\${b.totalConsumers}</strong> consumers</td>
-              <td><span class="\${badgeClass}">\${b.level}</span></td>
-            </tr>
-          \`;
+        blastBody.innerHTML = blastEntries.map(function(b) {
+          var badgeClass = b.level === 'HIGH' ? 'badge-high' : (b.level === 'MEDIUM' ? 'badge-medium' : 'badge-low');
+          return '<tr>' +
+            '<td class="mono" style="color: var(--brand-cyan); font-weight: 500;">' + b.filePath + '</td>' +
+            '<td>' + b.directDependents.length + '</td>' +
+            '<td>' + (b.affectedRoutes.length > 0 ? b.affectedRoutes.join(', ') : '<span style="color: var(--text-muted);">None</span>') + '</td>' +
+            '<td><strong>' + b.totalConsumers + '</strong> consumers</td>' +
+            '<td><span class="' + badgeClass + '">' + b.level + '</span></td>' +
+          '</tr>';
         }).join('');
       }
 
       // 6. Render Risk Factors
-      const riskContainer = document.getElementById('risk-factors-container');
-      riskContainer.innerHTML = report.risk.factors.map(rf => \`
-        <div class="finding-card">
-          <div class="finding-header">
-            <span class="finding-title" style="color: var(--brand-warning);">+\${rf.scoreContribution} pts: \${rf.factor}</span>
-          </div>
-          <div class="finding-desc">\${rf.reason}</div>
-        </div>
-      \`).join('');
+      var riskContainer = document.getElementById('risk-factors-container');
+      riskContainer.innerHTML = report.risk.factors.map(function(rf) {
+        return '<div class="finding-card">' +
+          '<div class="finding-header">' +
+            '<span class="finding-title" style="color: var(--brand-warning);">+' + rf.scoreContribution + ' pts: ' + rf.factor + '</span>' +
+          '</div>' +
+          '<div class="finding-desc">' + rf.reason + '</div>' +
+        '</div>';
+      }).join('');
 
       // 7. Render Changed Files Table
-      const filesBody = document.getElementById('files-table-body');
-      filesBody.innerHTML = report.changedFiles.map(cf => \`
-        <tr>
-          <td class="mono" style="font-weight: 500;">\${cf.path}</td>
-          <td><span class="badge-medium">\${cf.changeType}</span></td>
-          <td style="color: var(--brand-success); font-weight: 600; font-family: var(--font-jetbrains);">+\${cf.linesAdded}</td>
-          <td style="color: var(--brand-danger); font-weight: 600; font-family: var(--font-jetbrains);">-\${cf.linesDeleted}</td>
-        </tr>
-      \`).join('');
+      var filesBody = document.getElementById('files-table-body');
+      filesBody.innerHTML = report.changedFiles.map(function(cf) {
+        return '<tr>' +
+          '<td class="mono" style="font-weight: 500;">' + cf.path + '</td>' +
+          '<td><span class="badge-medium">' + cf.changeType + '</span></td>' +
+          '<td style="color: var(--brand-success); font-weight: 600; font-family: var(--font-jetbrains);">+' + cf.linesAdded + '</td>' +
+          '<td style="color: var(--brand-danger); font-weight: 600; font-family: var(--font-jetbrains);">-' + cf.linesDeleted + '</td>' +
+        '</tr>';
+      }).join('');
     }
 
-    // Interactive Visual SVG Graph Engine
+    // ==========================================
+    // God-Level Multi-Scale Graph Layout Engine
+    // ==========================================
     function renderVisualGraph(report) {
-      const svgNodesGroup = document.getElementById('svg-nodes');
-      const svgEdgesGroup = document.getElementById('svg-edges');
+      var svg = document.getElementById('network-svg');
+      var svgDefs = document.getElementById('svg-defs');
+      var svgRadarGroup = document.getElementById('svg-radar-rings');
+      var svgClusterGroup = document.getElementById('svg-clusters');
+      var svgNodesGroup = document.getElementById('svg-nodes');
+      var svgEdgesGroup = document.getElementById('svg-edges');
+
+      if (svgRadarGroup) svgRadarGroup.innerHTML = '';
+      if (svgClusterGroup) svgClusterGroup.innerHTML = '';
       svgNodesGroup.innerHTML = '';
       svgEdgesGroup.innerHTML = '';
 
-      const blastEntries = Object.entries(report.blastRadiusMap);
+      var blastEntries = Object.entries(report.blastRadiusMap || {});
       if (blastEntries.length === 0) return;
 
-      const nodes = new Map();
-      const edges = [];
+      var nodes = new Map();
+      var edges = [];
+      var edgeKeySet = new Set();
 
-      // Layer 0: Source modified files
-      blastEntries.forEach(([file, blast]) => {
+      // 1. Collect all nodes
+      blastEntries.forEach(function(entry) {
+        var file = entry[0];
+        var blast = entry[1];
+        var isRoute = blast.affectedRoutes && blast.affectedRoutes.indexOf(file) !== -1;
         nodes.set(file, {
           id: file,
-          label: file.split('/').pop(),
+          label: file.split('/').pop().split('\\').pop(),
           fullPath: file,
-          type: 'source',
-          layer: 0,
-          blast,
+          type: isRoute ? 'route' : 'source',
+          blast: blast,
         });
+      });
 
-        // Layer 1: Direct dependents
-        blast.directDependents.forEach((dep) => {
-          const isRoute = blast.affectedRoutes.includes(dep);
+      blastEntries.forEach(function(entry) {
+        var file = entry[0];
+        var blast = entry[1];
+        (blast.directDependents || []).forEach(function(dep) {
           if (!nodes.has(dep)) {
+            var isRoute = blast.affectedRoutes && blast.affectedRoutes.indexOf(dep) !== -1;
             nodes.set(dep, {
               id: dep,
-              label: dep.split('/').pop(),
+              label: dep.split('/').pop().split('\\').pop(),
               fullPath: dep,
               type: isRoute ? 'route' : 'consumer',
-              layer: isRoute ? 2 : 1,
               blast: report.blastRadiusMap[dep] || { totalConsumers: 0, directDependents: [] },
             });
           }
-          edges.push({ from: file, to: dep });
+          var edgeKey = file + '->' + dep;
+          if (!edgeKeySet.has(edgeKey) && file !== dep) {
+            edgeKeySet.add(edgeKey);
+            edges.push({ from: file, to: dep });
+          }
         });
 
-        // Layer 2: Affected routes
-        blast.affectedRoutes.forEach((route) => {
+        (blast.affectedRoutes || []).forEach(function(route) {
           if (!nodes.has(route)) {
             nodes.set(route, {
               id: route,
-              label: route.split('/').pop(),
+              label: route.split('/').pop().split('\\').pop(),
               fullPath: route,
               type: 'route',
-              layer: 2,
               blast: report.blastRadiusMap[route] || { totalConsumers: 0, directDependents: [] },
             });
           }
         });
       });
 
-      // Coordinates layout
-      const layerNodes = [[], [], []];
-      nodes.forEach((node) => {
-        layerNodes[Math.min(node.layer, 2)].push(node);
-      });
+      // 2. Filter by Blast Scope
+      var filteredNodes = new Map(nodes);
+      var filteredEdges = edges;
 
-      const colX = [120, 460, 820];
-      layerNodes.forEach((col, cIdx) => {
-        const x = colX[cIdx];
-        const gapY = Math.min(84, 430 / (col.length + 1));
-        const startY = (470 - (col.length - 1) * gapY) / 2;
-        col.forEach((node, rIdx) => {
-          node.x = x;
-          node.y = Math.max(45, startY + rIdx * gapY);
+      if (activeBlastScope === '1hop') {
+        var keepIds = new Set();
+        nodes.forEach(function(n) {
+          if (n.type === 'source') {
+            keepIds.add(n.id);
+            (n.blast.directDependents || []).forEach(function(d) { keepIds.add(d); });
+          }
         });
+        filteredNodes = new Map();
+        nodes.forEach(function(n, id) {
+          if (keepIds.has(id)) filteredNodes.set(id, n);
+        });
+        filteredEdges = edges.filter(function(e) { return keepIds.has(e.from) && keepIds.has(e.to); });
+      } else if (activeBlastScope === 'routes') {
+        var keepIds = new Set();
+        nodes.forEach(function(n) {
+          if (n.type === 'source' || n.type === 'route') keepIds.add(n.id);
+        });
+        filteredNodes = new Map();
+        nodes.forEach(function(n, id) {
+          if (keepIds.has(id)) filteredNodes.set(id, n);
+        });
+        filteredEdges = edges.filter(function(e) { return keepIds.has(e.from) && keepIds.has(e.to); });
+      }
+
+      // Update Global State
+      graphNodesMap = filteredNodes;
+      graphEdgesList = filteredEdges;
+
+      // Update HUD stats
+      var statsChip = document.getElementById('graph-stats-chip');
+      if (statsChip) {
+        statsChip.textContent = filteredNodes.size + ' nodes • ' + filteredEdges.length + ' edges';
+      }
+
+      // 3. Build Adjacency Graph
+      var incoming = new Map();
+      var outgoing = new Map();
+      filteredNodes.forEach(function(n) {
+        incoming.set(n.id, new Set());
+        outgoing.set(n.id, new Set());
+      });
+      filteredEdges.forEach(function(e) {
+        if (incoming.has(e.to)) incoming.get(e.to).add(e.from);
+        if (outgoing.has(e.from)) outgoing.get(e.from).add(e.to);
+      });
+      graphIncomingMap = incoming;
+      graphOutgoingMap = outgoing;
+
+      // 4. Compute Topological Ranks (Sugiyama DAG)
+      var ranks = new Map();
+      var inDegrees = new Map();
+      filteredNodes.forEach(function(n) { inDegrees.set(n.id, incoming.get(n.id).size); });
+
+      var queue = [];
+      filteredNodes.forEach(function(n) {
+        if (inDegrees.get(n.id) === 0) {
+          ranks.set(n.id, 0);
+          queue.push(n.id);
+        }
       });
 
-      // Draw Edges
-      edges.forEach((edge) => {
-        const fromNode = nodes.get(edge.from);
-        const toNode = nodes.get(edge.to);
+      if (queue.length === 0 && filteredNodes.size > 0) {
+        var minId = null;
+        var minD = Infinity;
+        filteredNodes.forEach(function(n) {
+          var d = inDegrees.get(n.id);
+          if (d < minD) { minD = d; minId = n.id; }
+        });
+        ranks.set(minId, 0);
+        queue.push(minId);
+      }
+
+      var maxIter = filteredNodes.size * 2;
+      var visitCounters = new Map();
+
+      while (queue.length > 0) {
+        var u = queue.shift();
+        var uRank = ranks.get(u) || 0;
+        var targets = outgoing.get(u) || new Set();
+
+        targets.forEach(function(v) {
+          var currentVRank = ranks.has(v) ? ranks.get(v) : -1;
+          var count = (visitCounters.get(v) || 0) + 1;
+          visitCounters.set(v, count);
+
+          if (uRank + 1 > currentVRank && count <= maxIter) {
+            ranks.set(v, uRank + 1);
+            queue.push(v);
+          }
+        });
+      }
+
+      filteredNodes.forEach(function(n) {
+        if (!ranks.has(n.id)) ranks.set(n.id, 0);
+        n.rank = ranks.get(n.id);
+      });
+
+      var maxRank = 0;
+      filteredNodes.forEach(function(n) { if (n.rank > maxRank) maxRank = n.rank; });
+      filteredNodes.forEach(function(n) {
+        if (n.type === 'route' && outgoing.get(n.id).size === 0) {
+          n.rank = Math.max(n.rank, maxRank);
+        }
+      });
+      maxRank = 0;
+      filteredNodes.forEach(function(n) { if (n.rank > maxRank) maxRank = n.rank; });
+
+      // Node card dimensions
+      var nodeW = 175;
+      var nodeH = 48;
+      var totalSvgWidth = 1200;
+      var totalSvgHeight = 650;
+
+      // ==========================================
+      // LAYOUT 1: Hierarchical DAG with Multi-Lane Wrapping
+      // ==========================================
+      if (currentLayout === 'dag') {
+        var columns = Array.from({ length: maxRank + 1 }, function() { return []; });
+        filteredNodes.forEach(function(n) { columns[n.rank].push(n); });
+
+        var nodeSpacingY = 78;
+        var cumulativeX = 140;
+        var maxOverallY = 560;
+
+        columns.forEach(function(col, cIdx) {
+          if (cIdx > 0) {
+            col.sort(function(a, b) {
+              var aParents = Array.from(incoming.get(a.id) || []);
+              var bParents = Array.from(incoming.get(b.id) || []);
+              var aAvgY = aParents.length ? aParents.reduce(function(sum, pId) { return sum + (filteredNodes.get(pId) ? filteredNodes.get(pId).y : 0); }, 0) / aParents.length : 0;
+              var bAvgY = bParents.length ? bParents.reduce(function(sum, pId) { return sum + (filteredNodes.get(pId) ? filteredNodes.get(pId).y : 0); }, 0) / bParents.length : 0;
+              return aAvgY - bAvgY || a.label.localeCompare(b.label);
+            });
+          } else {
+            col.sort(function(a, b) { return a.label.localeCompare(b.label); });
+          }
+
+          var numLanes = col.length > 8 ? Math.min(4, Math.ceil(Math.sqrt(col.length / 3))) : 1;
+          var perLane = Math.ceil(col.length / numLanes);
+          var laneWidth = 195;
+
+          var colHeight = (perLane - 1) * nodeSpacingY;
+          if (colHeight + 160 > maxOverallY) maxOverallY = colHeight + 160;
+
+          col.forEach(function(node, rIdx) {
+            var lane = Math.floor(rIdx / perLane);
+            var row = rIdx % perLane;
+            node.x = cumulativeX + lane * laneWidth;
+            node.y = 80 + row * nodeSpacingY;
+          });
+
+          cumulativeX += numLanes * laneWidth + 140;
+        });
+
+        totalSvgWidth = Math.max(1200, cumulativeX + 60);
+        totalSvgHeight = Math.max(650, maxOverallY);
+      }
+
+      // ==========================================
+      // LAYOUT 2: Concentric Radial Blast Radar
+      // ==========================================
+      else if (currentLayout === 'radial') {
+        var cx = 850;
+        var cy = 600;
+        var rings = [[], [], [], []]; // 0: sources, 1: direct, 2: transitive, 3: routes
+
+        filteredNodes.forEach(function(n) {
+          if (n.type === 'source') rings[0].push(n);
+          else if (n.type === 'route') rings[3].push(n);
+          else if (n.rank === 1) rings[1].push(n);
+          else rings[2].push(n);
+        });
+
+        var radii = [140, 340, 540, 740];
+        var ringLabels = ['Core Regressions', 'Tier 1 Dependents', 'Transitive Consumers', 'Public Endpoints'];
+
+        if (svgRadarGroup) {
+          radii.forEach(function(r, idx) {
+            var circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            circle.setAttribute('cx', String(cx));
+            circle.setAttribute('cy', String(cy));
+            circle.setAttribute('r', String(r));
+            circle.setAttribute('class', 'radar-ring');
+            svgRadarGroup.appendChild(circle);
+
+            var txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            txt.setAttribute('x', String(cx + 10));
+            txt.setAttribute('y', String(cy - r + 15));
+            txt.setAttribute('class', 'radar-label');
+            txt.textContent = ringLabels[idx];
+            svgRadarGroup.appendChild(txt);
+          });
+        }
+
+        rings.forEach(function(ringNodes, ringIdx) {
+          var r = radii[ringIdx];
+          var count = ringNodes.length;
+          var angleStep = (2 * Math.PI) / Math.max(count, 1);
+          ringNodes.forEach(function(node, i) {
+            var angle = i * angleStep - Math.PI / 2;
+            node.x = cx + Math.cos(angle) * r;
+            node.y = cy + Math.sin(angle) * r;
+          });
+        });
+
+        totalSvgWidth = cx * 2;
+        totalSvgHeight = cy * 2;
+      }
+
+      // ==========================================
+      // LAYOUT 3: Organic Force Physics Simulation
+      // ==========================================
+      else if (currentLayout === 'force') {
+        var cx = 750;
+        var cy = 480;
+        var fIdx = 0;
+        filteredNodes.forEach(function(n) {
+          var angle = (fIdx++ / filteredNodes.size) * Math.PI * 2;
+          var dist = 120 + Math.random() * 260;
+          n.x = cx + Math.cos(angle) * dist;
+          n.y = cy + Math.sin(angle) * dist;
+          n.vx = 0;
+          n.vy = 0;
+        });
+
+        var nodeArr = Array.from(filteredNodes.values());
+        var kRep = 42000;
+        var kSpring = 0.04;
+        var l0 = 200;
+        var damping = 0.78;
+
+        for (var iter = 0; iter < 60; iter++) {
+          for (var i = 0; i < nodeArr.length; i++) {
+            for (var j = i + 1; j < nodeArr.length; j++) {
+              var a = nodeArr[i];
+              var b = nodeArr[j];
+              var dx = b.x - a.x;
+              var dy = b.y - a.y;
+              var dist = Math.hypot(dx, dy) || 1;
+              var f = kRep / (dist * dist);
+              var fx = (dx / dist) * f;
+              var fy = (dy / dist) * f;
+              a.vx -= fx;
+              a.vy -= fy;
+              b.vx += fx;
+              b.vy += fy;
+            }
+          }
+
+          filteredEdges.forEach(function(e) {
+            var a = filteredNodes.get(e.from);
+            var b = filteredNodes.get(e.to);
+            if (!a || !b) return;
+            var dx = b.x - a.x;
+            var dy = b.y - a.y;
+            var dist = Math.hypot(dx, dy) || 1;
+            var f = (dist - l0) * kSpring;
+            var fx = (dx / dist) * f;
+            var fy = (dy / dist) * f;
+            a.vx -= fx;
+            a.vy -= fy;
+            b.vx += fx;
+            b.vy += fy;
+          });
+
+          nodeArr.forEach(function(n) {
+            n.vx += (cx - n.x) * 0.008;
+            n.vy += (cy - n.y) * 0.008;
+            n.x += n.vx * 0.5;
+            n.y += n.vy * 0.5;
+            n.vx *= damping;
+            n.vy *= damping;
+          });
+        }
+
+        totalSvgWidth = 1500;
+        totalSvgHeight = 960;
+      }
+
+      // ==========================================
+      // LAYOUT 4: Directory Compartment Clusters
+      // ==========================================
+      else if (currentLayout === 'cluster') {
+        var groups = new Map();
+        filteredNodes.forEach(function(n) {
+          var parts = n.fullPath.split(/[/\\]/);
+          var dir = parts.length > 1 ? parts.slice(0, 2).join('/') : 'root';
+          if (!groups.has(dir)) groups.set(dir, []);
+          groups.get(dir).push(n);
+        });
+
+        var clusterCols = Math.min(3, Math.ceil(Math.sqrt(groups.size)));
+        var curCol = 0;
+        var offsetX = 80;
+        var offsetY = 80;
+        var boxPad = 28;
+
+        groups.forEach(function(dirNodes, dirName) {
+          var itemsPerRow = Math.min(3, Math.ceil(Math.sqrt(dirNodes.length)));
+          var boxW = itemsPerRow * (nodeW + 20) + boxPad * 2;
+          var boxH = Math.ceil(dirNodes.length / itemsPerRow) * (nodeH + 20) + boxPad * 2 + 20;
+
+          if (svgClusterGroup) {
+            var rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            rect.setAttribute('x', String(offsetX));
+            rect.setAttribute('y', String(offsetY));
+            rect.setAttribute('width', String(boxW));
+            rect.setAttribute('height', String(boxH));
+            rect.setAttribute('class', 'cluster-rect');
+            svgClusterGroup.appendChild(rect);
+
+            var title = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            title.setAttribute('x', String(offsetX + boxPad));
+            title.setAttribute('y', String(offsetY + 22));
+            title.setAttribute('class', 'cluster-label');
+            title.textContent = '📁 ' + dirName + ' (' + dirNodes.length + ')';
+            svgClusterGroup.appendChild(title);
+          }
+
+          dirNodes.forEach(function(node, idx) {
+            var r = Math.floor(idx / itemsPerRow);
+            var c = idx % itemsPerRow;
+            node.x = offsetX + boxPad + c * (nodeW + 20) + nodeW / 2;
+            node.y = offsetY + boxPad + 30 + r * (nodeH + 20) + nodeH / 2;
+          });
+
+          curCol++;
+          offsetX += boxW + 40;
+          if (curCol >= clusterCols) {
+            curCol = 0;
+            offsetX = 80;
+            offsetY += boxH + 40;
+          }
+        });
+
+        totalSvgWidth = Math.max(1200, offsetX + 600);
+        totalSvgHeight = Math.max(650, offsetY + 300);
+      }
+
+      // Calculate Graph Bounds for Minimap
+      var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      filteredNodes.forEach(function(n) {
+        if (n.x < minX) minX = n.x;
+        if (n.x > maxX) maxX = n.x;
+        if (n.y < minY) minY = n.y;
+        if (n.y > maxY) maxY = n.y;
+      });
+      graphBounds = {
+        minX: Math.max(0, minX - 100),
+        minY: Math.max(0, minY - 100),
+        maxX: maxX + 100,
+        maxY: maxY + 100,
+        width: Math.max(600, maxX - minX + 200),
+        height: Math.max(400, maxY - minY + 200)
+      };
+
+      // Update SVG viewBox and dimensions
+      svg.setAttribute('viewBox', '0 0 ' + totalSvgWidth + ' ' + totalSvgHeight);
+
+      // 5. Draw Clean, Smooth Connecting Edges
+      var isDark = document.documentElement.classList.contains('dark');
+      var edgeTooltip = document.getElementById('edge-tooltip');
+
+      filteredEdges.forEach(function(edge, edgeIdx) {
+        var fromNode = filteredNodes.get(edge.from);
+        var toNode = filteredNodes.get(edge.to);
         if (!fromNode || !toNode) return;
 
-        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        const d = \`M \${fromNode.x + 85} \${fromNode.y} C \${fromNode.x + 190} \${fromNode.y}, \${toNode.x - 105} \${toNode.y}, \${toNode.x - 85} \${toNode.y}\`;
-        path.setAttribute('d', d);
+        var getColor = function(type) {
+          if (type === 'source') return isDark ? '#a855f7' : '#6d28d9';
+          if (type === 'route') return isDark ? '#f87171' : '#dc2626';
+          return isDark ? '#38bdf8' : '#0369a1';
+        };
+
+        var colorFrom = getColor(fromNode.type);
+        var colorTo = getColor(toNode.type);
+
+        var gradId = 'edge-grad-' + edgeIdx;
+        var grad = document.getElementById(gradId);
+        if (!grad) {
+          grad = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+          grad.setAttribute('id', gradId);
+          grad.setAttribute('gradientUnits', 'userSpaceOnUse');
+          svgDefs.appendChild(grad);
+        }
+        grad.innerHTML = '<stop offset="0%" stop-color="' + colorFrom + '" stop-opacity="' + (isDark ? 0.75 : 0.6) + '" />' +
+          '<stop offset="100%" stop-color="' + colorTo + '" stop-opacity="' + (isDark ? 0.95 : 0.85) + '" />';
+
+        var geom = getEdgeGeometry(fromNode, toNode, currentLayout);
+        grad.setAttribute('x1', String(geom.x1));
+        grad.setAttribute('y1', String(geom.y1));
+        grad.setAttribute('x2', String(geom.x2));
+        grad.setAttribute('y2', String(geom.y2));
+
+        var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', geom.d);
         path.setAttribute('class', 'edge-line');
+        path.setAttribute('stroke', 'url(#' + gradId + ')');
         path.setAttribute('marker-end', 'url(#arrow)');
         path.dataset.from = fromNode.id;
         path.dataset.to = toNode.id;
+
+        // Interactive Edge Hover Tooltip
+        path.addEventListener('mouseenter', function(ev) {
+          if (edgeTooltip) {
+            edgeTooltip.style.display = 'block';
+            edgeTooltip.innerHTML = '<span style="color: ' + colorFrom + '; font-weight:700;">' + fromNode.label + '</span> ➔ <span style="color: ' + colorTo + '; font-weight:700;">' + toNode.label + '</span> <span style="color: var(--text-muted); font-size: 10px;">(' + (fromNode.type === 'source' ? 'imports' : 'downstream') + ')</span>';
+            var wrapRect = document.getElementById('graph-wrapper').getBoundingClientRect();
+            edgeTooltip.style.left = (ev.clientX - wrapRect.left) + 'px';
+            edgeTooltip.style.top = (ev.clientY - wrapRect.top) + 'px';
+          }
+        });
+        path.addEventListener('mousemove', function(ev) {
+          if (edgeTooltip) {
+            var wrapRect = document.getElementById('graph-wrapper').getBoundingClientRect();
+            edgeTooltip.style.left = (ev.clientX - wrapRect.left) + 'px';
+            edgeTooltip.style.top = (ev.clientY - wrapRect.top) + 'px';
+          }
+        });
+        path.addEventListener('mouseleave', function() {
+          if (edgeTooltip) edgeTooltip.style.display = 'none';
+        });
+
         svgEdgesGroup.appendChild(path);
       });
 
-      const isDark = document.documentElement.classList.contains('dark');
-
-      // Draw Nodes with Icons
-      nodes.forEach((node) => {
-        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        g.setAttribute('transform', \`translate(\${node.x - 75}, \${node.y - 22})\`);
+      // 6. Draw Nodes with Icons, Badges & Drag Listeners
+      filteredNodes.forEach(function(node) {
+        var g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        g.setAttribute('transform', 'translate(' + (node.x - nodeW / 2) + ', ' + (node.y - nodeH / 2) + ')');
         g.setAttribute('class', 'node-g');
+        g.dataset.nodeId = node.id;
+        g.dataset.role = node.type;
+        g.dataset.label = node.label;
 
-        let fill = isDark ? '#0f172a' : '#ffffff';
-        let stroke = isDark ? '#38bdf8' : '#0369a1';
-        let iconColor = stroke;
-        let typeBadge = 'Consumer';
-        let iconPath = 'M12 2L2 7l10 5 10-5-10-5z M2 17l10 5 10-5 M2 12l10 5 10-5'; // layers
+        var fill = isDark ? '#0e1322' : '#ffffff';
+        var stroke = isDark ? '#38bdf8' : '#0369a1';
+        var iconColor = stroke;
+        var typeBadge = 'Consumer';
+        var iconPath = 'M12 2L2 7l10 5 10-5-10-5z M2 17l10 5 10-5 M2 12l10 5 10-5';
 
         if (node.type === 'source') {
           stroke = isDark ? '#a855f7' : '#6d28d9';
           iconColor = stroke;
           typeBadge = 'Modified';
-          iconPath = 'M12 20h9 M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z'; // edit
+          iconPath = 'M12 20h9 M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z';
         } else if (node.type === 'route') {
           stroke = isDark ? '#f87171' : '#dc2626';
           iconColor = stroke;
           typeBadge = 'Route';
-          iconPath = 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z M12 8v4 M12 16h.01'; // shield
+          iconPath = 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z M12 8v4 M12 16h.01';
         }
 
-        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        rect.setAttribute('width', '150');
-        rect.setAttribute('height', '44');
-        rect.setAttribute('rx', '10');
+        var rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('width', String(nodeW));
+        rect.setAttribute('height', String(nodeH));
+        rect.setAttribute('rx', '12');
         rect.setAttribute('fill', fill);
         rect.setAttribute('stroke', stroke);
         rect.setAttribute('stroke-width', '1.6');
         rect.setAttribute('class', 'node-rect');
 
-        // Node SVG Icon
-        const iconG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        iconG.setAttribute('transform', 'translate(10, 14)');
-        const iconSvg = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        var iconG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        iconG.setAttribute('transform', 'translate(10, 16)');
+        var iconSvg = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         iconSvg.setAttribute('d', iconPath);
         iconSvg.setAttribute('fill', 'none');
         iconSvg.setAttribute('stroke', iconColor);
         iconSvg.setAttribute('stroke-width', '1.8');
         iconSvg.setAttribute('stroke-linecap', 'round');
         iconSvg.setAttribute('stroke-linejoin', 'round');
-        iconSvg.setAttribute('transform', 'scale(0.65)');
+        iconSvg.setAttribute('transform', 'scale(0.7)');
         iconG.appendChild(iconSvg);
 
-        const titleText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        titleText.setAttribute('x', '30');
-        titleText.setAttribute('y', '19');
+        var titleText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        titleText.setAttribute('x', '32');
+        titleText.setAttribute('y', '21');
         titleText.setAttribute('class', 'node-text');
-        titleText.textContent = node.label.length > 14 ? node.label.slice(0, 13) + '…' : node.label;
+        titleText.textContent = node.label.length > 15 ? node.label.slice(0, 14) + '…' : node.label;
 
-        const subText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        subText.setAttribute('x', '30');
-        subText.setAttribute('y', '33');
+        var subText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        subText.setAttribute('x', '32');
+        subText.setAttribute('y', '36');
         subText.setAttribute('class', 'node-subtext');
-        subText.textContent = \`[\${typeBadge}] \${node.blast.totalConsumers} deps\`;
+        subText.textContent = '[' + typeBadge + '] ' + node.blast.totalConsumers + ' deps';
 
         g.appendChild(rect);
         g.appendChild(iconG);
         g.appendChild(titleText);
         g.appendChild(subText);
 
-        g.addEventListener('click', () => {
-          inspectNode(node, report);
-          // Highlight connected edges
-          document.querySelectorAll('.edge-line').forEach(el => {
-            if (el.dataset.from === node.id || el.dataset.to === node.id) {
+        // Click to focus blast radius & inspect
+        g.addEventListener('click', function(ev) {
+          ev.stopPropagation();
+          inspectNode(node, report, incoming, outgoing);
+
+          var connectedNodes = new Set([node.id]);
+          var connectedEdges = new Set();
+
+          // Transitive Downstream
+          var downQueue = [node.id];
+          while (downQueue.length) {
+            var curr = downQueue.shift();
+            (outgoing.get(curr) || []).forEach(function(child) {
+              connectedEdges.add(curr + '->' + child);
+              if (!connectedNodes.has(child)) {
+                connectedNodes.add(child);
+                downQueue.push(child);
+              }
+            });
+          }
+
+          // Transitive Upstream
+          var upQueue = [node.id];
+          while (upQueue.length) {
+            var curr = upQueue.shift();
+            (incoming.get(curr) || []).forEach(function(parent) {
+              connectedEdges.add(parent + '->' + curr);
+              if (!connectedNodes.has(parent)) {
+                connectedNodes.add(parent);
+                upQueue.push(parent);
+              }
+            });
+          }
+
+          // Dim unrelated nodes and highlight active path
+          document.querySelectorAll('.node-g').forEach(function(el) {
+            var nId = el.dataset.nodeId;
+            if (connectedNodes.has(nId)) {
+              el.classList.remove('is-dimmed');
+              el.classList.add('is-focused');
+            } else {
+              el.classList.add('is-dimmed');
+              el.classList.remove('is-focused');
+            }
+          });
+
+          document.querySelectorAll('.edge-line').forEach(function(el) {
+            var key = el.dataset.from + '->' + el.dataset.to;
+            if (connectedEdges.has(key)) {
+              el.classList.remove('is-dimmed');
               el.classList.add('active');
               el.setAttribute('marker-end', 'url(#arrow-active)');
             } else {
+              el.classList.add('is-dimmed');
               el.classList.remove('active');
               el.setAttribute('marker-end', 'url(#arrow)');
             }
@@ -1445,25 +2842,77 @@ export function getDashboardHtml(report: AnalysisReport): string {
 
         svgNodesGroup.appendChild(g);
       });
+
+      // Canvas click clears selection & resets focus
+      svg.onclick = function(e) {
+        if (e.target.tagName === 'svg' || e.target.id === 'viewport-group' || e.target.id === 'svg-edges' || e.target.id === 'svg-radar-rings' || e.target.id === 'svg-clusters') {
+          document.querySelectorAll('.node-g').forEach(function(n) { n.classList.remove('is-dimmed', 'is-focused'); });
+          document.querySelectorAll('.edge-line').forEach(function(el) {
+            el.classList.remove('is-dimmed', 'active');
+            el.setAttribute('marker-end', 'url(#arrow)');
+          });
+          document.getElementById('inspector-card').style.display = 'none';
+        }
+      };
+
+      // Draw initial minimap radar
+      drawMinimap();
+
+      // Initial auto-fit on load
+      setTimeout(resetCanvasView, 60);
     }
 
-    function inspectNode(node, report) {
-      const card = document.getElementById('inspector-card');
+    // Interactive Inspector with Breadcrumb Trace Route
+    function inspectNode(node, report, incoming, outgoing) {
+      var card = document.getElementById('inspector-card');
       card.style.display = 'block';
       document.getElementById('inspector-title').textContent = node.fullPath;
       
-      const badge = document.getElementById('inspector-badge');
+      var badge = document.getElementById('inspector-badge');
       badge.className = node.type === 'source' ? 'badge-medium' : (node.type === 'route' ? 'badge-high' : 'badge-low');
       badge.textContent = node.type.toUpperCase();
 
-      document.getElementById('inspector-desc').textContent = \`Node Role: \${node.type.toUpperCase()} • Direct Dependents: \${node.blast.directDependents ? node.blast.directDependents.length : 0} • Total Blast Radius: \${node.blast.totalConsumers} consumer(s)\`;
+      document.getElementById('inspector-desc').textContent = 'Node Role: ' + node.type.toUpperCase() + ' • Direct Dependents: ' + (node.blast.directDependents ? node.blast.directDependents.length : 0) + ' • Total Blast Radius: ' + node.blast.totalConsumers + ' consumer(s)';
 
-      const findings = report.findings.filter(f => f.filePath === node.fullPath || (f.affectedFiles && f.affectedFiles.includes(node.fullPath)));
-      let detailsHtml = '';
+      // Build interactive blast chain breadcrumbs
+      var breadcrumbEl = document.getElementById('inspector-breadcrumb');
+      if (incoming && outgoing) {
+        var chain = [node.id];
+        var curr = node.id;
+        while (incoming.has(curr) && incoming.get(curr).size > 0) {
+          var parent = Array.from(incoming.get(curr))[0];
+          chain.unshift(parent);
+          curr = parent;
+          if (chain.length > 5) break;
+        }
+        curr = node.id;
+        while (outgoing.has(curr) && outgoing.get(curr).size > 0) {
+          var child = Array.from(outgoing.get(curr))[0];
+          chain.push(child);
+          curr = child;
+          if (chain.length > 8) break;
+        }
+
+        if (chain.length > 1) {
+          breadcrumbEl.style.display = 'flex';
+          breadcrumbEl.innerHTML = '<span style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--text-muted); margin-right: 4px;">Blast Path:</span>' +
+            chain.map(function(cId, idx) {
+              var label = cId.split('/').pop().split('\\').pop();
+              var isCurrent = cId === node.id;
+              var arrow = idx < chain.length - 1 ? '<span style="color: var(--text-muted); font-size: 11px;">➔</span>' : '';
+              return '<button class="breadcrumb-pill ' + (isCurrent ? 'active' : '') + '" onclick="centerOnNode(\'' + cId.replace(/\\/g, '\\\\') + '\')">' + label + '</button> ' + arrow;
+            }).join('');
+        } else {
+          breadcrumbEl.style.display = 'none';
+        }
+      }
+
+      var findings = report.findings.filter(function(f) { return f.filePath === node.fullPath || (f.affectedFiles && f.affectedFiles.indexOf(node.fullPath) !== -1); });
+      var detailsHtml = '';
       if (findings.length > 0) {
         detailsHtml += '<div style="font-weight: 700; margin-bottom: 6px; color: var(--brand-cyan);">Associated Findings:</div>';
-        findings.forEach(f => {
-          detailsHtml += \`<div style="margin-bottom: 6px; padding: 8px 12px; background: var(--surface-card); border-radius: 8px; border: 1px solid var(--border-subtle); font-family: var(--font-jetbrains); font-size: 12px;">• <strong>\${f.title}</strong>: \${f.description}</div>\`;
+        findings.forEach(function(f) {
+          detailsHtml += '<div style="margin-bottom: 6px; padding: 8px 12px; background: var(--surface-card); border-radius: 8px; border: 1px solid var(--border-subtle); font-family: var(--font-jetbrains); font-size: 12px;">• <strong>' + f.title + '</strong>: ' + f.description + '</div>';
         });
       } else {
         detailsHtml += '<div style="color: var(--text-muted); font-size: 13px;">No breaking behavioral findings directly rooted in this node.</div>';
@@ -1477,10 +2926,10 @@ export function getDashboardHtml(report: AnalysisReport): string {
 
     // Live Server-Sent Events stream
     if (typeof EventSource !== 'undefined') {
-      const evtSource = new EventSource('/api/events');
+      var evtSource = new EventSource('/api/events');
       evtSource.onmessage = function(e) {
         try {
-          const updated = JSON.parse(e.data);
+          var updated = JSON.parse(e.data);
           currentReport = updated;
           renderReport(updated);
         } catch (err) {
@@ -1493,10 +2942,13 @@ export function getDashboardHtml(report: AnalysisReport): string {
     }
 
     function switchTab(tabId) {
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(function(btn) { btn.classList.remove('active'); });
+      document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
       event.currentTarget.classList.add('active');
       document.getElementById('tab-' + tabId).classList.add('active');
+      if (tabId === 'graph') {
+        setTimeout(resetCanvasView, 50);
+      }
     }
   </script>
 </body>

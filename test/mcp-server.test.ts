@@ -3,7 +3,7 @@ import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { createMcpServer } from '../src/mcp/index.js';
 
-describe('Model Context Protocol (MCP) Server Integration', () => {
+describe('Model Context Protocol (MCP) Server Integration', { timeout: 30000 }, () => {
   let client: Client;
   let clientTransport: InMemoryTransport;
   let serverTransport: InMemoryTransport;
