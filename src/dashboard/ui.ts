@@ -5,7 +5,7 @@ export function getDashboardHtml(report: AnalysisReport): string {
   const serialized = JSON.stringify(report).replace(/</g, '\\u003c');
 
   return `<!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -1226,7 +1226,7 @@ export function getDashboardHtml(report: AnalysisReport): string {
         <div>
           <div class="brand-title-wrap">
             <span class="brand-title">Change Firewall</span>
-            <span class="brand-version-pill">v0.1.9</span>
+            <span class="brand-version-pill">v0.2.0</span>
           </div>
           <div class="brand-subtitle">AI Code Change Behavioral Verification Engine</div>
         </div>
@@ -1293,31 +1293,31 @@ export function getDashboardHtml(report: AnalysisReport): string {
     </div>
 
     <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('graph')">
+      <button class="tab-btn active" data-tab="graph" onclick="switchTab('graph', this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="6" y1="9" x2="6" y2="15"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
         Impact Visual Map
       </button>
-      <button class="tab-btn" onclick="switchTab('findings')">
+      <button class="tab-btn" data-tab="findings" onclick="switchTab('findings', this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
         Behavioral Findings
       </button>
-      <button class="tab-btn" onclick="switchTab('suspicious')">
+      <button class="tab-btn" data-tab="suspicious" onclick="switchTab('suspicious', this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         Suspicious Changes
       </button>
-      <button class="tab-btn" onclick="switchTab('timeline')">
+      <button class="tab-btn" data-tab="timeline" onclick="switchTab('timeline', this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         Git Timeline
       </button>
-      <button class="tab-btn" onclick="switchTab('blast')">
+      <button class="tab-btn" data-tab="blast" onclick="switchTab('blast', this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
         Blast Radius Table
       </button>
-      <button class="tab-btn" onclick="switchTab('risk')">
+      <button class="tab-btn" data-tab="risk" onclick="switchTab('risk', this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2v20"/><path d="m17 5-5-3-5 3"/><path d="m17 19-5 3-5-3"/></svg>
         Risk Factors
       </button>
-      <button class="tab-btn" onclick="switchTab('files')">
+      <button class="tab-btn" data-tab="files" onclick="switchTab('files', this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 22h14a2 2 0 0 0 2-2V7.5L14.5 2H6a2 2 0 0 0-2 2v4"/><polyline points="14 2 14 8 20 8"/><path d="M2 15h10"/><path d="m9 18 3-3-3-3"/></svg>
         Changed Files
       </button>
@@ -1535,39 +1535,59 @@ export function getDashboardHtml(report: AnalysisReport): string {
       <div>
         <a href="https://github.com/himanshYou2003/change-firewall" target="_blank" rel="noreferrer">GitHub</a>
         <span style="margin: 0 8px; opacity: 0.4;">|</span>
-        <a href="https://www.npmjs.com/package/change-firewall" target="_blank" rel="noreferrer">NPM v0.1.9</a>
+        <a href="https://www.npmjs.com/package/change-firewall" target="_blank" rel="noreferrer">NPM v0.2.0</a>
       </div>
     </footer>
   </div>
 
   <script>
-    // Theme Management
+    // Theme Management - Defaults to Light Mode
     (function initTheme() {
       var saved = localStorage.getItem('cf-theme');
       var root = document.documentElement;
-      if (saved === 'light') {
-        root.classList.remove('dark');
-      } else if (saved === 'dark') {
+      if (saved === 'dark') {
         root.classList.add('dark');
-      } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
-        root.classList.remove('dark');
       } else {
-        root.classList.add('dark');
+        root.classList.remove('dark');
       }
     })();
 
-    document.getElementById('theme-toggle').addEventListener('click', function() {
-      var root = document.documentElement;
-      var isDark = root.classList.contains('dark');
-      if (isDark) {
-        root.classList.remove('dark');
-        localStorage.setItem('cf-theme', 'light');
-      } else {
-        root.classList.add('dark');
-        localStorage.setItem('cf-theme', 'dark');
-      }
-      renderVisualGraph(currentReport);
-    });
+    var themeToggleBtn = document.getElementById('theme-toggle');
+    if (themeToggleBtn) {
+      themeToggleBtn.addEventListener('click', function() {
+        var root = document.documentElement;
+        var isDark = root.classList.contains('dark');
+        if (isDark) {
+          root.classList.remove('dark');
+          localStorage.setItem('cf-theme', 'light');
+        } else {
+          root.classList.add('dark');
+          localStorage.setItem('cf-theme', 'dark');
+        }
+        if (typeof renderVisualGraph === 'function' && typeof currentReport !== 'undefined') {
+          renderVisualGraph(currentReport);
+        }
+      });
+    }
+
+    // Path & String Sanitizer Helpers (safe against unescaped newlines/regex tokens)
+    function getFileBaseName(p) {
+      if (!p) return '';
+      var slashIdx = Math.max(p.lastIndexOf('/'), p.lastIndexOf(String.fromCharCode(92)));
+      return slashIdx >= 0 ? p.substring(slashIdx + 1) : p;
+    }
+
+    function getPathDirectory(p) {
+      if (!p) return 'root';
+      var normalized = p.split(String.fromCharCode(92)).join('/');
+      var parts = normalized.split('/').filter(Boolean);
+      return parts.length > 1 ? parts.slice(0, 2).join('/') : 'root';
+    }
+
+    function safeEscapeSelector(id) {
+      if (typeof CSS !== 'undefined' && CSS.escape) return CSS.escape(id);
+      return String(id).split('"').join(String.fromCharCode(92) + '"');
+    }
 
     var currentReport = ${serialized};
 
@@ -1726,7 +1746,7 @@ export function getDashboardHtml(report: AnalysisReport): string {
           draggedNode.x = dragStartNodeX + dx;
           draggedNode.y = dragStartNodeY + dy;
 
-          var nodeEl = document.querySelector('.node-g[data-node-id="' + CSS.escape(draggedNode.id) + '"]');
+          var nodeEl = document.querySelector('.node-g[data-node-id="' + safeEscapeSelector(draggedNode.id) + '"]');
           if (nodeEl) {
             nodeEl.setAttribute('transform', 'translate(' + (draggedNode.x - 87.5) + ', ' + (draggedNode.y - 24) + ')');
           }
@@ -1745,7 +1765,7 @@ export function getDashboardHtml(report: AnalysisReport): string {
       window.addEventListener('mouseup', function() {
         if (isDraggingNode) {
           if (draggedNode) {
-            var nodeEl = document.querySelector('.node-g[data-node-id="' + CSS.escape(draggedNode.id) + '"]');
+            var nodeEl = document.querySelector('.node-g[data-node-id="' + safeEscapeSelector(draggedNode.id) + '"]');
             if (nodeEl) nodeEl.classList.remove('is-dragging');
           }
           isDraggingNode = false;
@@ -1994,7 +2014,7 @@ export function getDashboardHtml(report: AnalysisReport): string {
       if (!svg) return;
       var serializer = new XMLSerializer();
       var source = serializer.serializeToString(svg);
-      source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+      source = '<?xml version="1.0" standalone="no"?>' + String.fromCharCode(10) + source;
       var url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(source);
 
       var a = document.createElement('a');
@@ -2010,7 +2030,7 @@ export function getDashboardHtml(report: AnalysisReport): string {
       var svg = document.getElementById('network-svg');
       if (!svg) return;
       var serializer = new XMLSerializer();
-      var source = '<?xml version="1.0" standalone="no"?>\r\n' + serializer.serializeToString(svg);
+      var source = '<?xml version="1.0" standalone="no"?>' + String.fromCharCode(10) + serializer.serializeToString(svg);
       var img = new Image();
       var svgBlob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
       var url = URL.createObjectURL(svgBlob);
@@ -2090,127 +2110,178 @@ export function getDashboardHtml(report: AnalysisReport): string {
     }
 
     function renderReport(report) {
-      document.getElementById('timestamp').textContent = 'Last updated: ' + new Date(report.timestamp).toLocaleTimeString();
-      document.getElementById('risk-score').textContent = report.risk.score + ' / 100';
+      if (!report) return;
+      var timestamp = report.timestamp ? new Date(report.timestamp).toLocaleTimeString() : new Date().toLocaleTimeString();
+      var tsEl = document.getElementById('timestamp');
+      if (tsEl) tsEl.textContent = 'Last updated: ' + timestamp;
+
+      var risk = report.risk || { score: 0, level: 'LOW', factors: [] };
+      var scoreEl = document.getElementById('risk-score');
+      if (scoreEl) scoreEl.textContent = (risk.score != null ? risk.score : 0) + ' / 100';
       
       var riskBadge = document.getElementById('risk-badge');
-      riskBadge.className = report.risk.level === 'HIGH' || report.risk.level === 'CRITICAL' ? 'badge-high' : (report.risk.level === 'MEDIUM' ? 'badge-medium' : 'badge-low');
-      riskBadge.textContent = report.risk.level + ' RISK';
+      if (riskBadge) {
+        var level = risk.level || 'LOW';
+        riskBadge.className = level === 'HIGH' || level === 'CRITICAL' ? 'badge-high' : (level === 'MEDIUM' ? 'badge-medium' : 'badge-low');
+        riskBadge.textContent = level + ' RISK';
+      }
 
-      document.getElementById('behavior-count').textContent = report.behavioralChangesCount;
-      document.getElementById('files-count').textContent = report.totalFilesChanged;
-      document.getElementById('lines-diff').innerHTML = '<span style="color: var(--brand-success); font-weight: 600;">+' + report.linesAdded + '</span> / <span style="color: var(--brand-danger); font-weight: 600;">-' + report.linesDeleted + '</span> lines';
+      var bCountEl = document.getElementById('behavior-count');
+      if (bCountEl) bCountEl.textContent = report.behavioralChangesCount != null ? report.behavioralChangesCount : 0;
+
+      var fCountEl = document.getElementById('files-count');
+      if (fCountEl) fCountEl.textContent = report.totalFilesChanged != null ? report.totalFilesChanged : 0;
+
+      var linesDiffEl = document.getElementById('lines-diff');
+      if (linesDiffEl) {
+        var added = report.linesAdded != null ? report.linesAdded : 0;
+        var deleted = report.linesDeleted != null ? report.linesDeleted : 0;
+        linesDiffEl.innerHTML = '<span style="color: var(--brand-success); font-weight: 600;">+' + added + '</span> / <span style="color: var(--brand-danger); font-weight: 600;">-' + deleted + '</span> lines';
+      }
 
       var maxConsumers = 0;
-      for (var b of Object.values(report.blastRadiusMap)) {
-        if (b.totalConsumers > maxConsumers) maxConsumers = b.totalConsumers;
+      var blastMap = report.blastRadiusMap || {};
+      for (var b of Object.values(blastMap)) {
+        if (b && b.totalConsumers > maxConsumers) maxConsumers = b.totalConsumers;
       }
-      document.getElementById('max-blast').textContent = maxConsumers;
+      var maxBlastEl = document.getElementById('max-blast');
+      if (maxBlastEl) maxBlastEl.textContent = maxConsumers;
 
-      // 1. Render God-Level Interactive SVG Graph
-      renderVisualGraph(report);
+      // 1. Render Interactive SVG Graph (defensive wrapper)
+      try {
+        renderVisualGraph(report);
+      } catch (graphErr) {
+        console.error('Error rendering visual graph:', graphErr);
+      }
 
       // 2. Render Findings
       var findingsContainer = document.getElementById('findings-container');
-      if (report.findings.length === 0) {
-        findingsContainer.innerHTML = '<div class="finding-card"><p style="color: var(--brand-success); font-weight: 600;">✓ No breaking behavioral changes or contract regressions detected.</p></div>';
-      } else {
-        findingsContainer.innerHTML = report.findings.map(function(f) {
-          var badgeClass = f.severity === 'HIGH' || f.severity === 'CRITICAL' ? 'badge-high' : (f.severity === 'MEDIUM' ? 'badge-medium' : 'badge-low');
-          return '<div class="finding-card">' +
-            '<div class="finding-header">' +
-              '<span class="finding-title">' + f.title + '</span>' +
-              '<span class="' + badgeClass + '">' + f.severity + '</span>' +
-            '</div>' +
-            '<div class="file-tag">' + f.filePath + '</div>' +
-            '<div class="finding-desc">' + f.description + '</div>' +
-            '<div class="evidence-box">' +
-              '<div class="evidence-title">Observed Evidence</div>' +
-              f.evidence.map(function(e) { return '<div class="evidence-item">• ' + e + '</div>'; }).join('') +
-            '</div>' +
-            '<div class="recommendation-box">' +
-              '<strong>Recommendation:</strong> ' + f.recommendation +
-            '</div>' +
-          '</div>';
-        }).join('');
+      if (findingsContainer) {
+        var findingsList = report.findings || [];
+        if (findingsList.length === 0) {
+          findingsContainer.innerHTML = '<div class="finding-card"><p style="color: var(--brand-success); font-weight: 600;">✓ No breaking behavioral changes or contract regressions detected.</p></div>';
+        } else {
+          findingsContainer.innerHTML = findingsList.map(function(f) {
+            var badgeClass = f.severity === 'HIGH' || f.severity === 'CRITICAL' ? 'badge-high' : (f.severity === 'MEDIUM' ? 'badge-medium' : 'badge-low');
+            var evItems = (f.evidence || []).map(function(e) { return '<div class="evidence-item">• ' + e + '</div>'; }).join('');
+            return '<div class="finding-card">' +
+              '<div class="finding-header">' +
+                '<span class="finding-title">' + (f.title || 'Behavioral Change') + '</span>' +
+                '<span class="' + badgeClass + '">' + (f.severity || 'LOW') + '</span>' +
+              '</div>' +
+              '<div class="file-tag">' + (f.filePath || '') + '</div>' +
+              '<div class="finding-desc">' + (f.description || '') + '</div>' +
+              '<div class="evidence-box">' +
+                '<div class="evidence-title">Observed Evidence</div>' +
+                evItems +
+              '</div>' +
+              '<div class="recommendation-box">' +
+                '<strong>Recommendation:</strong> ' + (f.recommendation || 'Review altered behaviors.') +
+              '</div>' +
+            '</div>';
+          }).join('');
+        }
       }
 
       // 3. Render Suspicious Changes
       var suspiciousContainer = document.getElementById('suspicious-container');
-      var suspiciousList = report.suspiciousChanges || [];
-      if (suspiciousList.length === 0) {
-        suspiciousContainer.innerHTML = '<div class="finding-card"><p style="color: var(--brand-success); font-weight: 600;">✓ Zero suspicious anomaly patterns detected in current diff.</p></div>';
-      } else {
-        suspiciousContainer.innerHTML = suspiciousList.map(function(s) {
-          return '<div class="finding-card" style="border-left: 3px solid var(--brand-warning);">' +
-            '<div class="finding-header">' +
-              '<span class="finding-title">' + s.title + '</span>' +
-              '<span class="badge-high">' + s.severity + '</span>' +
-            '</div>' +
-            '<div class="file-tag">' + s.filePath + '</div>' +
-            '<div class="finding-desc">' + s.reason + '</div>' +
-            '<div class="evidence-box">' +
-              '<div class="evidence-title">Suspicion Indicators</div>' +
-              s.evidence.map(function(e) { return '<div class="evidence-item">• ' + e + '</div>'; }).join('') +
-            '</div>' +
-          '</div>';
-        }).join('');
+      if (suspiciousContainer) {
+        var suspiciousList = report.suspiciousChanges || [];
+        if (suspiciousList.length === 0) {
+          suspiciousContainer.innerHTML = '<div class="finding-card"><p style="color: var(--brand-success); font-weight: 600;">✓ Zero suspicious anomaly patterns detected in current diff.</p></div>';
+        } else {
+          suspiciousContainer.innerHTML = suspiciousList.map(function(s) {
+            var sEvItems = (s.evidence || []).map(function(e) { return '<div class="evidence-item">• ' + e + '</div>'; }).join('');
+            return '<div class="finding-card" style="border-left: 3px solid var(--brand-warning);">' +
+              '<div class="finding-header">' +
+                '<span class="finding-title">' + (s.title || 'Suspicious Anomaly') + '</span>' +
+                '<span class="badge-high">' + (s.severity || 'HIGH') + '</span>' +
+              '</div>' +
+              '<div class="file-tag">' + (s.filePath || '') + '</div>' +
+              '<div class="finding-desc">' + (s.reason || '') + '</div>' +
+              '<div class="evidence-box">' +
+                '<div class="evidence-title">Suspicion Indicators</div>' +
+                sEvItems +
+              '</div>' +
+            '</div>';
+          }).join('');
+        }
       }
 
       // 4. Render Git Timeline
       var timelineContainer = document.getElementById('timeline-container');
-      var timelineList = report.timeline || [];
-      if (timelineList.length === 0) {
-        timelineContainer.innerHTML = '<p style="color: var(--text-muted); font-size: 13px;">No Git commit history recorded yet.</p>';
-      } else {
-        timelineContainer.innerHTML = timelineList.map(function(t) {
-          return '<div class="timeline-item">' +
-            '<div class="timeline-dot"></div>' +
-            '<div class="timeline-date">' + t.date + ' • <span class="timeline-author">' + t.hash + '</span> by ' + t.author + '</div>' +
-            '<div class="timeline-title">' + t.message + '</div>' +
-          '</div>';
-        }).join('');
+      if (timelineContainer) {
+        var timelineList = report.timeline || [];
+        if (timelineList.length === 0) {
+          timelineContainer.innerHTML = '<p style="color: var(--text-muted); font-size: 13px;">No Git commit history recorded yet.</p>';
+        } else {
+          timelineContainer.innerHTML = timelineList.map(function(t) {
+            return '<div class="timeline-item">' +
+              '<div class="timeline-dot"></div>' +
+              '<div class="timeline-date">' + (t.date || '') + ' • <span class="timeline-author">' + (t.hash || '') + '</span> by ' + (t.author || '') + '</div>' +
+              '<div class="timeline-title">' + (t.message || '') + '</div>' +
+            '</div>';
+          }).join('');
+        }
       }
 
       // 5. Render Blast Radius Table
       var blastBody = document.getElementById('blast-table-body');
-      var blastEntries = Object.values(report.blastRadiusMap);
-      if (blastEntries.length === 0) {
-        blastBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No dependency relationships detected.</td></tr>';
-      } else {
-        blastBody.innerHTML = blastEntries.map(function(b) {
-          var badgeClass = b.level === 'HIGH' ? 'badge-high' : (b.level === 'MEDIUM' ? 'badge-medium' : 'badge-low');
-          return '<tr>' +
-            '<td class="mono" style="color: var(--brand-cyan); font-weight: 500;">' + b.filePath + '</td>' +
-            '<td>' + b.directDependents.length + '</td>' +
-            '<td>' + (b.affectedRoutes.length > 0 ? b.affectedRoutes.join(', ') : '<span style="color: var(--text-muted);">None</span>') + '</td>' +
-            '<td><strong>' + b.totalConsumers + '</strong> consumers</td>' +
-            '<td><span class="' + badgeClass + '">' + b.level + '</span></td>' +
-          '</tr>';
-        }).join('');
+      if (blastBody) {
+        var blastEntries = Object.values(blastMap);
+        if (blastEntries.length === 0) {
+          blastBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">No dependency relationships detected in current diff. Working tree is clean.</td></tr>';
+        } else {
+          blastBody.innerHTML = blastEntries.map(function(b) {
+            var badgeClass = b.level === 'HIGH' ? 'badge-high' : (b.level === 'MEDIUM' ? 'badge-medium' : 'badge-low');
+            var directList = b.directDependents || [];
+            var routeList = b.affectedRoutes || [];
+            return '<tr>' +
+              '<td class="mono" style="color: var(--brand-cyan); font-weight: 500;">' + b.filePath + '</td>' +
+              '<td>' + directList.length + '</td>' +
+              '<td>' + (routeList.length > 0 ? routeList.join(', ') : '<span style="color: var(--text-muted);">None</span>') + '</td>' +
+              '<td><strong>' + (b.totalConsumers || 0) + '</strong> consumers</td>' +
+              '<td><span class="' + badgeClass + '">' + (b.level || 'LOW') + '</span></td>' +
+            '</tr>';
+          }).join('');
+        }
       }
 
       // 6. Render Risk Factors
       var riskContainer = document.getElementById('risk-factors-container');
-      riskContainer.innerHTML = report.risk.factors.map(function(rf) {
-        return '<div class="finding-card">' +
-          '<div class="finding-header">' +
-            '<span class="finding-title" style="color: var(--brand-warning);">+' + rf.scoreContribution + ' pts: ' + rf.factor + '</span>' +
-          '</div>' +
-          '<div class="finding-desc">' + rf.reason + '</div>' +
-        '</div>';
-      }).join('');
+      if (riskContainer) {
+        var factors = (risk && risk.factors) || [];
+        if (factors.length === 0) {
+          riskContainer.innerHTML = '<div class="finding-card"><p style="color: var(--brand-success); font-weight: 600;">✓ Baseline safe risk score.</p></div>';
+        } else {
+          riskContainer.innerHTML = factors.map(function(rf) {
+            return '<div class="finding-card">' +
+              '<div class="finding-header">' +
+                '<span class="finding-title" style="color: var(--brand-warning);">+' + (rf.scoreContribution || 0) + ' pts: ' + (rf.factor || '') + '</span>' +
+              '</div>' +
+              '<div class="finding-desc">' + (rf.reason || '') + '</div>' +
+            '</div>';
+          }).join('');
+        }
+      }
 
       // 7. Render Changed Files Table
       var filesBody = document.getElementById('files-table-body');
-      filesBody.innerHTML = report.changedFiles.map(function(cf) {
-        return '<tr>' +
-          '<td class="mono" style="font-weight: 500;">' + cf.path + '</td>' +
-          '<td><span class="badge-medium">' + cf.changeType + '</span></td>' +
-          '<td style="color: var(--brand-success); font-weight: 600; font-family: var(--font-jetbrains);">+' + cf.linesAdded + '</td>' +
-          '<td style="color: var(--brand-danger); font-weight: 600; font-family: var(--font-jetbrains);">-' + cf.linesDeleted + '</td>' +
-        '</tr>';
-      }).join('');
+      if (filesBody) {
+        var changedList = report.changedFiles || [];
+        if (changedList.length === 0) {
+          filesBody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 24px;">No files modified in working tree. Working tree is clean.</td></tr>';
+        } else {
+          filesBody.innerHTML = changedList.map(function(cf) {
+            return '<tr>' +
+              '<td class="mono" style="font-weight: 500;">' + cf.path + '</td>' +
+              '<td><span class="badge-medium">' + cf.changeType + '</span></td>' +
+              '<td style="color: var(--brand-success); font-weight: 600; font-family: var(--font-jetbrains);">+' + (cf.linesAdded || 0) + '</td>' +
+              '<td style="color: var(--brand-danger); font-weight: 600; font-family: var(--font-jetbrains);">-' + (cf.linesDeleted || 0) + '</td>' +
+            '</tr>';
+          }).join('');
+        }
+      }
     }
 
     // ==========================================
@@ -2226,11 +2297,19 @@ export function getDashboardHtml(report: AnalysisReport): string {
 
       if (svgRadarGroup) svgRadarGroup.innerHTML = '';
       if (svgClusterGroup) svgClusterGroup.innerHTML = '';
-      svgNodesGroup.innerHTML = '';
-      svgEdgesGroup.innerHTML = '';
+      if (svgNodesGroup) svgNodesGroup.innerHTML = '';
+      if (svgEdgesGroup) svgEdgesGroup.innerHTML = '';
 
-      var blastEntries = Object.entries(report.blastRadiusMap || {});
-      if (blastEntries.length === 0) return;
+      var blastEntries = Object.entries((report && report.blastRadiusMap) || {});
+      var statsChip = document.getElementById('graph-stats-chip');
+      if (blastEntries.length === 0) {
+        if (statsChip) statsChip.textContent = '0 nodes • 0 edges';
+        if (svgNodesGroup) {
+          svgNodesGroup.innerHTML = '<text x="750" y="450" text-anchor="middle" fill="var(--text-muted)" font-family="var(--font-inter)" font-size="15" font-weight="500">No dependency blast radius detected in working tree (0 changed files).</text>';
+        }
+        drawMinimap();
+        return;
+      }
 
       var nodes = new Map();
       var edges = [];
@@ -2243,7 +2322,7 @@ export function getDashboardHtml(report: AnalysisReport): string {
         var isRoute = blast.affectedRoutes && blast.affectedRoutes.indexOf(file) !== -1;
         nodes.set(file, {
           id: file,
-          label: file.split('/').pop().split('\\').pop(),
+          label: getFileBaseName(file),
           fullPath: file,
           type: isRoute ? 'route' : 'source',
           blast: blast,
@@ -2258,10 +2337,10 @@ export function getDashboardHtml(report: AnalysisReport): string {
             var isRoute = blast.affectedRoutes && blast.affectedRoutes.indexOf(dep) !== -1;
             nodes.set(dep, {
               id: dep,
-              label: dep.split('/').pop().split('\\').pop(),
+              label: getFileBaseName(dep),
               fullPath: dep,
               type: isRoute ? 'route' : 'consumer',
-              blast: report.blastRadiusMap[dep] || { totalConsumers: 0, directDependents: [] },
+              blast: (report.blastRadiusMap && report.blastRadiusMap[dep]) || { totalConsumers: 0, directDependents: [] },
             });
           }
           var edgeKey = file + '->' + dep;
@@ -2275,10 +2354,10 @@ export function getDashboardHtml(report: AnalysisReport): string {
           if (!nodes.has(route)) {
             nodes.set(route, {
               id: route,
-              label: route.split('/').pop().split('\\').pop(),
+              label: getFileBaseName(route),
               fullPath: route,
               type: 'route',
-              blast: report.blastRadiusMap[route] || { totalConsumers: 0, directDependents: [] },
+              blast: (report.blastRadiusMap && report.blastRadiusMap[route]) || { totalConsumers: 0, directDependents: [] },
             });
           }
         });
@@ -2574,8 +2653,7 @@ export function getDashboardHtml(report: AnalysisReport): string {
       else if (currentLayout === 'cluster') {
         var groups = new Map();
         filteredNodes.forEach(function(n) {
-          var parts = n.fullPath.split(/[/\\]/);
-          var dir = parts.length > 1 ? parts.slice(0, 2).join('/') : 'root';
+          var dir = getPathDirectory(n.fullPath);
           if (!groups.has(dir)) groups.set(dir, []);
           groups.get(dir).push(n);
         });
@@ -2897,17 +2975,17 @@ export function getDashboardHtml(report: AnalysisReport): string {
           breadcrumbEl.style.display = 'flex';
           breadcrumbEl.innerHTML = '<span style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--text-muted); margin-right: 4px;">Blast Path:</span>' +
             chain.map(function(cId, idx) {
-              var label = cId.split('/').pop().split('\\').pop();
+              var label = getFileBaseName(cId);
               var isCurrent = cId === node.id;
               var arrow = idx < chain.length - 1 ? '<span style="color: var(--text-muted); font-size: 11px;">➔</span>' : '';
-              return '<button class="breadcrumb-pill ' + (isCurrent ? 'active' : '') + '" onclick="centerOnNode(\'' + cId.replace(/\\/g, '\\\\') + '\')">' + label + '</button> ' + arrow;
+              return '<button class="breadcrumb-pill ' + (isCurrent ? 'active' : '') + '" data-center-node="' + encodeURIComponent(cId) + '">' + label + '</button> ' + arrow;
             }).join('');
         } else {
           breadcrumbEl.style.display = 'none';
         }
       }
 
-      var findings = report.findings.filter(function(f) { return f.filePath === node.fullPath || (f.affectedFiles && f.affectedFiles.indexOf(node.fullPath) !== -1); });
+      var findings = (report.findings || []).filter(function(f) { return f.filePath === node.fullPath || (f.affectedFiles && f.affectedFiles.indexOf(node.fullPath) !== -1); });
       var detailsHtml = '';
       if (findings.length > 0) {
         detailsHtml += '<div style="font-weight: 700; margin-bottom: 6px; color: var(--brand-cyan);">Associated Findings:</div>';
@@ -2921,8 +2999,35 @@ export function getDashboardHtml(report: AnalysisReport): string {
       document.getElementById('inspector-details').innerHTML = detailsHtml;
     }
 
+    var breadcrumbEl = document.getElementById('inspector-breadcrumb');
+    if (breadcrumbEl) {
+      breadcrumbEl.addEventListener('click', function(e) {
+        var btn = e.target.closest('.breadcrumb-pill');
+        if (btn && btn.dataset.centerNode) {
+          centerOnNode(decodeURIComponent(btn.dataset.centerNode));
+        }
+      });
+    }
+
     // Initial render
-    renderReport(currentReport);
+    try {
+      renderReport(currentReport);
+    } catch (err) {
+      console.error("Initial renderReport error:", err);
+    }
+
+    // Fallback fetch: If initial report was empty, fetch /api/report
+    if (!currentReport || !currentReport.risk) {
+      fetch('/api/report')
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          currentReport = data;
+          renderReport(data);
+        })
+        .catch(function(err) {
+          console.error("Failed to fetch /api/report:", err);
+        });
+    }
 
     // Live Server-Sent Events stream
     if (typeof EventSource !== 'undefined') {
@@ -2937,19 +3042,28 @@ export function getDashboardHtml(report: AnalysisReport): string {
         }
       };
       evtSource.onerror = function() {
-        document.getElementById('live-indicator').style.display = 'none';
+        var ind = document.getElementById('live-indicator');
+        if (ind) ind.style.display = 'none';
       };
     }
 
-    function switchTab(tabId) {
+    window.switchTab = function(tabId, el) {
+      var targetBtn = el || (window.event ? (window.event.currentTarget || window.event.target) : null);
       document.querySelectorAll('.tab-btn').forEach(function(btn) { btn.classList.remove('active'); });
       document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
-      event.currentTarget.classList.add('active');
-      document.getElementById('tab-' + tabId).classList.add('active');
+      if (targetBtn) {
+        var btnToActivate = targetBtn.closest ? targetBtn.closest('.tab-btn') : targetBtn;
+        if (btnToActivate) btnToActivate.classList.add('active');
+      } else {
+        var foundBtn = document.querySelector('.tab-btn[data-tab="' + tabId + '"]');
+        if (foundBtn) foundBtn.classList.add('active');
+      }
+      var targetContent = document.getElementById('tab-' + tabId);
+      if (targetContent) targetContent.classList.add('active');
       if (tabId === 'graph') {
         setTimeout(resetCanvasView, 50);
       }
-    }
+    };
   </script>
 </body>
 </html>`;
