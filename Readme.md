@@ -559,7 +559,11 @@ Before committing or completing any code change:
 
 ## 🔄 CI/CD & GitHub Actions Integration
 
-Add Change Firewall to your PR verification pipeline to prevent high-risk behavioral changes from merging.
+Add Change Firewall to your PR verification pipeline to prevent high-risk behavioral changes from merging and automatically drop rich behavior reports into PR reviews.
+
+### Option A: Interactive PR Bot & Merge Gate (Recommended)
+
+Creates an interactive branded PR summary comment on every pull request and halts the merge gate if high-risk regressions are detected:
 
 Create `.github/workflows/change-firewall.yml`:
 
@@ -573,22 +577,117 @@ on:
 permissions:
   contents: read
   pull-requests: write
+  issues: write
 
 jobs:
-  verify-changes:
+  analyze-changes:
+    name: Change Firewall
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Full history needed to compare against base branch
+          fetch-depth: 0 # Full history required to diff against target branch
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
-      - name: Run Preflight Check
+      - name: Run Change Firewall Preflight
+        id: firewall
+        run: |
+          set +e
+          npx change-firewall preflight --base origin/${{ github.base_ref }} --json > change-firewall-report.json
+          EXIT_CODE=$?
+          echo "EXIT_CODE=$EXIT_CODE" >> "$GITHUB_ENV"
+          exit 0
+
+      - name: Post PR Summary Comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let reportData;
+            try {
+              reportData = JSON.parse(fs.readFileSync('change-firewall-report.json', 'utf8'));
+            } catch (err) {
+              console.log('No report generated:', err.message);
+              return;
+            }
+
+            const { readyToMerge, score, highRiskCount, mediumRiskCount, blockers, recommendations } = reportData;
+
+            const iconUrl = 'https://raw.githubusercontent.com/himanshYou2003/change-firewall/main/assets/icon.png';
+            const statusBadge = readyToMerge
+              ? '🟢 **PASS / READY TO MERGE**'
+              : '🔴 **BLOCKED / REVIEW REQUIRED**';
+
+            let comment = `### <img src="${iconUrl}" width="24" height="24" align="absmiddle" alt="Change Firewall" /> Change Firewall Report: ${statusBadge}\n\n`;
+
+            comment += `| Metric | Value | Status |\n`;
+            comment += `| :--- | :--- | :--- |\n`;
+            comment += `| **Overall Risk Score** | \`${score} / 100\` | ${score > 60 ? '⚠️ High Risk' : score > 30 ? '🟡 Medium Risk' : '🟢 Safe'} |\n`;
+            comment += `| **High-Risk Behavioral Shifts** | \`${highRiskCount}\` | ${highRiskCount > 0 ? '🚨 Attention Needed' : '✓ Clean'} |\n`;
+            comment += `| **Medium-Risk Shifts** | \`${mediumRiskCount}\` | ${mediumRiskCount > 0 ? '⚠️ Review' : '✓ None'} |\n\n`;
+
+            if (blockers && blockers.length > 0) {
+              comment += `#### 🚨 Merge Blockers\n`;
+              for (const b of blockers) {
+                comment += `* ❌ ${b}\n`;
+              }
+              comment += '\n';
+            }
+
+            if (recommendations && recommendations.length > 0) {
+              comment += `#### 💡 Recommendations\n`;
+              for (const r of recommendations) {
+                comment += `* ➔ ${r}\n`;
+              }
+              comment += '\n';
+            }
+
+            comment += `---\n`;
+            comment += `<sub>⚡ Verified by <a href="https://change-firewall.vercel.app"><b>Change Firewall</b></a> • <i>Behavior-Aware Change Intelligence for AI-Generated Diffs</i></sub>`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: comment
+            });
+
+      - name: Enforce Merge Gate
+        run: |
+          if [ "$EXIT_CODE" -ne 0 ]; then
+            echo "❌ Change Firewall blocked merge due to high-risk behavioral changes."
+            exit 1
+          fi
+```
+
+### Option B: Quick 1-Line Safety Check (Minimal)
+
+For a minimal setup that simply fails the check without posting comments:
+
+```yaml
+name: Change Firewall Gate
+
+on:
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  firewall-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run Preflight Gate
         run: npx change-firewall preflight --base origin/${{ github.base_ref }}
 ```
 

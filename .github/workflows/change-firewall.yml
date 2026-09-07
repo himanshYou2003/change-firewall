@@ -56,17 +56,21 @@ jobs:
 
             const { readyToMerge, score, highRiskCount, mediumRiskCount, blockers, recommendations } = reportData;
 
-            const badge = readyToMerge
+            const iconUrl = 'https://raw.githubusercontent.com/himanshYou2003/change-firewall/main/assets/icon.png';
+            const statusBadge = readyToMerge
               ? '🟢 **PASS / READY TO MERGE**'
               : '🔴 **BLOCKED / REVIEW REQUIRED**';
 
-            let comment = `### ⚡ Change Firewall Report: ${badge}\n\n`;
-            comment += `* **Overall Risk Score:** \`${score} / 100\`\n`;
-            comment += `* **High-Risk Behavioral Shifts:** \`${highRiskCount}\`\n`;
-            comment += `* **Medium-Risk Shifts:** \`${mediumRiskCount}\`\n\n`;
+            let comment = `### <img src="${iconUrl}" width="24" height="24" align="absmiddle" alt="Change Firewall" /> Change Firewall Report: ${statusBadge}\n\n`;
+
+            comment += `| Metric | Value | Status |\n`;
+            comment += `| :--- | :--- | :--- |\n`;
+            comment += `| **Overall Risk Score** | \`${score} / 100\` | ${score > 60 ? '⚠️ High Risk' : score > 30 ? '🟡 Medium Risk' : '🟢 Safe'} |\n`;
+            comment += `| **High-Risk Behavioral Shifts** | \`${highRiskCount}\` | ${highRiskCount > 0 ? '🚨 Attention Needed' : '✓ Clean'} |\n`;
+            comment += `| **Medium-Risk Shifts** | \`${mediumRiskCount}\` | ${mediumRiskCount > 0 ? '⚠️ Review' : '✓ None'} |\n\n`;
 
             if (blockers && blockers.length > 0) {
-              comment += `#### 🚨 Merge Blockers:\n`;
+              comment += `#### 🚨 Merge Blockers\n`;
               for (const b of blockers) {
                 comment += `* ❌ ${b}\n`;
               }
@@ -74,14 +78,15 @@ jobs:
             }
 
             if (recommendations && recommendations.length > 0) {
-              comment += `#### 💡 Recommendations:\n`;
+              comment += `#### 💡 Recommendations\n`;
               for (const r of recommendations) {
                 comment += `* ➔ ${r}\n`;
               }
               comment += '\n';
             }
 
-            comment += `> *Change Firewall interprets what AI changes actually do.*`;
+            comment += `---\n`;
+            comment += `<sub>⚡ Verified by <a href="https://change-firewall.vercel.app"><b>Change Firewall</b></a> • <i>Behavior-Aware Change Intelligence for AI-Generated Diffs</i></sub>`;
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
