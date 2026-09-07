@@ -102,7 +102,7 @@ export function detectBehavioralChanges(
       const isNullWidened =
         sym.afterSignature?.includes('| null') ||
         sym.afterSignature?.includes('| undefined') ||
-        sym.afterSignature?.includes('?') ||
+        (sym.afterSignature?.includes('?:') && !sym.beforeSignature?.includes('?:')) ||
         (sym.beforeSignature && !sym.beforeSignature.includes('| null') && sym.afterSignature?.includes('null'));
 
       const isSeverityHigh = blastRadius.totalConsumers > 4 || isNullWidened;

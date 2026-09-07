@@ -523,7 +523,7 @@ jobs:
             let comment = \`### <img src="\${icon}" width="24" height="24" align="absmiddle" /> Change Firewall: \${badge}\\n\\n\`;
             comment += \`* **Risk Score:** \\\`\${report.score} / 100\\\`\\n\`;
             comment += \`* **High-Risk Shifts:** \\\`\${report.highRiskCount}\\\`\\n\`;
-            if (report.blockers?.length) {
+            if (report.blockers && report.blockers.length > 0) {
               comment += \`\\n#### 🚨 Merge Blockers\\n\` + report.blockers.map(b => \`* ❌ \${b}\`).join('\\n') + '\\n';
             }
             await github.rest.issues.createComment({
