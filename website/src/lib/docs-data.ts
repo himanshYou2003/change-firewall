@@ -477,25 +477,68 @@ npx change-firewall mcp`,
         badge: 'CI Pipeline',
         content: {
           overview:
-            'Add Change Firewall preflight to your GitHub Actions pull request workflow. It blocks merges whenever the risk score exceeds threshold.',
+            'Add Change Firewall to your pull request workflow. It blocks merges whenever the risk score exceeds threshold and automatically posts an interactive branded report to the PR.',
           codeLanguage: 'yaml',
-          codeExample: `name: Change Firewall Safety Gate
+          codeExample: `name: Change Firewall
 
 on:
   pull_request:
-    branches: [main, master]
+    branches: [main, master, develop]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
 
 jobs:
-  firewall-gate:
+  analyze-changes:
+    name: Change Firewall
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npx change-firewall preflight --base origin/\${{ github.base_ref }}`,
+
+      - name: Run Change Firewall Preflight
+        id: firewall
+        run: |
+          set +e
+          npx change-firewall preflight --base origin/\${{ github.base_ref }} --json > change-firewall-report.json
+          EXIT_CODE=$?
+          echo "EXIT_CODE=$EXIT_CODE" >> "$GITHUB_ENV"
+          exit 0
+
+      - name: Post PR Summary Comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = JSON.parse(fs.readFileSync('change-firewall-report.json', 'utf8'));
+            const icon = 'https://raw.githubusercontent.com/himanshYou2003/change-firewall/main/assets/icon.png';
+            const badge = report.readyToMerge ? '🟢 **PASS / READY TO MERGE**' : '🔴 **BLOCKED / REVIEW REQUIRED**';
+            let comment = \`### <img src="\${icon}" width="24" height="24" align="absmiddle" /> Change Firewall: \${badge}\\n\\n\`;
+            comment += \`* **Risk Score:** \\\`\${report.score} / 100\\\`\\n\`;
+            comment += \`* **High-Risk Shifts:** \\\`\${report.highRiskCount}\\\`\\n\`;
+            if (report.blockers && report.blockers.length > 0) {
+              comment += \`\\n#### 🚨 Merge Blockers\\n\` + report.blockers.map(b => \`* ❌ \${b}\`).join('\\n') + '\\n';
+            }
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: comment
+            });
+
+      - name: Enforce Merge Gate
+        run: |
+          if [ "$EXIT_CODE" -ne 0 ]; then
+            echo "❌ Change Firewall blocked merge due to high-risk behavioral changes."
+            exit 1
+          fi\``,
           prevDocId: 'risk-formula',
           nextDocId: 'programmatic-api',
         },
