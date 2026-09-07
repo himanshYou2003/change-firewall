@@ -7,10 +7,11 @@ on:
 permissions:
   contents: read
   pull-requests: write
+  issues: write
 
 jobs:
   analyze-changes:
-    name: Behavior & Blast Radius Verification
+    name: Change Firewall
     runs-on: ubuntu-latest
 
     steps:
@@ -28,12 +29,17 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      - name: Build Package
+        run: npm run build
+
       - name: Run Change Firewall Preflight
         id: firewall
-        continue-on-error: true
         run: |
-          npx change-firewall preflight --base origin/${{ github.base_ref }} --json > change-firewall-report.json
-          echo "EXIT_CODE=$?" >> $GITHUB_ENV
+          set +e
+          node ./bin/change-firewall.js preflight --base origin/${{ github.base_ref }} --json > change-firewall-report.json
+          EXIT_CODE=$?
+          echo "EXIT_CODE=$EXIT_CODE" >> "$GITHUB_ENV"
+          exit 0
 
       - name: Post PR Summary Comment
         uses: actions/github-script@v7
