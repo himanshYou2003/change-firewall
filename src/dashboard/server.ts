@@ -51,10 +51,14 @@ export async function startDashboardServer(
       res.end(getDashboardHtml(currentReport));
     });
 
+    let currentPort = preferredPort;
+    let fallbackAttempts = 0;
+
     server.on('error', (err: any) => {
-      if (err.code === 'EADDRINUSE') {
-        // Try fallback port
-        server.listen(preferredPort + 1, '127.0.0.1');
+      if (err.code === 'EADDRINUSE' && fallbackAttempts < 10) {
+        fallbackAttempts++;
+        currentPort++;
+        server.listen(currentPort, '127.0.0.1');
       } else {
         reject(err);
       }
@@ -62,7 +66,7 @@ export async function startDashboardServer(
 
     server.listen(preferredPort, '127.0.0.1', async () => {
       const address = server.address();
-      const actualPort = typeof address === 'object' && address ? address.port : preferredPort;
+      const actualPort = typeof address === 'object' && address ? address.port : currentPort;
       const url = `http://localhost:${actualPort}`;
 
       if (autoOpen) {

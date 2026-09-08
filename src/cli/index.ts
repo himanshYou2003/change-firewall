@@ -8,6 +8,7 @@ import {
   renderTerminalReport,
   renderJsonReport,
   startDashboardServer,
+  startInteractiveInspector,
 } from '../index.js';
 
 const program = new Command();
@@ -15,17 +16,20 @@ const program = new Command();
 program
   .name('change-firewall')
   .description('Converts code diffs into behavior-aware change reports and deterministic risk scoring')
-  .version('0.2.0');
+  .version('0.2.1');
 
 // Default / analyze command
 program
   .command('analyze', { isDefault: true })
   .description('Analyze the current Git working tree for behavioral changes and risk')
   .option('--json', 'Output results in JSON format for CI and AI agents')
+  .option('--interactive', 'Launch keyboard-driven interactive terminal inspector (Tab: call stacks, p: crash proof, f: fingerprint, a: auto-fix)')
   .option('--open', 'Start and open local web dashboard at localhost:4783')
   .option('-p, --port <number>', 'Port for the local dashboard', '4783')
   .option('-b, --base <ref>', 'Base git commit or branch to compare against (default: HEAD)')
   .option('-s, --staged', 'Only analyze staged changes')
+  .option('-i, --intent <text>', 'Audit AI agent stated intent vs actual code mutations')
+  .option('--record-memory', 'Record verified baseline snapshot into persistent memory (.firewall/memory)')
   .action(async (options) => {
     try {
       const port = parseInt(options.port, 10) || 4783;
@@ -33,10 +37,17 @@ program
         cwd: process.cwd(),
         base: options.base,
         staged: options.staged,
+        intent: options.intent,
+        recordMemory: Boolean(options.recordMemory),
       });
 
       if (options.json) {
         console.log(renderJsonReport(report));
+        return;
+      }
+
+      if (options.interactive) {
+        await startInteractiveInspector(report);
         return;
       }
 
@@ -58,9 +69,31 @@ program
     }
   });
 
-// Preflight merge-readiness command
+// Dedicated Interactive Inspector command
+program
+  .command('interactive')
+  .alias('inspect')
+  .description('Launch keyboard-driven interactive terminal inspector (Tab: call stacks, p: crash proof, f: fingerprint, a: auto-fix)')
+  .option('-b, --base <ref>', 'Base git commit or branch to compare against (default: HEAD)')
+  .option('-s, --staged', 'Only inspect staged changes')
+  .action(async (options) => {
+    try {
+      const report = await analyzeChanges({
+        cwd: process.cwd(),
+        base: options.base,
+        staged: options.staged,
+      });
+      await startInteractiveInspector(report);
+    } catch (err: any) {
+      console.error(pc.red(`\nError starting interactive inspector: ${err.message}\n`));
+      process.exit(1);
+    }
+  });
+
+// Preflight / CI/CD merge-readiness gate
 program
   .command('preflight')
+  .alias('gate')
   .description('Determine whether the current changes are safe to merge (exit 0 for safe, exit 1 for blocked)')
   .option('-m, --max-risk <number>', 'Maximum acceptable risk score before blocking merge', '60')
   .option('--no-fail-on-high', 'Do not automatically fail on high severity behavioral findings')
@@ -267,6 +300,99 @@ program
       await startMcpServer();
     } catch (err: any) {
       console.error(pc.red(`\nMCP Server failed to start: ${err.message}\n`));
+      process.exit(1);
+    }
+  });
+
+// Graph command
+program
+  .command('graph <file>')
+  .description('Display the architectural Behavior Graph and critical paths for a specific file/symbol')
+  .action(async (fileTarget: string) => {
+    try {
+      const cwd = process.cwd();
+      const { buildDependencyGraph, buildBehaviorGraph, formatBehaviorGraphAscii } = await import('../index.js');
+      const depGraph = await buildDependencyGraph(cwd);
+      const behaviorGraph = await buildBehaviorGraph(cwd, depGraph);
+      const normalized = path.relative(cwd, path.resolve(cwd, fileTarget)).replace(/\\/g, '/');
+
+      console.log('\n' + pc.cyan('═'.repeat(66)));
+      console.log(pc.bold(`  BEHAVIOR GRAPH: ${pc.yellow(normalized)}`));
+      console.log(pc.cyan('═'.repeat(66)) + '\n');
+
+      const ascii = formatBehaviorGraphAscii(normalized, behaviorGraph);
+      console.log(ascii + '\n');
+    } catch (err: any) {
+      console.error(pc.red(`\nError rendering behavior graph: ${err.message}\n`));
+      process.exit(1);
+    }
+  });
+
+// Memory command
+program
+  .command('memory [action]')
+  .description('Manage persistent contract memory (status, record, reset)')
+  .action(async (action: string = 'status') => {
+    try {
+      const cwd = process.cwd();
+      const { loadFirewallMemory, recordMemorySnapshot, resetMemory, analyzeChanges } = await import('../index.js');
+
+      if (action === 'reset') {
+        await resetMemory(cwd);
+        console.log(pc.green('\n✓ Persistent Firewall Memory has been reset.\n'));
+        return;
+      }
+
+      if (action === 'record') {
+        await analyzeChanges({ cwd, recordMemory: true });
+        const mem = await loadFirewallMemory(cwd);
+        console.log(pc.green(`\n✓ Recorded baseline contract memory snapshot (${mem.invariantsCount} verified symbol contracts at commit ${pc.bold(mem.baselineCommit || 'HEAD')}).\n`));
+        return;
+      }
+
+      // Default status
+      const mem = await loadFirewallMemory(cwd);
+      console.log('\n' + pc.cyan('═'.repeat(54)));
+      console.log(pc.bold('  PERSISTENT FIREWALL MEMORY STATUS'));
+      console.log(pc.cyan('═'.repeat(54)));
+      console.log(`  ${pc.bold('Recorded Invariants:')} ${pc.white(mem.invariantsCount)} verified symbol/route contracts`);
+      console.log(`  ${pc.bold('Baseline Commit:')}     ${pc.yellow(mem.baselineCommit || 'None recorded')}`);
+      console.log(`  ${pc.bold('Stability Rating:')}    ${pc.green(mem.historicalStability)}`);
+      if (mem.lastApprovalDate) {
+        console.log(`  ${pc.bold('Last Verified:')}      ${pc.dim(mem.lastApprovalDate)}`);
+      }
+      console.log(pc.cyan('═'.repeat(54)) + '\n');
+    } catch (err: any) {
+      console.error(pc.red(`\nMemory command failed: ${err.message}\n`));
+      process.exit(1);
+    }
+  });
+
+// Audit-agent command
+program
+  .command('audit-agent')
+  .description('Audit stated AI agent intent (commit message or prompt) against actual uncommitted diffs')
+  .option('-i, --intent <text>', 'Stated intention or prompt given to the AI coding agent', 'General improvements')
+  .option('--json', 'Output agent audit report as JSON')
+  .action(async (options) => {
+    try {
+      const { analyzeChanges, renderTerminalReport, renderJsonReport } = await import('../index.js');
+      const report = await analyzeChanges({
+        cwd: process.cwd(),
+        intent: options.intent,
+      });
+
+      if (options.json) {
+        console.log(renderJsonReport(report));
+      } else {
+        renderTerminalReport(report);
+      }
+
+      if (report.agentAudit && (report.agentAudit.verdict === 'STEALTH_MUTATION' || report.agentAudit.verdict === 'HIGH_DRIFT')) {
+        process.exit(1);
+      }
+    } catch (err: any) {
+      console.error(pc.red(`\nAgent audit failed: ${err.message}\n`));
       process.exit(1);
     }
   });

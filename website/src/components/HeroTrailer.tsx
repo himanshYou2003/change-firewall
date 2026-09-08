@@ -42,11 +42,11 @@ export default function HeroTrailer() {
         {/* Release Pill Badge */}
         <div className="inline-flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-1.5 rounded-full bg-[var(--surface-100)] border border-[var(--border-subtle)] text-[var(--text-secondary)] text-[11px] sm:text-xs font-medium mb-6 max-w-full">
           <Terminal className="w-3.5 h-3.5 text-brand-cyan shrink-0" />
-          <span className="font-semibold text-[var(--text-primary)] whitespace-nowrap">Change Firewall v0.2.0</span>
+          <span className="font-semibold text-[var(--text-primary)] whitespace-nowrap">Change Firewall v0.2.1</span>
           <span className="text-[var(--text-muted)]">•</span>
-          <span className="whitespace-nowrap">Native MCP Engine</span>
+          <span className="whitespace-nowrap font-medium text-brand-cyan">The 4 Genius Pillars</span>
           <span className="text-[var(--text-muted)] hidden xs:inline">•</span>
-          <span className="text-[var(--text-muted)] hidden xs:inline whitespace-nowrap">100% Offline AST</span>
+          <span className="text-[var(--text-muted)] hidden xs:inline whitespace-nowrap">100% Offline AST & Symbolic Proofs</span>
         </div>
 
         {/* Hero Title with fluid modern typography */}
@@ -67,7 +67,7 @@ export default function HeroTrailer() {
           ref={subtitleRef}
           className="mt-5 text-base sm:text-xl text-[var(--text-secondary)] max-w-3xl font-normal leading-relaxed"
         >
-          Standard git diffs only see text lines (+1 / -1). Change Firewall computes deterministic AST behavioral mutations, maps downstream caller blast radius, and provides stdio MCP tools for autonomous AI self-correction.
+          Standard git diffs only see text lines (+1 / -1). Change Firewall models living behavioral boundaries across an 11-D fingerprint matrix, proves exact runtime crash lines with zero guesswork, and audits AI agent intent vs reality.
         </p>
 
         {/* Quick Command & Action Buttons */}

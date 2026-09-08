@@ -214,7 +214,10 @@ export function computeBlastRadius(
   filePath: string,
   graph: ProjectDependencyGraph
 ): BlastRadius {
-  const directDependents = Array.from(graph.reverseGraph.get(filePath) || []);
+  const normPath = normalizePath(filePath);
+  const directDependents = Array.from(
+    graph.reverseGraph.get(normPath) || graph.reverseGraph.get(filePath) || []
+  );
   const visited = new Set<string>();
   const queue = [...directDependents];
 
@@ -227,7 +230,7 @@ export function computeBlastRadius(
     const nextDeps = graph.reverseGraph.get(current);
     if (nextDeps) {
       for (const next of nextDeps) {
-        if (!visited.has(next) && next !== filePath) {
+        if (!visited.has(next) && next !== filePath && next !== normPath) {
           visited.add(next);
           queue.push(next);
         }
@@ -245,7 +248,12 @@ export function computeBlastRadius(
   const totalConsumers = allDownstream.length;
 
   let level: SeverityLevel = 'LOW';
-  if (totalConsumers > 6 || affectedRoutes.length > 2 || graph.middlewareFiles.has(filePath)) {
+  if (
+    totalConsumers > 6 ||
+    affectedRoutes.length > 2 ||
+    graph.middlewareFiles.has(normPath) ||
+    graph.middlewareFiles.has(filePath)
+  ) {
     level = 'HIGH';
   } else if (totalConsumers > 1 || affectedRoutes.length > 0) {
     level = 'MEDIUM';

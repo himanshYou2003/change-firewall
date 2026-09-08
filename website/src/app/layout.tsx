@@ -1,8 +1,12 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { ThemeProvider } from '@/components/ThemeProvider';
+
+export const viewport: Viewport = {
+  themeColor: '#f5f2e8',
+};
 
 export const metadata: Metadata = {
   title: 'Change Firewall ⚡ — AST Behavioral Diffing, Blast Radius & MCP for AI Code',
@@ -36,7 +40,30 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" className="light" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var stored = localStorage.getItem('cf-theme');
+                  if (stored === 'dark') {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.classList.remove('light');
+                  } else {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.classList.add('light');
+                  }
+                } catch (e) {
+                  document.documentElement.classList.remove('dark');
+                  document.documentElement.classList.add('light');
+                }
+              })();
+            `,
+          }}
+        />
+      </head>
       <body className="bg-background text-[var(--text-primary)] min-h-screen flex flex-col selection:bg-[#d1c8b7] selection:text-[#181512] transition-colors duration-200">
         <ThemeProvider>
           <div className="fixed inset-0 bg-grid-pattern pointer-events-none opacity-60 z-0" />
@@ -51,3 +78,4 @@ export default function RootLayout({
     </html>
   );
 }
+

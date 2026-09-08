@@ -99,11 +99,16 @@ export function detectBehavioralChanges(
   // 3. FUNCTION CONTRACT & EXPORT SIGNATURE MUTATIONS (Type Nullability, Parameter Shifts)
   for (const sym of diff.symbols) {
     if (sym.changeType === 'modified') {
+      const returnPart = sym.afterSignature?.includes(')')
+        ? sym.afterSignature.slice(sym.afterSignature.lastIndexOf(')'))
+        : (sym.afterSignature || '');
+      const beforeReturnPart = sym.beforeSignature?.includes(')')
+        ? sym.beforeSignature.slice(sym.beforeSignature.lastIndexOf(')'))
+        : (sym.beforeSignature || '');
+
       const isNullWidened =
-        sym.afterSignature?.includes('| null') ||
-        sym.afterSignature?.includes('| undefined') ||
-        (sym.afterSignature?.includes('?:') && !sym.beforeSignature?.includes('?:')) ||
-        (sym.beforeSignature && !sym.beforeSignature.includes('| null') && sym.afterSignature?.includes('null'));
+        (returnPart.includes('| null') || returnPart.includes('| undefined') || returnPart.includes('null')) &&
+        (!beforeReturnPart.includes('| null') && !beforeReturnPart.includes('| undefined') && !beforeReturnPart.includes('null'));
 
       const isSeverityHigh = blastRadius.totalConsumers > 4 || isNullWidened;
       const severity: SeverityLevel = isSeverityHigh ? 'HIGH' : 'MEDIUM';
@@ -189,6 +194,47 @@ export function detectBehavioralChanges(
       ],
       affectedFiles: blastRadius.directDependents,
       recommendation: 'Confirm that valid existing client payloads are not rejected by the stricter schema.',
+    });
+  }
+
+  // 6. DATABASE MODEL & QUERY MUTATIONS
+  if (diff.databaseChanged) {
+    const consumers = blastRadius.totalConsumers;
+    const severity: SeverityLevel = consumers > 3 ? 'HIGH' : 'MEDIUM';
+
+    findings.push({
+      id: nextId(),
+      category: 'DATABASE',
+      title: 'Database Model or Query Mutated',
+      description: diff.databaseDetails || 'Database schema, entity calls, or query operations were modified.',
+      severity,
+      confidence: 91,
+      filePath: diff.filePath,
+      evidence: [
+        diff.databaseDetails || 'Database ORM or query calls detected.',
+        `${consumers} consumer(s) depend on this data access layer.`,
+      ],
+      affectedFiles: blastRadius.directDependents,
+      recommendation: 'Verify database migrations, index usage, and query performance in downstream services.',
+    });
+  }
+
+  // 7. EVENT FLOW MUTATIONS
+  if (diff.eventFlowChanged) {
+    findings.push({
+      id: nextId(),
+      category: 'EVENT_FLOW',
+      title: 'Event Producer / Consumer Flow Altered',
+      description: diff.eventDetails || 'Event emission, listeners, or message queue bindings changed.',
+      severity: 'MEDIUM',
+      confidence: 87,
+      filePath: diff.filePath,
+      evidence: [
+        diff.eventDetails || 'Event dispatch or subscription calls modified.',
+        `${blastRadius.totalConsumers} consumer(s) downstream of event flow.`,
+      ],
+      affectedFiles: blastRadius.directDependents,
+      recommendation: 'Ensure asynchronous event consumers and message schemas remain synchronized.',
     });
   }
 

@@ -8,29 +8,40 @@ interface ParsedFile {
   calls: Set<string>;
   authConditions: string[];
   hasZodValidation: boolean;
+  dbCalls: string[];
+  eventCalls: string[];
 }
 
 function getNodeSignature(node: ts.Node, sourceFile: ts.SourceFile): string {
-  if (ts.isFunctionDeclaration(node) || ts.isMethodDeclaration(node)) {
-    const name = node.name ? node.name.getText(sourceFile) : 'anonymous';
-    const params = node.parameters.map((p) => p.getText(sourceFile)).join(', ');
-    const returnType = node.type ? `: ${node.type.getText(sourceFile)}` : '';
-    return `${name}(${params})${returnType}`;
+  try {
+    if (ts.isFunctionDeclaration(node) || ts.isMethodDeclaration(node)) {
+      const name = node.name ? node.name.getText(sourceFile) : 'anonymous';
+      const params = node.parameters.map((p) => p.getText(sourceFile)).join(', ');
+      const returnType = node.type ? `: ${node.type.getText(sourceFile)}` : '';
+      return `${name}(${params})${returnType}`;
+    }
+    if (ts.isClassDeclaration(node)) {
+      const name = node.name ? node.name.getText(sourceFile) : 'anonymous';
+      return `class ${name}`;
+    }
+    if (ts.isInterfaceDeclaration(node)) {
+      return `interface ${node.name.getText(sourceFile)}`;
+    }
+    if (ts.isTypeAliasDeclaration(node)) {
+      return `type ${node.name.getText(sourceFile)} = ${node.type.getText(sourceFile)}`;
+    }
+    if (ts.isEnumDeclaration(node)) {
+      const name = node.name.getText(sourceFile);
+      const members = node.members.map((m) => m.getText(sourceFile)).join(', ');
+      return `enum ${name} { ${members} }`;
+    }
+    if (ts.isVariableStatement(node)) {
+      return node.declarationList.getText(sourceFile);
+    }
+    return node.getText(sourceFile).slice(0, 100);
+  } catch {
+    return 'unknown';
   }
-  if (ts.isClassDeclaration(node)) {
-    const name = node.name ? node.name.getText(sourceFile) : 'anonymous';
-    return `class ${name}`;
-  }
-  if (ts.isInterfaceDeclaration(node)) {
-    return `interface ${node.name.getText(sourceFile)}`;
-  }
-  if (ts.isTypeAliasDeclaration(node)) {
-    return `type ${node.name.getText(sourceFile)} = ${node.type.getText(sourceFile)}`;
-  }
-  if (ts.isVariableStatement(node)) {
-    return node.declarationList.getText(sourceFile);
-  }
-  return node.getText(sourceFile).slice(0, 100);
 }
 
 function parseSourceFile(filePath: string, content: string): ParsedFile {
@@ -50,6 +61,8 @@ function parseSourceFile(filePath: string, content: string): ParsedFile {
   const throwExpressions: string[] = [];
   const calls = new Set<string>();
   const authConditions: string[] = [];
+  const dbCalls: string[] = [];
+  const eventCalls: string[] = [];
   let hasZodValidation = false;
 
   function visit(node: ts.Node) {
@@ -87,17 +100,50 @@ function parseSourceFile(filePath: string, content: string): ParsedFile {
           signature: getNodeSignature(node, sourceFile),
           node,
         });
+      } else if (ts.isEnumDeclaration(node) && node.name) {
+        const name = node.name.getText(sourceFile);
+        exportsMap.set(name, {
+          kind: 'type',
+          signature: getNodeSignature(node, sourceFile),
+          node,
+        });
       } else if (ts.isVariableStatement(node)) {
         for (const decl of node.declarationList.declarations) {
           if (ts.isIdentifier(decl.name)) {
             const name = decl.name.getText(sourceFile);
+            let kind: ChangedSymbol['kind'] = 'variable';
+            let signature = decl.getText(sourceFile);
+            if (decl.initializer && (ts.isArrowFunction(decl.initializer) || ts.isFunctionExpression(decl.initializer))) {
+              kind = 'function';
+              const params = decl.initializer.parameters.map((p) => p.getText(sourceFile)).join(', ');
+              const ret = decl.initializer.type ? `: ${decl.initializer.type.getText(sourceFile)}` : '';
+              signature = `${name}(${params})${ret}`;
+            }
             exportsMap.set(name, {
-              kind: 'variable',
-              signature: decl.getText(sourceFile),
+              kind,
+              signature,
               node: decl,
             });
           }
         }
+      }
+    } else if (ts.isExportDeclaration(node)) {
+      if (node.exportClause && ts.isNamedExports(node.exportClause)) {
+        for (const elem of node.exportClause.elements) {
+          const exportName = elem.name.text;
+          exportsMap.set(exportName, {
+            kind: 'export',
+            signature: `export { ${elem.getText(sourceFile)} }`,
+            node: elem,
+          });
+        }
+      } else if (node.exportClause && ts.isNamespaceExport(node.exportClause)) {
+        const exportName = node.exportClause.name.text;
+        exportsMap.set(exportName, {
+          kind: 'export',
+          signature: `export * as ${exportName}`,
+          node: node.exportClause,
+        });
       }
     } else if (ts.isExportAssignment(node)) {
       // export default ...
@@ -126,6 +172,38 @@ function parseSourceFile(filePath: string, content: string): ParsedFile {
       // Check validation
       if (callText.includes('parse') || callText.includes('validate') || callText.includes('safeParse')) {
         hasZodValidation = true;
+      }
+
+      // Check database operations
+      const lowerCall = callText.toLowerCase();
+      if (
+        lowerCall.includes('prisma.') ||
+        lowerCall.includes('db.') ||
+        lowerCall.includes('repository.') ||
+        lowerCall.endsWith('.query') ||
+        lowerCall.endsWith('.findmany') ||
+        lowerCall.endsWith('.findunique') ||
+        lowerCall.endsWith('.findfirst') ||
+        lowerCall.endsWith('.create') ||
+        lowerCall.endsWith('.update') ||
+        lowerCall.endsWith('.delete') ||
+        lowerCall.endsWith('.execute')
+      ) {
+        dbCalls.push(callText);
+      }
+
+      // Check event dispatching / subscriptions
+      if (
+        lowerCall.endsWith('.emit') ||
+        lowerCall.endsWith('.publish') ||
+        lowerCall.endsWith('.dispatch') ||
+        lowerCall.endsWith('.broadcast') ||
+        lowerCall.endsWith('.on') ||
+        lowerCall.endsWith('.addlistener') ||
+        lowerCall.endsWith('.subscribe') ||
+        (lowerCall.endsWith('.send') && !lowerCall.includes('res.') && !lowerCall.includes('response.'))
+      ) {
+        eventCalls.push(callText);
       }
     }
 
@@ -157,6 +235,8 @@ function parseSourceFile(filePath: string, content: string): ParsedFile {
     calls,
     authConditions,
     hasZodValidation,
+    dbCalls,
+    eventCalls,
   };
 }
 
@@ -339,6 +419,40 @@ export function analyzeASTDiff(
     details.push(validationDetails);
   }
 
+  // Compare Database Calls
+  let databaseChanged = false;
+  let databaseDetails: string | undefined;
+  const beforeDb = before.dbCalls.length;
+  const afterDb = after.dbCalls.length;
+  if (beforeDb !== afterDb || before.dbCalls.join(';') !== after.dbCalls.join(';')) {
+    databaseChanged = true;
+    if (afterDb > beforeDb) {
+      databaseDetails = `Introduced new database operations: ${after.dbCalls.slice(beforeDb).join(', ') || 'model calls'}`;
+    } else if (afterDb < beforeDb) {
+      databaseDetails = `Removed or modified database queries (${beforeDb} -> ${afterDb})`;
+    } else {
+      databaseDetails = 'Database query signatures altered';
+    }
+    details.push(databaseDetails);
+  }
+
+  // Compare Event Flow Calls
+  let eventFlowChanged = false;
+  let eventDetails: string | undefined;
+  const beforeEvents = before.eventCalls.length;
+  const afterEvents = after.eventCalls.length;
+  if (beforeEvents !== afterEvents || before.eventCalls.join(';') !== after.eventCalls.join(';')) {
+    eventFlowChanged = true;
+    if (afterEvents > beforeEvents) {
+      eventDetails = `Introduced new event producer/consumer calls: ${after.eventCalls.slice(beforeEvents).join(', ') || 'event hooks'}`;
+    } else if (afterEvents < beforeEvents) {
+      eventDetails = `Removed or modified event listeners/publishers (${beforeEvents} -> ${afterEvents})`;
+    } else {
+      eventDetails = 'Event emission or listener bindings modified';
+    }
+    details.push(eventDetails);
+  }
+
   // Compare Function Calls
   for (const call of after.calls) {
     if (!before.calls.has(call)) {
@@ -363,6 +477,10 @@ export function analyzeASTDiff(
     errorDetails,
     validationChanged,
     validationDetails,
+    databaseChanged,
+    databaseDetails,
+    eventFlowChanged,
+    eventDetails,
     callsAdded,
     callsRemoved,
     details,

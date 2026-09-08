@@ -22,7 +22,7 @@ export interface McpServerOptions {
 export function createMcpServer(options: McpServerOptions = {}): McpServer {
   const server = new McpServer({
     name: options.name || 'change-firewall',
-    version: options.version || '0.2.0',
+    version: options.version || '0.2.1',
   });
 
   // Tool 1: analyze_changes
@@ -63,6 +63,11 @@ export function createMcpServer(options: McpServerOptions = {}): McpServer {
             linesDeleted: report.linesDeleted,
             behavioralChangesCount: report.behavioralChangesCount,
           },
+          mutationDiagnosis: report.mutationDiagnosis,
+          fingerprint: report.fingerprint,
+          symbolicTraces: report.symbolicTraces,
+          memoryContext: report.memoryContext,
+          agentAudit: report.agentAudit,
           risk: report.risk,
           findings: report.findings,
           blastRadiusMap: report.blastRadiusMap,
@@ -264,6 +269,120 @@ export function createMcpServer(options: McpServerOptions = {}): McpServer {
               text: `Error explaining file impact for ${file}: ${err.message}`,
             },
           ],
+          isError: true,
+        };
+      }
+    }
+  );
+
+  // Tool 5: get_behavior_graph
+  server.tool(
+    'get_behavior_graph',
+    'Retrieve the architectural Behavior Graph and critical paths (API routes, auth boundaries, database models, event consumers) for the repository or a specific file.',
+    {
+      file: z
+        .string()
+        .optional()
+        .describe('Specific file path to inspect (default: entire repository graph)'),
+      cwd: z
+        .string()
+        .optional()
+        .describe('Directory path of the git repository (default: current working directory)'),
+    },
+    async ({ file, cwd }) => {
+      try {
+        const repoPath = cwd ? path.resolve(cwd) : process.cwd();
+        const { buildDependencyGraph, buildBehaviorGraph, formatBehaviorGraphAscii } = await import('../index.js');
+        const depGraph = await buildDependencyGraph(repoPath);
+        const behaviorGraph = await buildBehaviorGraph(repoPath, depGraph);
+
+        if (file) {
+          const normalized = path.relative(repoPath, path.resolve(repoPath, file)).replace(/\\/g, '/');
+          const ascii = formatBehaviorGraphAscii(normalized, behaviorGraph);
+          return {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify(
+                  {
+                    targetFile: normalized,
+                    node: behaviorGraph.nodes[normalized],
+                    asciiTree: ascii,
+                    criticalPaths: behaviorGraph.criticalPaths.filter((cp) =>
+                      cp.steps.includes(normalized)
+                    ),
+                  },
+                  null,
+                  2
+                ),
+              },
+            ],
+          };
+        }
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(
+                {
+                  roleCounts: behaviorGraph.roleCounts,
+                  totalNodes: Object.keys(behaviorGraph.nodes).length,
+                  totalEdges: behaviorGraph.edges.length,
+                  criticalPaths: behaviorGraph.criticalPaths,
+                },
+                null,
+                2
+              ),
+            },
+          ],
+        };
+      } catch (err: any) {
+        return {
+          content: [{ type: 'text', text: `Error building behavior graph: ${err.message}` }],
+          isError: true,
+        };
+      }
+    }
+  );
+
+  // Tool 6: audit_agent_intent
+  server.tool(
+    'audit_agent_intent',
+    'Audit stated AI agent intent (e.g. "Fix CSS layout") against actual uncommitted diffs to detect unannounced security, contract, or database mutations.',
+    {
+      intent: z
+        .string()
+        .describe('The stated task, prompt, or commit message intended by the agent'),
+      cwd: z
+        .string()
+        .optional()
+        .describe('Directory path of the git repository (default: current working directory)'),
+    },
+    async ({ intent, cwd }) => {
+      try {
+        const repoPath = cwd ? path.resolve(cwd) : process.cwd();
+        const report = await analyzeChanges({ cwd: repoPath, intent });
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(
+                {
+                  audit: report.agentAudit,
+                  mutationDiagnosis: report.mutationDiagnosis,
+                  risk: report.risk,
+                  symbolicTraces: report.symbolicTraces,
+                },
+                null,
+                2
+              ),
+            },
+          ],
+        };
+      } catch (err: any) {
+        return {
+          content: [{ type: 'text', text: `Error auditing agent intent: ${err.message}` }],
           isError: true,
         };
       }

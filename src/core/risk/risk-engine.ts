@@ -9,7 +9,11 @@ import type {
 export function calculateRiskScore(
   findings: BehavioralFinding[],
   blastRadiusMap: Record<string, BlastRadius>,
-  isAnyTestChanged: boolean
+  isAnyTestChanged: boolean,
+  extraContext?: {
+    criticalPathsCount?: number;
+    brokenInvariantsCount?: number;
+  }
 ): RiskScore {
   const factors: RiskFactor[] = [];
   let baseScore = 0;
@@ -31,6 +35,7 @@ export function calculateRiskScore(
   // 1. Evaluate Findings Severity & Category
   const hasAuthFinding = findings.some((f) => f.category === 'AUTH');
   const hasApiContractFinding = findings.some((f) => f.category === 'API_CONTRACT');
+  const hasDbFinding = findings.some((f) => f.category === 'DATABASE');
   const hasDeletedExport = findings.some(
     (f) => f.category === 'FUNCTION_CONTRACT' && f.severity === 'CRITICAL'
   );
@@ -55,6 +60,16 @@ export function calculateRiskScore(
     });
   }
 
+  if (hasDbFinding) {
+    const contribution = 20;
+    baseScore += contribution;
+    factors.push({
+      factor: 'Database Model / Query Shift',
+      scoreContribution: contribution,
+      reason: 'Database access layer, entity structure, or query logic modified.',
+    });
+  }
+
   if (hasDeletedExport) {
     const contribution = 25;
     baseScore += contribution;
@@ -62,6 +77,28 @@ export function calculateRiskScore(
       factor: 'Breaking Export Removal',
       scoreContribution: contribution,
       reason: 'One or more exported functions or types were deleted.',
+    });
+  }
+
+  // Critical Paths Contribution
+  if (extraContext?.criticalPathsCount && extraContext.criticalPathsCount > 0) {
+    const contribution = Math.min(25, extraContext.criticalPathsCount * 12);
+    baseScore += contribution;
+    factors.push({
+      factor: 'Critical Execution Path Exposure',
+      scoreContribution: contribution,
+      reason: `${extraContext.criticalPathsCount} critical path(s) cross through modified code boundaries.`,
+    });
+  }
+
+  // Broken Invariants Contribution
+  if (extraContext?.brokenInvariantsCount && extraContext.brokenInvariantsCount > 0) {
+    const contribution = Math.min(30, extraContext.brokenInvariantsCount * 15);
+    baseScore += contribution;
+    factors.push({
+      factor: 'Historical Invariant Violations',
+      scoreContribution: contribution,
+      reason: `${extraContext.brokenInvariantsCount} established contract invariant(s) violated.`,
     });
   }
 

@@ -265,6 +265,143 @@ npx change-firewall mcp`,
             text: 'All diagnostics and logs are written to stderr, preserving stdout exclusively for MCP JSON-RPC protocol frames.',
           },
           prevDocId: 'cli-watch',
+          nextDocId: 'cli-interactive',
+        },
+      },
+      {
+        id: 'cli-interactive',
+        folderId: 'cli-commands',
+        folderTitle: 'CLI Command Reference',
+        fileName: 'interactive.md',
+        title: 'change-firewall interactive (inspect)',
+        description: 'Keyboard-driven terminal inspector with call stacks, symbolic crash proof, and 11-D fingerprint.',
+        readingTime: '2 min read',
+        badge: 'Interactive TUI',
+        content: {
+          overview:
+            'Launches an interactive fullscreen terminal inspector preserving your terminal scrollback. Navigate findings with arrow keys, toggle call stacks, view mathematical runtime crash proofs, and generate instant test stubs.',
+          codeLanguage: 'bash',
+          codeExample: `# Launch interactive terminal inspector
+npx change-firewall interactive
+
+# Alias shortcut
+npx change-firewall inspect
+
+# Inspect staged changes only
+npx change-firewall inspect --staged`,
+          table: {
+            headers: ['Key / Shortcut', 'Action', 'Description'],
+            rows: [
+              ['↓ / ↑ or j / k', 'Scroll Findings', 'Navigate between detected behavioral shifts'],
+              ['Tab', 'Call Stacks & Blast Radius', 'Expand direct and indirect downstream callers'],
+              ['p', 'Symbolic Crash Proof', 'Inspect deterministic runtime exception trace'],
+              ['f', '11-D Fingerprint Matrix', 'Inspect active behavioral mutation vectors'],
+              ['a', 'Auto-Fix & Test Stub', 'Generate 1-line code fix and Vitest test stub'],
+              ['q / Ctrl+C', 'Quit', 'Cleanly exit and restore original terminal buffer'],
+            ],
+          },
+          prevDocId: 'cli-mcp',
+          nextDocId: 'cli-graph',
+        },
+      },
+      {
+        id: 'cli-graph',
+        folderId: 'cli-commands',
+        folderTitle: 'CLI Command Reference',
+        fileName: 'graph.md',
+        title: 'change-firewall graph <file>',
+        description: 'Renders an ASCII architectural behavior graph and multi-hop critical execution paths.',
+        readingTime: '1 min read',
+        badge: 'Behavior Graph',
+        content: {
+          overview:
+            'Classifies the architectural role of target files (API_ROUTE, AUTH_BOUNDARY, DATABASE_MODEL, TEST_SUITE, EVENT_PRODUCER, EVENT_CONSUMER) and displays incoming callers, outgoing dependencies, and protected data flows.',
+          codeLanguage: 'bash',
+          codeExample: `# Render behavior graph for core entrypoint
+npx change-firewall graph src/index.ts
+
+# Inspect API route critical flow (Route ➔ Auth Guard ➔ DB Model)
+npx change-firewall graph src/routes/user.ts`,
+          bulletPoints: [
+            'Classifies semantic architectural roles with zero configuration',
+            'Uncovers unprotected data access paths (missing auth guards)',
+            'Displays multi-hop downstream execution flows',
+          ],
+          prevDocId: 'cli-interactive',
+          nextDocId: 'cli-memory',
+        },
+      },
+      {
+        id: 'cli-memory',
+        folderId: 'cli-commands',
+        folderTitle: 'CLI Command Reference',
+        fileName: 'memory.md',
+        title: 'change-firewall memory [status|record|reset]',
+        description: 'Persistent contract memory engine tracking stability invariants across git commits.',
+        readingTime: '2 min read',
+        badge: 'Temporal Memory',
+        content: {
+          overview:
+            'Persists verified symbol contracts and endpoint schemas in .firewall/memory/. Detects broken invariants when code that has been stable for dozens of commits is unexpectedly altered.',
+          codeLanguage: 'bash',
+          codeExample: `# View persistent memory status & verified invariants count
+npx change-firewall memory status
+
+# Record verified baseline contract snapshot at HEAD
+npx change-firewall memory record
+
+# Reset persistent memory
+npx change-firewall memory reset`,
+          callout: {
+            type: 'info',
+            text: 'When an AI agent modifies a function with 50+ commits of historical stability, Change Firewall flags a Broken Historical Invariant.',
+          },
+          prevDocId: 'cli-graph',
+          nextDocId: 'cli-audit-agent',
+        },
+      },
+      {
+        id: 'cli-audit-agent',
+        folderId: 'cli-commands',
+        folderTitle: 'CLI Command Reference',
+        fileName: 'audit-agent.md',
+        title: 'change-firewall audit-agent',
+        description: 'Audits AI agent prompt intent vs actual code mutations to detect stealth changes.',
+        readingTime: '2 min read',
+        badge: 'Agent Safety',
+        content: {
+          overview:
+            'Compares the stated prompt or task given to an AI coding assistant against the uncommitted AST mutations. Flags STEALTH_MUTATION with high drift scores if the agent touched auth guards, deleted contracts, or altered databases without declaring it.',
+          codeLanguage: 'bash',
+          codeExample: `# Audit stated intent against current uncommitted diffs
+npx change-firewall audit-agent -i "Fix button padding and header colors"
+
+# Output machine-readable audit report for CI gates
+npx change-firewall audit-agent -i "Refactor payment service" --json`,
+          bulletPoints: [
+            'ALIGNED (0% Drift): Code mutations match declared intent',
+            'MODERATE_DRIFT (1-49% Drift): Minor auxiliary adjustments detected',
+            'STEALTH_MUTATION (≥50% Drift): Unannounced security or contract shifts (blocks merge)',
+          ],
+          prevDocId: 'cli-memory',
+          nextDocId: 'cli-why',
+        },
+      },
+      {
+        id: 'cli-why',
+        folderId: 'cli-commands',
+        folderTitle: 'CLI Command Reference',
+        fileName: 'why.md',
+        title: 'change-firewall why <file>',
+        description: 'Explains why a file matters to the architecture, its role, git churn, and contributors.',
+        readingTime: '1 min read',
+        badge: 'Context',
+        content: {
+          overview:
+            'Combines git commit history, churn frequency, author count, and downstream consumer blast radius to explain why a file is sensitive.',
+          codeLanguage: 'bash',
+          codeExample: `npx change-firewall why src/middlewares/auth.ts`,
+          prevDocId: 'cli-audit-agent',
           nextDocId: 'mcp-claude',
         },
       },
@@ -568,6 +705,176 @@ if (!gate.readyToMerge) {
   console.error('Blocked reasons:', gate.blockers);
 }`,
           prevDocId: 'github-actions',
+          nextDocId: 'symbolic-crash-proof',
+        },
+      },
+    ],
+  },
+  {
+    id: 'advanced-intelligence',
+    title: 'Behavioral Intelligence Architecture',
+    files: [
+      {
+        id: 'four-genius-pillars',
+        folderId: 'advanced-intelligence',
+        folderTitle: 'Behavioral Intelligence Architecture',
+        fileName: 'four-genius-pillars.md',
+        title: 'The 4 Genius Pillars for Change Firewall',
+        description: 'The master architectural blueprint engineered to deliver 100% trusted behavioral intelligence.',
+        readingTime: '3 min read',
+        badge: 'Core Blueprint',
+        content: {
+          overview:
+            'Conventional linters and scanners fail because they cry wolf with vague warnings, hallucinate false positives, and have zero memory of the codebase history or intent. Change Firewall solves this with 4 Genius Pillars: The Behavior Graph & 11-D Fingerprint, The Behavioral Memory Store, Symbolic Crash Trace & Proof, and the AI Agent Intent vs Reality Guard.',
+          codeLanguage: 'text',
+          codeExample: `┌──────────────────────────────────────────────┐
+│       THE CHANGE FIREWALL GENIUS CORE        │
+└──────────────────────┬───────────────────────┘
+                       │
+┌──────────────────────┼──────────────────────┬──────────────────────┐
+▼                      ▼                      ▼                      ▼
+1. BEHAVIOR GRAPH &    2. BEHAVIORAL          3. SYMBOLIC            4. "AGENT INTENT
+   11-D FINGERPRINT       MEMORY STORE           CRASH TRACE            VS REALITY"
+   (The Brain)            (.firewall/memory)     (Zero-Guesswork)       VERIFIER`,
+          bulletPoints: [
+            'Pillar 1 (The Brain): Living boundary classification across API, Database, Event, Auth, and Test boundaries evaluated over an 11-D matrix',
+            'Pillar 2 (The Memory): Zero-config persistent cache in .firewall/memory/ tracking contract invariant history over time',
+            'Pillar 3 (The Proof): Mathematical proof chains simulating unhandled TypeErrors at caller line numbers with zero false alarms',
+            'Pillar 4 (The Agent Guard): Compares Natural Language intent against AST mutations to catch stealth changes and compute Intent Drift',
+          ],
+          prevDocId: 'programmatic-api',
+          nextDocId: 'symbolic-crash-proof',
+        },
+      },
+      {
+        id: 'symbolic-crash-proof',
+        folderId: 'advanced-intelligence',
+        folderTitle: 'Behavioral Intelligence Architecture',
+        fileName: 'symbolic-crash-proof.md',
+        title: 'Symbolic Runtime Crash Proof',
+        description: 'Mathematical proof chains that simulate unhandled runtime exceptions at caller line numbers.',
+        readingTime: '2 min read',
+        badge: 'Zero Guesswork',
+        content: {
+          overview:
+            'When an API contract or function return is widened to null or undefined, Change Firewall symbolically walks the AST of all downstream consumers. It traces whether the consumer dereferences the return without an optional chaining (?.) or null guard, proving the exact TypeError before runtime.',
+          codeLanguage: 'text',
+          codeExample: `[SYMBOLIC CRASH PROOF (Zero Guesswork)]
+Simulated Exception: TypeError: Cannot read properties of null (reading 'balance')
+Origin:    src/services/account.ts (fetchAccount)
+Crash Site: src/routes/account.ts:4
+Proof Steps:
+  ➔ 1. src/services/account.ts ➔ 'fetchAccount' contract widened to return null/undefined.
+  ➔ 2. src/routes/account.ts:3 ➔ Invokes 'fetchAccount()' expecting a valid non-null object.
+  ➔ 3. src/routes/account.ts:4 ➔ Direct unguarded access on nullable result: .balance
+Auto-Fix Advice: Add optional chaining 'fetchAccount()?.balance' or a null guard check in src/routes/account.ts:3`,
+          bulletPoints: [
+            'Zero false alarms: omits warnings if the caller uses ?. or if (!obj) guards',
+            'Identifies exact source line and downstream crash site file:line',
+            'Outputs immediate copy-paste auto-fix advice',
+          ],
+          prevDocId: 'four-genius-pillars',
+          nextDocId: 'fingerprint-matrix',
+        },
+      },
+      {
+        id: 'fingerprint-matrix',
+        folderId: 'advanced-intelligence',
+        folderTitle: 'Behavioral Intelligence Architecture',
+        fileName: 'fingerprint-matrix.md',
+        title: '11-Dimensional Behavioral Fingerprint',
+        description: 'Multi-vector behavioral matrix scoring contract, auth, nullability, DB, event, and error shifts.',
+        readingTime: '2 min read',
+        badge: '11-D Matrix',
+        content: {
+          overview:
+            'Unlike simplistic linters, Change Firewall projects every code change into an 11-dimensional vector space: API Contract, Authorization, Data Shape, Nullability Widening, Validation, Dependency, Database, Event Flow, Error Semantics, Performance, and Test Coverage.',
+          table: {
+            headers: ['Vector Dimension', 'Trigger Condition', 'Risk Implication'],
+            rows: [
+              ['API CONTRACT', 'Route return expression or parameter shifts', 'Client SDK and mobile app payload parsing failure'],
+              ['AUTHORIZATION', 'Auth guard conditions or session checks altered', 'Privilege escalation or broken access control'],
+              ['NULLABILITY', 'Return type widened with | null or | undefined', 'Unhandled TypeError runtime exceptions in callers'],
+              ['DATABASE', 'ORM model queries or schema migrations modified', 'Query performance degradation or missing columns'],
+              ['EVENT FLOW', 'EventEmitter hooks, publishers, or listeners altered', 'Silent background job failures or unhandled events'],
+            ],
+          },
+          prevDocId: 'symbolic-crash-proof',
+          nextDocId: 'behavioral-memory-store',
+        },
+      },
+      {
+        id: 'behavioral-memory-store',
+        folderId: 'advanced-intelligence',
+        folderTitle: 'Behavioral Intelligence Architecture',
+        fileName: 'behavioral-memory-store.md',
+        title: 'The Firewall Memory Store (.firewall/mem)',
+        description: 'Persistent invariant engine that remembers function contracts, churn, and historical precedents.',
+        readingTime: '2 min read',
+        badge: 'Temporal Memory',
+        content: {
+          overview:
+            'Change Firewall stores an ultra-lightweight, zero-config local snapshot directory in .firewall/memory/. It maintains contract invariant history across commits, measuring temporal stability. If a symbol guaranteed for 140+ commits is suddenly widened, it alerts developers and AI agents.',
+          codeLanguage: 'bash',
+          codeExample: `# Check status of persistent memory invariants
+npx change-firewall memory status
+
+# Record verified baseline contract snapshot at HEAD
+npx change-firewall memory record`,
+          bulletPoints: [
+            'Contract Invariant History: Remembers guaranteed return shapes over months of commits',
+            'Incident & Flaky Regression Memory: Applies stricter safety gates on historically high-churn files',
+            'Approval Precedents: Remembers approved intentional breaking changes so engineers are never nagged twice',
+          ],
+          prevDocId: 'fingerprint-matrix',
+          nextDocId: 'agent-intent-guard',
+        },
+      },
+      {
+        id: 'agent-intent-guard',
+        folderId: 'advanced-intelligence',
+        folderTitle: 'Behavioral Intelligence Architecture',
+        fileName: 'agent-intent-guard.md',
+        title: '"AI Agent Intent vs Reality" Guard',
+        description: 'Compares Natural Language intent against actual AST mutations to catch stealth changes.',
+        readingTime: '2 min read',
+        badge: 'Agent Safety',
+        content: {
+          overview:
+            'AI coding assistants are famous for hallucinatory collateral damage—claiming a simple style fix while accidentally deleting an authorization guard. The change-firewall audit-agent command compares prompt intent against AST deltas and computes an Intent Drift Score (0-100%).',
+          codeLanguage: 'bash',
+          codeExample: `# Audit stated intent against current uncommitted diffs
+npx change-firewall audit-agent -i "Fix button padding in checkout UI"
+
+# Output JSON report for automated agent loops
+npx change-firewall audit-agent -i "Refactor payment service" --json`,
+          bulletPoints: [
+            'ALIGNED (0% Drift): Code mutations strictly match declared intent',
+            'MODERATE_DRIFT (1-49% Drift): Minor auxiliary adjustments detected',
+            'STEALTH_MUTATION (≥50% Drift): Unannounced security, auth, or database alterations (blocks merge)',
+          ],
+          prevDocId: 'behavioral-memory-store',
+          nextDocId: 'real-world-scenarios',
+        },
+      },
+      {
+        id: 'real-world-scenarios',
+        folderId: 'advanced-intelligence',
+        folderTitle: 'Behavioral Intelligence Architecture',
+        fileName: 'real-world-scenarios.md',
+        title: 'Real-World AI Coding Scenarios',
+        description: 'Real-world failure modes caught by Change Firewall in production teams.',
+        readingTime: '3 min read',
+        badge: 'Battle Tested',
+        content: {
+          overview:
+            'Change Firewall was built to protect teams from the three most common catastrophic failure modes introduced by AI coding assistants.',
+          bulletPoints: [
+            'Scenario 1 (Silent Object Wrapper Breakage): AI refactors an API endpoint from "return user;" to "return { user };". The unit test passes because "res.status(200)" is returned, but every frontend consumer crashes with TypeError: Cannot read properties of undefined.',
+            'Scenario 2 (Stealth Mutation): Developer prompts AI: "Adjust navbar spacing". The AI modifies CSS but also accidentally deletes a role check in auth.ts. Change Firewall flags STEALTH_MUTATION with 80% drift.',
+            'Scenario 3 (Nullability Widening): AI changes a helper from returning string to string | null. Downstream callers continue executing without null guards. Change Firewall provides the Symbolic Crash Proof pointing directly to the crash line.',
+          ],
+          prevDocId: 'agent-intent-guard',
         },
       },
     ],

@@ -11,18 +11,24 @@ Change Firewall is a local-first, zero-AI-API developer tool and CLI for JavaScr
 2. [Installation Options](#2-installation-options)
 3. [Complete CLI Command Reference](#3-complete-cli-command-reference)
    - [`change-firewall analyze` (Default)](#a-change-firewall-analyze)
-   - [`change-firewall preflight` (Merge-Readiness Gate)](#b-change-firewall-preflight)
-   - [`change-firewall watch` (Live AI Monitoring)](#c-change-firewall-watch)
-   - [`change-firewall impact <file>` (Blast Radius Inspector)](#d-change-firewall-impact-file)
-   - [`change-firewall why <file>` (Architectural Role & History)](#e-change-firewall-why-file)
-   - [`change-firewall open` (Dashboard Server)](#f-change-firewall-open)
-   - [`change-firewall demo` (Golden Moment Simulation)](#g-change-firewall-demo)
-   - [`change-firewall mcp` (Model Context Protocol Server)](#h-change-firewall-mcp)
+   - [`change-firewall interactive` / `inspect` (Terminal UI)](#b-change-firewall-interactive--inspect)
+   - [`change-firewall preflight` / `gate` (Merge-Readiness Gate)](#c-change-firewall-preflight--gate)
+   - [`change-firewall graph <file>` (Dependency & Caller Tree)](#d-change-firewall-graph-file)
+   - [`change-firewall memory` (Architectural Invariant Baselines)](#e-change-firewall-memory)
+   - [`change-firewall audit-agent` (AI Agent Intent vs Reality)](#f-change-firewall-audit-agent)
+   - [`change-firewall watch` (Live AI Monitoring)](#g-change-firewall-watch)
+   - [`change-firewall impact <file>` (Blast Radius Inspector)](#h-change-firewall-impact-file)
+   - [`change-firewall why <file>` (Architectural Role & History)](#i-change-firewall-why-file)
+   - [`change-firewall open` (Dashboard Server)](#j-change-firewall-open)
+   - [`change-firewall demo` (Simulation Sandbox)](#k-change-firewall-demo)
+   - [`change-firewall mcp` (Model Context Protocol Server)](#l-change-firewall-mcp)
 4. [Programmatic Node.js / TypeScript API](#4-programmatic-nodejs--typescript-api)
 5. [CI/CD & GitHub Actions Integration](#5-cicd--github-actions-integration)
 6. [Git Pre-commit Hook (Husky)](#6-git-pre-commit-hook-husky)
 7. [AI Coding Agent Self-Correction Loop & MCP](#7-ai-coding-agent-self-correction-loop--mcp)
 8. [Real-World Testing Scenarios](#8-real-world-testing-scenarios)
+9. [Symbolic Runtime Crash Proof Engine](#9-symbolic-runtime-crash-proof-engine)
+10. [11-Dimensional Behavioral Fingerprint Matrix](#10-11-dimensional-behavioral-fingerprint-matrix)
 
 ---
 
@@ -111,7 +117,25 @@ npx change-firewall --open -p 5000
 
 ---
 
-### B. `change-firewall preflight`
+### B. `change-firewall interactive` / `inspect`
+Launches an interactive, keyboard-navigated terminal inspector for reviewing behavioral findings and blast radiuses without opening a browser.
+
+* **Navigation**: `↑` / `↓` or `j` / `k` to browse findings.
+* **Inspect Details**: Press `Enter` on any finding to open evidence, recommendations, and blast radius.
+* **Sort by Risk**: Press `s` to toggle between severity sorting and file path sorting.
+* **Quit**: Press `q` or `Escape` to exit.
+
+```bash
+# Launch interactive terminal inspector
+npx change-firewall interactive
+
+# Alias
+npx change-firewall inspect
+```
+
+---
+
+### C. `change-firewall preflight` / `gate`
 Evaluates whether current code changes are safe to merge. Enforces strict exit codes for CI/CD gates.
 
 * **Exit Code `0`**: Approved / Safe to merge.
@@ -120,6 +144,9 @@ Evaluates whether current code changes are safe to merge. Enforces strict exit c
 ```bash
 # Standard preflight gate (fails if risk > 60 or high-risk findings exist)
 npx change-firewall preflight
+
+# Alias
+npx change-firewall gate
 
 # Set a custom risk score threshold (0-100)
 npx change-firewall preflight --max-risk 75
@@ -145,7 +172,63 @@ npx change-firewall preflight --json
 
 ---
 
-### C. `change-firewall watch`
+### D. `change-firewall graph <file>`
+Renders a Unicode ASCII call and dependency tree for a specific file. Visualizes both incoming callers (who consumes this file) and outgoing dependencies (what this file imports).
+
+```bash
+# Render call & dependency graph
+npx change-firewall graph src/routes/user.ts
+```
+
+#### Example Output:
+```text
+┌── [DEPENDENCY GRAPH] ➔ src/routes/user.ts
+│
+├── ⬅️  CALLERS (Incoming dependents)
+│   ├── src/server.ts
+│   └── test/user-e2e.test.ts
+│
+└── ➡️  DEPENDENCIES (Outgoing imports)
+    ├── src/services/account.ts
+    └── src/middlewares/auth.ts
+```
+
+---
+
+### E. `change-firewall memory`
+Maintains an invariant memory baseline across Git commits. Detects if an AI coding assistant breaks a historically stable contract (e.g., modifying a function signature unchanged across 50+ commits).
+
+```bash
+# View current persistent invariant memory status
+npx change-firewall memory status
+
+# Record verified architectural baseline snapshot at HEAD
+npx change-firewall memory record
+
+# Reset persistent memory
+npx change-firewall memory reset
+```
+
+---
+
+### F. `change-firewall audit-agent`
+Audits AI coding assistants by comparing their stated task intent prompt against actual AST code modifications to catch **stealth mutations**.
+
+* **`ALIGNED` (0% Drift)**: Mutations precisely match declared prompt.
+* **`MODERATE_DRIFT` (1–49% Drift)**: Minor ancillary changes detected.
+* **`STEALTH_MUTATION` (≥50% Drift)**: Agent made unannounced contract or security changes. Exits with code `1`.
+
+```bash
+# Audit stated prompt against current uncommitted diffs
+npx change-firewall audit-agent -i "Fix button padding and header colors"
+
+# Machine-readable output for automated agent self-correction
+npx change-firewall audit-agent -i "Refactor payment service" --json
+```
+
+---
+
+### G. `change-firewall watch`
 Runs in the background while you or an AI agent (Cursor, Claude Code, Copilot, Antigravity) edit code. 
 * Automatically debounces rapid file modifications (350ms).
 * Re-analyzes deltas (`Risk changed: 42 → 68`).
@@ -161,7 +244,7 @@ npx change-firewall watch -p 8080 --no-open
 
 ---
 
-### D. `change-firewall impact <file>`
+### H. `change-firewall impact <file>`
 Performs deep blast-radius tracing for a specific file across the codebase.
 
 ```bash
@@ -176,7 +259,7 @@ npx change-firewall impact src/middleware/auth.ts
 
 ---
 
-### E. `change-firewall why <file>`
+### I. `change-firewall why <file>`
 Explains why a file matters to the system architecture and its historical stability.
 
 ```bash
@@ -190,7 +273,7 @@ npx change-firewall why src/services/userService.ts
 
 ---
 
-### F. `change-firewall open`
+### J. `change-firewall open`
 Spins up the embedded local dashboard at `http://localhost:4783` loaded with the current working tree analysis.
 
 ```bash
@@ -199,7 +282,7 @@ npx change-firewall open
 
 ---
 
-### G. `change-firewall demo`
+### K. `change-firewall demo`
 Simulates the **Section 7 Golden Moment** scenario without needing a dirty Git tree.
 
 ```bash
@@ -212,7 +295,7 @@ npx change-firewall demo --no-open
 
 ---
 
-### H. `change-firewall mcp`
+### L. `change-firewall mcp`
 Launches the native **Model Context Protocol (MCP)** server over standard input/output (`stdio`).
 
 ```bash
@@ -223,8 +306,11 @@ Used by MCP hosts (**Claude Desktop**, **Google Antigravity**, **Cursor**, **Win
 
 #### MCP Tools Provided:
 * `analyze_changes`: Full Git working tree or staged diff behavioral analysis.
-* `evaluate_preflight`: Deterministic merge-readiness evaluation.
+* `preflight`: Deterministic merge-readiness evaluation.
 * `compute_blast_radius`: Downstream dependent and route mapping for a specific file.
+* `explain_file_impact`: Architectural role, historical git churn, and callers.
+* `get_behavior_graph`: Holistic call and dependency graph for any file.
+* `audit_agent_intent`: Audits stated agent prompt against actual uncommitted diffs.
 * `explain_file_impact`: Architectural role, historical git churn, and callers.
 
 #### MCP Prompts Provided:
@@ -508,6 +594,57 @@ Try these in your project to see Change Firewall in action:
 | **Nullability Widening** | `getUser(id): User` ➔ `getUser(id): User \| null` | Flags **FUNCTION_CONTRACT** widening, warns that callers lack null guards. |
 | **Validation Drift** | Added `zod.parse(req.body)` | Flags **VALIDATION** schema check, warns that previously accepted client payloads might now fail. |
 | **Deleted Export** | Removed `export function legacyAuth()` | Flags **CRITICAL** deleted export, lists all files importing that symbol. |
+
+---
+
+## 9. Symbolic Runtime Crash Proof Engine
+
+Unlike static linters or probabilistic LLMs, Change Firewall's symbolic engine mathematically proves runtime crashes before code is committed.
+
+### How It Works:
+1. **Source Widening Detection**: Detects when a function, API endpoint, or database query changes its return type from a non-nullable object to `T | null` or `T | undefined`.
+2. **Backward-Slice Data Flow Walk**: Symbolically traverses the AST of all downstream consumers up to 3 hops deep.
+3. **Guard Evaluation**: Checks whether each consumer uses optional chaining (`?.`), an `if (!res)` guard, or ternary checks.
+4. **Crash Proof Chain**: If an unguarded property dereference or method invocation is detected, Change Firewall synthesizes the deterministic proof chain with exact file and line numbers.
+
+#### Example Crash Proof:
+```text
+══════════════════════════════════════════════════════════════════
+  SYMBOLIC RUNTIME CRASH PROOF (Zero Guesswork)
+══════════════════════════════════════════════════════════════════
+  Proven Exception: TypeError: Cannot read properties of null (reading 'balance')
+  Origin:           src/services/account.ts:12 (fetchAccount)
+  Crash Site:       src/routes/account.ts:4
+
+  Proof Chain:
+   1. src/services/account.ts:12  export const fetchAccount = () => null
+   2. src/routes/account.ts:3     const account = fetchAccount();
+   3. src/routes/account.ts:4     account.balance  ➔ 💥 Unguarded access on null
+
+  Remediation:
+   Add optional chaining 'account?.balance' or a guard 'if (!account) return;' in src/routes/account.ts:3
+══════════════════════════════════════════════════════════════════
+```
+
+---
+
+## 10. 11-Dimensional Behavioral Fingerprint Matrix
+
+Every file change is projected across an 11-dimensional behavioral matrix to compute a deterministic confidence score (0–100%):
+
+| Vector Dimension | Evaluation Criterion | Real-World Risk Mitigated |
+| :--- | :--- | :--- |
+| **API Contract** | Exported function signatures, route payloads, return shapes | Breaking mobile apps, frontend clients, and SDKs |
+| **Authorization** | Auth guards, session checks, role requirements | Unauthenticated route exposure & privilege escalation |
+| **Nullability** | Return type widening (`T \| null`, `T \| undefined`) | Production `TypeError` and unhandled exceptions |
+| **Database & ORM** | Schema models, query filters, migration files | Missing columns, unindexed queries, data loss |
+| **Event Flow** | EventEmitter, message brokers, pub/sub hooks | Dangling listeners, dropped jobs, silent message loss |
+| **Data Validation** | Zod, Yup, Joi schema mutations | Rejecting valid client payloads or accepting malformed data |
+| **State & Cache** | Redis keys, global stores, cache TTLs | Stale cache read errors or invalidated sessions |
+| **Network & I/O** | HTTP clients, timeouts, fetch retry logic | Hanging connections, connection pool exhaustion |
+| **Concurrency** | `async/await`, `Promise.all`, shared mutations | Race conditions, deadlock, unhandled promise rejections |
+| **Resource Lifecycle**| Streams, file descriptors, child processes | Memory leaks and OS file descriptor exhaustion |
+| **Secret Exposure** | Token formats, entropy analysis, `.env` references | Accidental commit of API keys or private credentials |
 
 ---
 

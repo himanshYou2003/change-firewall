@@ -7,7 +7,11 @@ export type FindingCategory =
   | 'ERROR_HANDLING'
   | 'VALIDATION'
   | 'DEPENDENCY'
-  | 'ROUTE';
+  | 'ROUTE'
+  | 'DATABASE'
+  | 'EVENT_FLOW'
+  | 'NULLABILITY'
+  | 'PERFORMANCE';
 
 export type FileChangeType = 'modified' | 'added' | 'deleted' | 'renamed' | 'untracked';
 
@@ -42,6 +46,10 @@ export interface ASTDiff {
   errorDetails?: string;
   validationChanged: boolean;
   validationDetails?: string;
+  databaseChanged?: boolean;
+  databaseDetails?: string;
+  eventFlowChanged?: boolean;
+  eventDetails?: string;
   callsAdded: string[];
   callsRemoved: string[];
   details: string[];
@@ -102,6 +110,149 @@ export interface GitTimelineItem {
   message: string;
 }
 
+// ==========================================
+// 1. BEHAVIOR GRAPH ARCHITECTURE
+// ==========================================
+export type BehaviorRole =
+  | 'API_ROUTE'
+  | 'API_CONSUMER'
+  | 'DATABASE_MODEL'
+  | 'TEST_SUITE'
+  | 'EVENT_PRODUCER'
+  | 'EVENT_CONSUMER'
+  | 'AUTH_BOUNDARY'
+  | 'INTERNAL_LOGIC';
+
+export interface BehaviorNode {
+  id: string;
+  filePath: string;
+  symbolName?: string;
+  role: BehaviorRole;
+  description: string;
+  metadata?: Record<string, any>;
+}
+
+export interface BehaviorEdge {
+  source: string;
+  target: string;
+  relationship: 'calls' | 'imports' | 'emits' | 'handles' | 'queries' | 'guards' | 'tests';
+  details?: string;
+}
+
+export interface CriticalPath {
+  id: string;
+  name: string;
+  description: string;
+  steps: string[];
+  riskLevel: SeverityLevel;
+}
+
+export interface BehaviorGraph {
+  nodes: Record<string, BehaviorNode>;
+  edges: BehaviorEdge[];
+  criticalPaths: CriticalPath[];
+  roleCounts: Record<BehaviorRole, number>;
+}
+
+// ==========================================
+// 2. 11-DIMENSIONAL BEHAVIORAL FINGERPRINT
+// ==========================================
+export interface FingerprintVector {
+  score: number; // 0 - 100
+  active: boolean;
+  description: string;
+  evidence: string[];
+}
+
+export interface BehavioralFingerprint {
+  vectors: {
+    apiContract: FingerprintVector;
+    authorization: FingerprintVector;
+    dataShape: FingerprintVector;
+    nullability: FingerprintVector;
+    validation: FingerprintVector;
+    dependency: FingerprintVector;
+    database: FingerprintVector;
+    eventFlow: FingerprintVector;
+    errorSemantics: FingerprintVector;
+    performance: FingerprintVector;
+    testCoverage: FingerprintVector;
+  };
+  primaryMutation: string;
+  confidenceScore: number;
+}
+
+// ==========================================
+// 3. SYMBOLIC RUNTIME CRASH TRACE
+// ==========================================
+export type FailureTraceType =
+  | 'UNHANDLED_NULL'
+  | 'MISSING_PROPERTY'
+  | 'TYPE_MISMATCH'
+  | 'UNCAUGHT_EXCEPTION'
+  | 'AUTH_BYPASS';
+
+export interface SymbolicFailureTrace {
+  id: string;
+  sourceFile: string;
+  sourceLine?: number;
+  sourceSymbol?: string;
+  consumerFile: string;
+  consumerLine?: number;
+  consumerSymbol?: string;
+  failureType: FailureTraceType;
+  simulatedException: string;
+  proofSteps: string[];
+  preventativeFix?: string;
+}
+
+// ==========================================
+// 4. PERSISTENT FIREWALL MEMORY STORE
+// ==========================================
+export interface BrokenInvariant {
+  symbolOrFile: string;
+  rule: string;
+  historicalDuration: string;
+  mutation: string;
+}
+
+export interface FirewallMemory {
+  invariantsCount: number;
+  baselineCommit?: string;
+  historicalStability: 'HIGH' | 'MEDIUM' | 'LOW';
+  brokenInvariants: BrokenInvariant[];
+  lastApprovalDate?: string;
+  rawInvariants?: Record<string, any>;
+}
+
+// ==========================================
+// 5. AI AGENT INTENT VS REALITY VERIFIER
+// ==========================================
+export type AgentVerdict = 'ALIGNED' | 'MINOR_DRIFT' | 'HIGH_DRIFT' | 'STEALTH_MUTATION';
+
+export interface AgentIntentAudit {
+  intentText: string;
+  driftScore: number; // 0 - 100
+  statedChanges: string[];
+  unannouncedMutations: string[];
+  verdict: AgentVerdict;
+  summary: string;
+}
+
+// ==========================================
+// 6. OPERATIONAL INTELLIGENCE DIAGNOSIS
+// ==========================================
+export interface BehavioralMutationReport {
+  mutation: string;
+  confidence: number;
+  consumersAffected: number;
+  criticalPathsCount: number;
+  historicalStability: 'HIGH' | 'MEDIUM' | 'LOW';
+  missingRegressionCoverage: number;
+  recommendedAction: string;
+}
+
+// Master Analysis Report
 export interface AnalysisReport {
   timestamp: string;
   projectPath: string;
@@ -118,7 +269,16 @@ export interface AnalysisReport {
   blastRadiusMap: Record<string, BlastRadius>;
   changedFiles: FileDiff[];
   recommendations: string[];
+  // Genius Core Extensions
+  behaviorGraph?: BehaviorGraph;
+  fingerprint?: BehavioralFingerprint;
+  symbolicTraces?: SymbolicFailureTrace[];
+  memoryContext?: FirewallMemory;
+  agentAudit?: AgentIntentAudit;
+  mutationDiagnosis?: BehavioralMutationReport;
 }
+
+export type ChangeReport = AnalysisReport;
 
 export interface AnalyzeOptions {
   cwd?: string;
@@ -127,4 +287,6 @@ export interface AnalyzeOptions {
   json?: boolean;
   open?: boolean;
   port?: number;
+  intent?: string;
+  recordMemory?: boolean;
 }

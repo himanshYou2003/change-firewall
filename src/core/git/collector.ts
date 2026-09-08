@@ -7,7 +7,7 @@ import type { FileDiff, FileChangeType } from '../../types/index.js';
 const execFileAsync = promisify(execFile);
 
 async function runGit(args: string[], cwd: string): Promise<string> {
-  const { stdout } = await execFileAsync('git', args, {
+  const { stdout } = await execFileAsync('git', ['-c', 'core.quotepath=false', ...args], {
     cwd,
     maxBuffer: 20 * 1024 * 1024, // 20MB
   });
@@ -111,10 +111,14 @@ export async function collectFileDiffs(options: CollectDiffOptions): Promise<Fil
 
   // Also collect untracked files if not checking staged only
   if (!staged) {
-    const untrackedOut = await runGit(['status', '--porcelain'], cwd);
+    const untrackedOut = await runGit(['status', '--porcelain', '-uall'], cwd);
     for (const line of untrackedOut.split('\n')) {
       if (line.startsWith('?? ')) {
-        const filePath = line.substring(3).trim().replace(/\\/g, '/');
+        let filePath = line.substring(3).trim();
+        if (filePath.startsWith('"') && filePath.endsWith('"')) {
+          filePath = filePath.slice(1, -1);
+        }
+        filePath = filePath.replace(/\\/g, '/');
         const fullPath = path.resolve(cwd, filePath);
         try {
           const content = await fs.readFile(fullPath, 'utf8');
@@ -127,7 +131,7 @@ export async function collectFileDiffs(options: CollectDiffOptions): Promise<Fil
             linesDeleted: 0,
           });
         } catch {
-          // Skip if unreadable (e.g. directory or binary)
+          // Skip if unreadable (e.g. binary or inaccessible)
         }
       }
     }
@@ -139,12 +143,21 @@ export async function collectFileDiffs(options: CollectDiffOptions): Promise<Fil
     if (!status) continue;
 
     const statusCode = status[0];
-    let filePath = parts[1]?.trim().replace(/\\/g, '/');
+    const cleanPath = (p?: string) => {
+      if (!p) return undefined;
+      let cleaned = p.trim();
+      if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
+        cleaned = cleaned.slice(1, -1);
+      }
+      return cleaned.replace(/\\/g, '/');
+    };
+
+    let filePath = cleanPath(parts[1]);
     let oldPath: string | undefined;
 
     if (statusCode === 'R') {
-      oldPath = parts[1]?.trim().replace(/\\/g, '/');
-      filePath = parts[2]?.trim().replace(/\\/g, '/');
+      oldPath = cleanPath(parts[1]);
+      filePath = cleanPath(parts[2]);
     }
 
     if (!filePath) continue;

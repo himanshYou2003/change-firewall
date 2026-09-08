@@ -4,6 +4,8 @@ import type {
   AnalyzeOptions,
   BehavioralFinding,
   BlastRadius,
+  ASTDiff,
+  BehavioralMutationReport,
 } from './types/index.js';
 import {
   collectFileDiffs,
@@ -30,8 +32,27 @@ import { startWatchMode, type WatchOptions, type WatchHandle } from './core/watc
 import { getFileHistory, type FileHistoryInfo } from './core/git/history.js';
 import { createMcpServer, startMcpServer, type McpServerOptions } from './mcp/index.js';
 
+// Genius Core Extensions
+import {
+  buildBehaviorGraph,
+  classifyRole,
+  findCriticalPathsTouchingFile,
+  formatBehaviorGraphAscii,
+} from './core/graph/behavior-graph.js';
+import { computeBehavioralFingerprint } from './core/analyzer/fingerprint-engine.js';
+import {
+  loadFirewallMemory,
+  evaluateBrokenInvariants,
+  recordMemorySnapshot,
+  resetMemory,
+} from './core/memory/memory-engine.js';
+import { generateSymbolicCrashTraces } from './core/symbolic/trace-engine.js';
+import { auditAgentIntent } from './core/agent/intent-verifier.js';
+import { startInteractiveInspector } from './core/interactive/terminal-inspector.js';
+
 export * from './types/index.js';
 export {
+  startInteractiveInspector,
   collectFileDiffs,
   buildDependencyGraph,
   computeBlastRadius,
@@ -47,6 +68,18 @@ export {
   getFileHistory,
   createMcpServer,
   startMcpServer,
+  // Genius Core Exports
+  buildBehaviorGraph,
+  classifyRole,
+  findCriticalPathsTouchingFile,
+  formatBehaviorGraphAscii,
+  computeBehavioralFingerprint,
+  loadFirewallMemory,
+  evaluateBrokenInvariants,
+  recordMemorySnapshot,
+  resetMemory,
+  generateSymbolicCrashTraces,
+  auditAgentIntent,
   type PreflightOptions,
   type PreflightResult,
   type WatchOptions,
@@ -69,6 +102,7 @@ export async function analyzeChanges(options: AnalyzeOptions = {}): Promise<Anal
   });
 
   const graph = await buildDependencyGraph(cwd);
+  const behaviorGraph = await buildBehaviorGraph(cwd, graph);
 
   const isAnyTestChanged = changedFiles.some(
     (f) =>
@@ -79,6 +113,7 @@ export async function analyzeChanges(options: AnalyzeOptions = {}): Promise<Anal
 
   const findings: BehavioralFinding[] = [];
   const blastRadiusMap: Record<string, BlastRadius> = {};
+  const astDiffs: ASTDiff[] = [];
 
   let totalAdded = 0;
   let totalDeleted = 0;
@@ -99,6 +134,7 @@ export async function analyzeChanges(options: AnalyzeOptions = {}): Promise<Anal
         file.beforeContent,
         file.afterContent
       );
+      astDiffs.push(astDiff);
 
       const isRoute = graph.routeFiles.has(file.path);
       const isMiddleware = graph.middlewareFiles.has(file.path);
@@ -115,7 +151,41 @@ export async function analyzeChanges(options: AnalyzeOptions = {}): Promise<Anal
     }
   }
 
-  const risk = calculateRiskScore(findings, blastRadiusMap, isAnyTestChanged);
+  // 11-Dimensional Behavioral Fingerprint
+  const fingerprint = computeBehavioralFingerprint(astDiffs, blastRadiusMap, isAnyTestChanged);
+
+  // Persistent Firewall Memory & Invariants
+  const memoryContext = await loadFirewallMemory(cwd);
+  const brokenInvariants = evaluateBrokenInvariants(astDiffs, cwd, memoryContext.rawInvariants);
+  memoryContext.brokenInvariants = brokenInvariants;
+
+  // Symbolic Crash Traces
+  const symbolicTraces = await generateSymbolicCrashTraces(astDiffs, blastRadiusMap, cwd);
+
+  // Critical Paths across changed files
+  const touchingCriticalPaths = changedFiles.flatMap((f) =>
+    findCriticalPathsTouchingFile(f.path, behaviorGraph)
+  );
+  // Deduplicate
+  const uniqueCriticalPaths = Array.from(new Set(touchingCriticalPaths.map((p) => p.id)))
+    .map((id) => touchingCriticalPaths.find((p) => p.id === id)!);
+
+  // Risk Score (Enhanced with Critical Paths and Broken Invariants)
+  const risk = calculateRiskScore(findings, blastRadiusMap, isAnyTestChanged, {
+    criticalPathsCount: uniqueCriticalPaths.length,
+    brokenInvariantsCount: brokenInvariants.length,
+  });
+
+  // AI Agent Intent vs Reality Audit
+  let agentAudit = undefined;
+  if (options.intent) {
+    agentAudit = auditAgentIntent(options.intent, findings, astDiffs);
+  }
+
+  // Record snapshot if requested
+  if (options.recordMemory && baseCommit) {
+    await recordMemorySnapshot(cwd, baseCommit, astDiffs);
+  }
 
   const { detectSuspiciousChanges } = await import('./core/analyzer/suspicious-analyzer.js');
   const suspiciousChanges = detectSuspiciousChanges(findings, blastRadiusMap, changedFiles, isAnyTestChanged);
@@ -124,9 +194,52 @@ export async function analyzeChanges(options: AnalyzeOptions = {}): Promise<Anal
   const timeline = await getRecentTimeline(cwd);
 
   const recommendations = findings.map((f) => f.recommendation);
-  if (findings.length === 0) {
+  if (brokenInvariants.length > 0) {
+    recommendations.unshift(
+      `Broken contract invariant: restore baseline contract for ${brokenInvariants[0].symbolOrFile} or update callers.`
+    );
+  }
+  if (symbolicTraces.length > 0) {
+    recommendations.unshift(
+      `Runtime crash proven: ${symbolicTraces[0].simulatedException} in ${symbolicTraces[0].consumerFile}`
+    );
+  }
+  if (findings.length === 0 && brokenInvariants.length === 0) {
     recommendations.push('Working tree is clean or changes have no breaking behavioral impact.');
   }
+
+  // Calculate missing regression coverage count
+  let missingRegressionCoverage = 0;
+  for (const b of Object.values(blastRadiusMap)) {
+    if (b.affectedRoutes.length > 0 && !isAnyTestChanged) {
+      missingRegressionCoverage += b.affectedRoutes.length;
+    }
+  }
+
+  let totalConsumersCount = 0;
+  for (const b of Object.values(blastRadiusMap)) {
+    totalConsumersCount = Math.max(totalConsumersCount, b.totalConsumers);
+  }
+
+  // Recommended Action
+  let recommendedAction = 'SAFE TO MERGE: Changes are localized without downstream breaks.';
+  if (risk.level === 'CRITICAL' || brokenInvariants.length > 0 || symbolicTraces.length > 0) {
+    recommendedAction = 'REJECT: Block merge until consumer contracts and regression tests are updated.';
+  } else if (risk.level === 'HIGH') {
+    recommendedAction = 'MANUAL REVIEW: High risk boundary shift; audit caller compatibility and run integration tests.';
+  } else if (risk.level === 'MEDIUM') {
+    recommendedAction = 'PROCEED WITH CAUTION: Run downstream verification tests before staging deployment.';
+  }
+
+  const mutationDiagnosis: BehavioralMutationReport = {
+    mutation: fingerprint.primaryMutation,
+    confidence: fingerprint.confidenceScore,
+    consumersAffected: totalConsumersCount,
+    criticalPathsCount: uniqueCriticalPaths.length,
+    historicalStability: memoryContext.historicalStability,
+    missingRegressionCoverage,
+    recommendedAction,
+  };
 
   return {
     timestamp: new Date().toISOString(),
@@ -144,5 +257,12 @@ export async function analyzeChanges(options: AnalyzeOptions = {}): Promise<Anal
     blastRadiusMap,
     changedFiles,
     recommendations,
+    // Genius Core Additions
+    behaviorGraph,
+    fingerprint,
+    symbolicTraces,
+    memoryContext,
+    agentAudit,
+    mutationDiagnosis,
   };
 }
