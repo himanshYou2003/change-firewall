@@ -68,7 +68,17 @@ export function auditAgentIntent(
   const isSecurityClaimed = statedChanges.includes('AUTH_SECURITY');
   const isApiClaimed = statedChanges.includes('API_CONTRACT');
   const isDbClaimed = statedChanges.includes('DATABASE');
-  const isUiOnlyClaimed = statedChanges.includes('UI_STYLING') || statedChanges.includes('DOCUMENTATION');
+  const isUiClaimed = statedChanges.includes('UI_STYLING');
+  const isDocOnlyClaimed = statedChanges.length === 1 && statedChanges[0] === 'DOCUMENTATION';
+  const isUiOnlyClaimed = (isUiClaimed || statedChanges.includes('DOCUMENTATION')) && !isSecurityClaimed && !isApiClaimed && !isDbClaimed;
+
+  const isContractClaimed =
+    lowerIntent.includes('contract') ||
+    lowerIntent.includes('export') ||
+    lowerIntent.includes('signature') ||
+    lowerIntent.includes('interface') ||
+    lowerIntent.includes('type') ||
+    isApiClaimed;
 
   let stealthPenalty = 0;
 
@@ -81,9 +91,64 @@ export function auditAgentIntent(
       unannouncedMutations.push(`Unannounced API Contract Shift: ${finding.title} in ${finding.filePath}`);
       stealthPenalty += 30;
     }
-    if (finding.category === 'FUNCTION_CONTRACT' && finding.severity === 'CRITICAL') {
-      unannouncedMutations.push(`Unannounced Breaking Export Removal in ${finding.filePath}`);
-      stealthPenalty += 35;
+    if (finding.category === 'FUNCTION_CONTRACT') {
+      if ((finding.severity === 'CRITICAL' || finding.severity === 'HIGH') && !isContractClaimed) {
+        unannouncedMutations.push(`Unannounced Contract Shift: ${finding.title} in ${finding.filePath}`);
+        stealthPenalty += 35;
+      } else if (isUiOnlyClaimed) {
+        unannouncedMutations.push(`Unannounced Logic Extension: ${finding.title} in ${finding.filePath}`);
+        stealthPenalty += 20;
+      }
+    }
+  }
+
+  function isUiOrStyleFile(fp: string): boolean {
+    const norm = fp.replace(/\\/g, '/').toLowerCase();
+    return (
+      norm.endsWith('.css') ||
+      norm.endsWith('.scss') ||
+      norm.endsWith('.sass') ||
+      norm.endsWith('.less') ||
+      norm.endsWith('.svg') ||
+      norm.endsWith('.png') ||
+      norm.endsWith('.ico') ||
+      norm.includes('/styles/') ||
+      norm.includes('/theme/') ||
+      norm.includes('/components/') ||
+      norm.includes('/ui/') ||
+      norm.includes('/views/') ||
+      norm.includes('/pages/')
+    );
+  }
+
+  function isDocFile(fp: string): boolean {
+    const norm = fp.replace(/\\/g, '/').toLowerCase();
+    return (
+      norm.endsWith('.md') ||
+      norm.endsWith('.txt') ||
+      norm.includes('/docs/') ||
+      norm.endsWith('.rst')
+    );
+  }
+
+  // Audit file targets against claimed scope
+  if (isUiOnlyClaimed && diffs.length > 0) {
+    const nonUiDiffs = diffs.filter((d) => !isUiOrStyleFile(d.filePath));
+    if (nonUiDiffs.length > 0) {
+      unannouncedMutations.push(
+        `Unannounced Non-UI Modifications: ${nonUiDiffs.length} core/backend file(s) modified (${nonUiDiffs.slice(0, 3).map((d) => d.filePath).join(', ')}${nonUiDiffs.length > 3 ? '...' : ''})`
+      );
+      stealthPenalty += Math.min(50, nonUiDiffs.length * 15);
+    }
+  }
+
+  if (isDocOnlyClaimed && diffs.length > 0) {
+    const nonDocDiffs = diffs.filter((d) => !isDocFile(d.filePath));
+    if (nonDocDiffs.length > 0) {
+      unannouncedMutations.push(
+        `Unannounced Code Modifications in Docs-Only Task: ${nonDocDiffs.length} file(s) modified (${nonDocDiffs.slice(0, 3).map((d) => d.filePath).join(', ')}${nonDocDiffs.length > 3 ? '...' : ''})`
+      );
+      stealthPenalty += Math.min(50, nonDocDiffs.length * 20);
     }
   }
 

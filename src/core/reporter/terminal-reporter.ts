@@ -127,11 +127,30 @@ export function renderTerminalReport(report: AnalysisReport, dashboardUrl?: stri
 
   // Visual Behavior Graph Tree (if changes touch boundaries)
   if (report.behaviorGraph && report.changedFiles.length > 0) {
-    const primaryFile = report.changedFiles[0]?.path;
-    if (primaryFile && report.behaviorGraph.nodes[primaryFile]) {
+    const rankedFiles = report.changedFiles.map((file) => {
+      const norm = file.path.replace(/\\/g, '/');
+      const blast = report.blastRadiusMap[file.path] || report.blastRadiusMap[norm];
+      const node = report.behaviorGraph?.nodes[norm] || report.behaviorGraph?.nodes[file.path];
+      const edges = (report.behaviorGraph?.edges || []).filter(
+        (e) => e.source === norm || e.target === norm || e.source === file.path || e.target === file.path
+      );
+      const critical = (report.behaviorGraph?.criticalPaths || []).filter((cp) =>
+        cp.steps.some((s) => s === norm || s === file.path)
+      );
+
+      let score = (blast?.totalConsumers || 0) * 10 + edges.length * 5 + critical.length * 20;
+      if (node && node.role !== 'INTERNAL_LOGIC') score += 15;
+
+      return { file: file.path, blast, score };
+    });
+
+    rankedFiles.sort((a, b) => b.score - a.score);
+    const target = rankedFiles[0];
+
+    if (target) {
       console.log(separator);
       console.log(pc.bold('  BEHAVIOR GRAPH ARCHITECTURE:'));
-      const asciiTree = formatBehaviorGraphAscii(primaryFile, report.behaviorGraph);
+      const asciiTree = formatBehaviorGraphAscii(target.file, report.behaviorGraph, target.blast);
       console.log('  ' + asciiTree.split('\n').join('\n  '));
     }
   }

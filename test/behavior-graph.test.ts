@@ -83,4 +83,44 @@ describe('Semantic Behavior Graph Engine', () => {
     expect(ascii).toContain('API ROUTE');
     expect(ascii).toContain('CRITICAL EXECUTION PATHS');
   });
+
+  it('classifies service files and cleanly renders standalone components without dangling lines', () => {
+    expect(classifyRole('src/services/weightage.service.js')).toBe('SERVICE');
+    expect(classifyRole('src/services/payment.service.ts')).toBe('SERVICE');
+
+    const emptyGraph = {
+      nodes: {
+        'src/services/weightage.service.js': {
+          id: 'src/services/weightage.service.js',
+          filePath: 'src/services/weightage.service.js',
+          role: 'SERVICE' as const,
+          description: 'Service component',
+        },
+      },
+      edges: [],
+      criticalPaths: [],
+      roleCounts: {
+        API_ROUTE: 0,
+        API_CONSUMER: 0,
+        SERVICE: 1,
+        DATABASE_MODEL: 0,
+        TEST_SUITE: 0,
+        EVENT_PRODUCER: 0,
+        EVENT_CONSUMER: 0,
+        AUTH_BOUNDARY: 0,
+        INTERNAL_LOGIC: 0,
+      },
+    };
+
+    const rendered = formatBehaviorGraphAscii('src/services/weightage.service.js', emptyGraph, {
+      totalConsumers: 0,
+      level: 'LOW',
+    });
+
+    expect(rendered).toContain('ROLE:   SERVICE');
+    expect(rendered).toContain('ARCHITECTURAL SCOPE');
+    expect(rendered).toContain('Standalone / Leaf component');
+    // Ensure no hanging pipe character on a line by itself
+    expect(rendered.includes('\n                               │\n')).toBe(false);
+  });
 });

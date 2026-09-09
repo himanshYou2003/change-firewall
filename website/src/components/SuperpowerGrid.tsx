@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Network, ShieldCheck, Bug, Fingerprint, Bot, Database, ArrowUpRight } from 'lucide-react';
+import { Network, ShieldCheck, Bug, Fingerprint, Bot, Database } from 'lucide-react';
 
 const SUPERPOWERS = [
   {
@@ -90,9 +90,8 @@ export default function SuperpowerGrid() {
                     </div>
                   </div>
 
-                  <h3 className="text-base sm:text-lg font-bold text-[var(--text-primary)] mt-5 flex items-center justify-between">
-                    <span>{sp.title}</span>
-                    <ArrowUpRight className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--text-primary)] transition-colors" />
+                  <h3 className="text-base sm:text-lg font-bold text-[var(--text-primary)] mt-5">
+                    {sp.title}
                   </h3>
 
                   <p className="mt-2.5 text-[var(--text-secondary)] text-xs sm:text-sm leading-relaxed">
@@ -102,7 +101,7 @@ export default function SuperpowerGrid() {
 
                 <div className="mt-5 pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between text-[11px] font-mono text-[var(--text-muted)]">
                   <span>{sp.pillar}</span>
-                  <span className="text-brand-cyan group-hover:translate-x-0.5 transition-transform">Learn more →</span>
+                  <span className="text-emerald-500/90 dark:text-emerald-400 font-medium">• Active Protection</span>
                 </div>
               </div>
             );

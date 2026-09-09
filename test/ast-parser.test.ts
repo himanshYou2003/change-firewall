@@ -152,4 +152,27 @@ describe('AST Parser & Semantic Diff', () => {
     expect(symDiff?.changeType).toBe('modified');
     expect(symDiff?.afterSignature).toContain('couponCode?: string');
   });
+
+  it('does not treat React JSX markup changes as API return shape changes', () => {
+    const beforeJsx = `
+      export function MyPage() {
+        return (
+          <section className="old-style">
+            <h1>Title</h1>
+          </section>
+        );
+      }
+    `;
+    const afterJsx = `
+      export function MyPage() {
+        return (
+          <section className="new-style">
+            <h2>Updated Title</h2>
+          </section>
+        );
+      }
+    `;
+    const diff = analyzeASTDiff('src/pages/MyPage.jsx', beforeJsx, afterJsx);
+    expect(diff.returnShapeChanged).toBe(false);
+  });
 });

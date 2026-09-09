@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import pc from 'picocolors';
 import path from 'node:path';
+import fs from 'node:fs';
 import {
   analyzeChanges,
   buildDependencyGraph,
@@ -16,7 +17,7 @@ const program = new Command();
 program
   .name('change-firewall')
   .description('Converts code diffs into behavior-aware change reports and deterministic risk scoring')
-  .version('0.2.1');
+  .version('0.2.2');
 
 // Default / analyze command
 program
@@ -24,6 +25,7 @@ program
   .description('Analyze the current Git working tree for behavioral changes and risk')
   .option('--json', 'Output results in JSON format for CI and AI agents')
   .option('--interactive', 'Launch keyboard-driven interactive terminal inspector (Tab: call stacks, p: crash proof, f: fingerprint, a: auto-fix)')
+  .option('--inspect', 'Alias for --interactive')
   .option('--open', 'Start and open local web dashboard at localhost:4783')
   .option('-p, --port <number>', 'Port for the local dashboard', '4783')
   .option('-b, --base <ref>', 'Base git commit or branch to compare against (default: HEAD)')
@@ -46,7 +48,7 @@ program
         return;
       }
 
-      if (options.interactive) {
+      if (options.interactive || options.inspect) {
         await startInteractiveInspector(report);
         return;
       }
@@ -96,13 +98,14 @@ program
   .alias('gate')
   .description('Determine whether the current changes are safe to merge (exit 0 for safe, exit 1 for blocked)')
   .option('-m, --max-risk <number>', 'Maximum acceptable risk score before blocking merge', '60')
+  .option('-t, --threshold <number>', 'Alias for --max-risk (threshold score)')
   .option('--no-fail-on-high', 'Do not automatically fail on high severity behavioral findings')
   .option('--json', 'Output preflight evaluation result as JSON')
   .option('-b, --base <ref>', 'Base git commit or branch to compare against (default: HEAD)')
   .option('-s, --staged', 'Only evaluate staged changes')
   .action(async (options) => {
     try {
-      const maxRisk = parseInt(options.maxRisk, 10) || 60;
+      const maxRisk = parseInt(options.threshold || options.maxRisk, 10) || 60;
       const failOnHigh = options.failOnHigh !== false;
 
       const report = await analyzeChanges({
@@ -156,8 +159,15 @@ program
   .action(async (fileTarget: string) => {
     try {
       const cwd = process.cwd();
+      const resolved = path.resolve(cwd, fileTarget);
+      const normalized = path.relative(cwd, resolved).replace(/\\/g, '/');
+      const fileExists = fs.existsSync(resolved) || fs.existsSync(resolved + '.ts') || fs.existsSync(resolved + '.js');
+
       const graph = await buildDependencyGraph(cwd);
-      const normalized = path.relative(cwd, path.resolve(cwd, fileTarget)).replace(/\\/g, '/');
+
+      if (!fileExists && !graph.allFiles.includes(normalized)) {
+        console.log(pc.yellow(`\n⚠️  Notice: File "${fileTarget}" does not exist in the current project repository.`));
+      }
 
       const blast = computeBlastRadius(normalized, graph);
 
@@ -311,16 +321,26 @@ program
   .action(async (fileTarget: string) => {
     try {
       const cwd = process.cwd();
-      const { buildDependencyGraph, buildBehaviorGraph, formatBehaviorGraphAscii } = await import('../index.js');
+      const resolved = path.resolve(cwd, fileTarget);
+      const normalized = path.relative(cwd, resolved).replace(/\\/g, '/');
+      const fileExists = fs.existsSync(resolved) || fs.existsSync(resolved + '.ts') || fs.existsSync(resolved + '.js');
+
+      const { buildDependencyGraph, buildBehaviorGraph, computeBlastRadius, formatBehaviorGraphAscii } = await import('../index.js');
       const depGraph = await buildDependencyGraph(cwd);
+
+      if (!fileExists && !depGraph.allFiles.includes(normalized)) {
+        console.log(pc.yellow(`\n⚠️  Notice: File "${fileTarget}" does not exist in the current project repository.`));
+        console.log(pc.dim(`   Displaying zero-connection fallback graph for "${normalized}".`));
+      }
+
       const behaviorGraph = await buildBehaviorGraph(cwd, depGraph);
-      const normalized = path.relative(cwd, path.resolve(cwd, fileTarget)).replace(/\\/g, '/');
+      const blast = computeBlastRadius(normalized, depGraph);
 
       console.log('\n' + pc.cyan('═'.repeat(66)));
       console.log(pc.bold(`  BEHAVIOR GRAPH: ${pc.yellow(normalized)}`));
       console.log(pc.cyan('═'.repeat(66)) + '\n');
 
-      const ascii = formatBehaviorGraphAscii(normalized, behaviorGraph);
+      const ascii = formatBehaviorGraphAscii(normalized, behaviorGraph, blast);
       console.log(ascii + '\n');
     } catch (err: any) {
       console.error(pc.red(`\nError rendering behavior graph: ${err.message}\n`));
@@ -397,4 +417,21 @@ program
     }
   });
 
-program.parse(process.argv);
+// Normalize common user inputs like -inspect, -graph, etc. into valid subcommands
+const normalizedArgv = process.argv.map((arg) => {
+  if (arg === '-inspect' || arg === '--inspect') {
+    return 'inspect';
+  }
+  if (arg === '-graph' || arg === '--graph') {
+    return 'graph';
+  }
+  if (arg === '-impact' || arg === '--impact') {
+    return 'impact';
+  }
+  if (arg === '-preflight' || arg === '--preflight' || arg === '-gate' || arg === '--gate') {
+    return 'preflight';
+  }
+  return arg;
+});
+
+program.parse(normalizedArgv);

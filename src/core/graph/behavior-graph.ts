@@ -115,6 +115,18 @@ export function classifyRole(filePath: string, fileContent?: string): BehaviorRo
     }
   }
 
+  // Service Layer (business logic, domain services)
+  if (
+    lowerPath.includes('/services/') ||
+    lowerPath.includes('/service/') ||
+    lowerPath.endsWith('.service.ts') ||
+    lowerPath.endsWith('.service.js') ||
+    lowerPath.endsWith('service.ts') ||
+    lowerPath.endsWith('service.js')
+  ) {
+    return 'SERVICE';
+  }
+
   return 'INTERNAL_LOGIC';
 }
 
@@ -130,6 +142,7 @@ export async function buildBehaviorGraph(
   const roleCounts: Record<BehaviorRole, number> = {
     API_ROUTE: 0,
     API_CONSUMER: 0,
+    SERVICE: 0,
     DATABASE_MODEL: 0,
     TEST_SUITE: 0,
     EVENT_PRODUCER: 0,
@@ -274,54 +287,102 @@ export function findCriticalPathsTouchingFile(filePath: string, graph: BehaviorG
 /**
  * Renders an ASCII/Unicode visual tree representing the behavior graph for a file/symbol.
  */
-export function formatBehaviorGraphAscii(filePath: string, graph: BehaviorGraph): string {
+export function formatBehaviorGraphAscii(
+  filePath: string,
+  graph: BehaviorGraph,
+  blastRadius?: { totalConsumers?: number; level?: string }
+): string {
   const normalized = normalizePath(filePath);
   const node = graph.nodes[normalized] || graph.nodes[filePath] || {
     id: filePath,
     filePath,
-    role: 'INTERNAL_LOGIC',
+    role: classifyRole(filePath),
     description: 'Target component',
   };
 
   const edgesFrom = graph.edges.filter((e) => normalizePath(e.source) === normalized);
   const edgesTo = graph.edges.filter((e) => normalizePath(e.target) === normalized);
+  const paths = findCriticalPathsTouchingFile(filePath, graph);
+  const hasConnections = edgesTo.length > 0 || edgesFrom.length > 0 || paths.length > 0;
 
   const lines: string[] = [];
   lines.push(`┌─────────────────────────────────────────────────────────────┐`);
   lines.push(`│ TARGET: ${filePath.padEnd(52)} │`);
   lines.push(`│ ROLE:   ${(node.role.replace(/_/g, ' ')).padEnd(52)} │`);
-  lines.push(`└──────────────────────────────┬──────────────────────────────┘`);
-  lines.push(`                               │`);
 
-  if (edgesTo.length > 0) {
-    lines.push(`  CALLERS / CONSUMERS (Incoming):`);
-    for (const e of edgesTo.slice(0, 4)) {
-      const callerRole = graph.nodes[e.source]?.role || 'INTERNAL_LOGIC';
-      lines.push(`  ├── [${callerRole}] ──► ${e.source} (${e.relationship})`);
-    }
-    if (edgesTo.length > 4) {
-      lines.push(`  ├── ... and ${edgesTo.length - 4} more consumers`);
-    }
-  }
+  if (hasConnections) {
+    lines.push(`└──────────────────────────────┬──────────────────────────────┘`);
+    lines.push(`                               │`);
 
-  if (edgesFrom.length > 0) {
-    lines.push(`  DEPENDENCIES / BOUNDARIES (Outgoing):`);
-    for (let i = 0; i < Math.min(edgesFrom.length, 5); i++) {
-      const e = edgesFrom[i];
-      const depRole = graph.nodes[e.target]?.role || 'INTERNAL_LOGIC';
-      const isLast = i === Math.min(edgesFrom.length, 5) - 1;
-      const prefix = isLast ? '  └──' : '  ├──';
-      lines.push(`${prefix}──► [${depRole}] ${e.target} (${e.relationship})`);
-    }
-  }
+    if (edgesTo.length > 0) {
+      lines.push(`  CALLERS / CONSUMERS (Incoming - ${edgesTo.length} total):`);
+      for (let i = 0; i < Math.min(edgesTo.length, 5); i++) {
+        const e = edgesTo[i];
+        const callerRole = graph.nodes[normalizePath(e.source)]?.role || graph.nodes[e.source]?.role || 'INTERNAL_LOGIC';
+        const isLast = i === Math.min(edgesTo.length, 5) - 1 && edgesTo.length <= 5;
+        const prefix = isLast ? '  └──' : '  ├──';
+        lines.push(`${prefix} [${callerRole.replace(/_/g, ' ')}] ──► ${e.source} (${e.relationship})`);
+      }
+      if (edgesTo.length > 5) {
+        const remaining = edgesTo.slice(5);
+        const roleBuckets: Record<string, number> = {};
+        for (const rem of remaining) {
+          const r = (graph.nodes[normalizePath(rem.source)]?.role || graph.nodes[rem.source]?.role || 'INTERNAL_LOGIC').replace(/_/g, ' ');
+          roleBuckets[r] = (roleBuckets[r] || 0) + 1;
+        }
+        const breakdown = Object.entries(roleBuckets)
+          .map(([role, count]) => `${count} ${role.toLowerCase()}`)
+          .join(', ');
 
-  const paths = findCriticalPathsTouchingFile(filePath, graph);
-  if (paths.length > 0) {
-    lines.push(`  CRITICAL EXECUTION PATHS:`);
-    for (const cp of paths.slice(0, 2)) {
-      lines.push(`  ⚡ ${cp.name} [${cp.riskLevel}]`);
-      lines.push(`     Flow: ${cp.steps.join(' ➔ ')}`);
+        lines.push(`  └── ... and ${edgesTo.length - 5} more consumer(s) (${breakdown})`);
+        lines.push(`      💡 View full interactive graph & all ${edgesTo.length} consumers: run 'npx change-firewall open'`);
+      }
     }
+
+    if (edgesTo.length > 0 && edgesFrom.length > 0) {
+      lines.push(`                               │`);
+    }
+
+    if (edgesFrom.length > 0) {
+      lines.push(`  DEPENDENCIES / BOUNDARIES (Outgoing - ${edgesFrom.length} total):`);
+      for (let i = 0; i < Math.min(edgesFrom.length, 5); i++) {
+        const e = edgesFrom[i];
+        const depRole = graph.nodes[normalizePath(e.target)]?.role || graph.nodes[e.target]?.role || 'INTERNAL_LOGIC';
+        const isLast = i === Math.min(edgesFrom.length, 5) - 1 && edgesFrom.length <= 5;
+        const prefix = isLast ? '  └──' : '  ├──';
+        lines.push(`${prefix}──► [${depRole.replace(/_/g, ' ')}] ${e.target} (${e.relationship})`);
+      }
+      if (edgesFrom.length > 5) {
+        const remaining = edgesFrom.slice(5);
+        const roleBuckets: Record<string, number> = {};
+        for (const rem of remaining) {
+          const r = (graph.nodes[normalizePath(rem.target)]?.role || graph.nodes[rem.target]?.role || 'INTERNAL_LOGIC').replace(/_/g, ' ');
+          roleBuckets[r] = (roleBuckets[r] || 0) + 1;
+        }
+        const breakdown = Object.entries(roleBuckets)
+          .map(([role, count]) => `${count} ${role.toLowerCase()}`)
+          .join(', ');
+        lines.push(`  └── ... and ${edgesFrom.length - 5} more dependenc(ies) (${breakdown})`);
+      }
+    }
+
+    if (paths.length > 0) {
+      lines.push(`                               │`);
+      lines.push(`  CRITICAL EXECUTION PATHS:`);
+      for (const cp of paths.slice(0, 2)) {
+        lines.push(`  ⚡ ${cp.name} [${cp.riskLevel}]`);
+        lines.push(`     Flow: ${cp.steps.join(' ➔ ')}`);
+      }
+    }
+  } else {
+    lines.push(`└─────────────────────────────────────────────────────────────┘`);
+    lines.push(`  ARCHITECTURAL SCOPE:`);
+    lines.push(`  • Status:       Standalone / Leaf component (no direct upstream callers)`);
+    lines.push(`  • Boundaries:   0 external system boundaries crossed`);
+    if (blastRadius) {
+      lines.push(`  • Blast Radius: ${blastRadius.totalConsumers ?? 0} consumer(s) [${blastRadius.level ?? 'LOW'}]`);
+    }
+    lines.push(`  • Impact:       Behavioral shifts remain localized to this module`);
   }
 
   return lines.join('\n');

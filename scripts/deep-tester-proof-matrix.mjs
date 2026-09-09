@@ -31,7 +31,7 @@ function assertProof(feature, testDescription, condition, details) {
 
 async function runDeepTesterSuite() {
   console.log('\n' + '='.repeat(80));
-  console.log('  🔬 PRINCIPAL SDET & WORLD-CLASS TEST HARNESS: CHANGE FIREWALL v0.2.1');
+  console.log('  🔬 PRINCIPAL SDET & WORLD-CLASS TEST HARNESS: CHANGE FIREWALL v0.2.2');
   console.log('  Empirical Proof of 100% Operational Features (Zero Guesswork)');
   console.log('='.repeat(80) + '\n');
 
@@ -350,7 +350,7 @@ export function render() {
     const breakingDiff = [
       {
         filePath: 'src/core/auth.ts',
-        symbols: [{ name: 'verifyToken', kind: 'function', changeType: 'modified', afterSignature: 'verifyToken(t: string, opts?: any): boolean' }],
+        symbols: [{ name: 'verifyToken', kind: 'function', changeType: 'modified', afterSignature: 'verifyToken(t: string, secretKey: string): boolean' }],
         returnShapeChanged: false,
         authConditionChanged: false,
         errorHandlingChanged: false,
@@ -491,7 +491,7 @@ export function render() {
   
   // change-firewall --version
   const { stdout: verOut } = await execFileAsync('node', [binPath, '--version']);
-  assertProof('CLI Suite', 'change-firewall --version outputs 0.2.1', verOut.trim() === '0.2.1', `Version: ${verOut.trim()}`);
+  assertProof('CLI Suite', 'change-firewall --version outputs 0.2.2', verOut.trim() === '0.2.2', `Version: ${verOut.trim()}`);
 
   const stripAnsi = (str) => str.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '');
 

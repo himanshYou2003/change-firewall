@@ -38,6 +38,8 @@ describe('Interactive Terminal Inspector', () => {
           directDependents: ['src/caller.ts'],
           indirectDependents: [],
           affectedRoutes: [],
+          affectedServices: [],
+          affectedTests: [],
           totalConsumers: 1,
           level: 'LOW',
         },

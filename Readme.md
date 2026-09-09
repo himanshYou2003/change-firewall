@@ -37,7 +37,7 @@ A local-first developer tool, CLI, and TypeScript engine that translates raw Git
   - [10. `change-firewall open` (Dashboard Server)](#10-change-firewall-open-dashboard-server)
   - [11. `change-firewall demo` (Simulation Mode)](#11-change-firewall-demo-simulation-mode)
   - [12. `change-firewall mcp` (Model Context Protocol)](#12-change-firewall-mcp-model-context-protocol)
-- [🧬 v0.2.1 Advanced Intelligence & Guarantees](#-v021-advanced-intelligence--guarantees)
+- [🧬 v0.2.2 Advanced Intelligence & Guarantees](#-v022-advanced-intelligence--guarantees)
   - [11-Dimensional Behavioral Fingerprint Matrix](#11-dimensional-behavioral-fingerprint-matrix)
   - [Symbolic Runtime Crash Proof (Zero Guesswork)](#symbolic-runtime-crash-proof-zero-guesswork)
 - [💻 Programmatic Node.js / TypeScript API](#-programmatic-nodejs--typescript-api)
@@ -150,8 +150,13 @@ change-firewall
 
 ## 🛠️ CLI Command Reference & Flags
 
+---
+
 ### 1. `change-firewall` (Default Analysis)
-Analyzes uncommitted changes in your Git working tree.
+> **The instant behavioral diff sanity check.**
+
+#### ❓ Why should I use this command?
+Standard Git diffs only show lines added and removed (`+10 / -4`), concealing runtime breaking changes. Run `npx change-firewall` whenever an AI assistant (or teammate) finishes writing code to immediately translate raw diffs into **runtime consequences, caller blast radiuses, and a deterministic 0–100 risk score** before committing or running tests.
 
 ```bash
 # Standard terminal report
@@ -163,14 +168,11 @@ npx change-firewall --open
 # Analyze only staged changes (git add)
 npx change-firewall --staged
 
-# Compare against a specific base branch or commit (e.g., origin/main)
+# Compare against a target branch (e.g., origin/main) before opening a PR
 npx change-firewall --base origin/main
 
-# Output machine-readable JSON (great for AI agents or scripts)
+# Output machine-readable JSON (ideal for AI agents or scripts)
 npx change-firewall --json
-
-# Run dashboard on a custom port
-npx change-firewall --open -p 5000
 ```
 
 #### Flags:
@@ -185,24 +187,28 @@ npx change-firewall --open -p 5000
 ---
 
 ### 2. `change-firewall interactive` (or `inspect`) (TUI Inspector)
-Launches the **fullscreen interactive terminal inspector** without losing your terminal scrollback history. Navigate findings with arrow keys, inspect downstream call stacks, review mathematical crash proofs, and copy auto-fix advice.
+> **The keyboard-driven terminal inspector.**
+
+#### ❓ Why should I use this command?
+When you want to thoroughly investigate every finding, expand downstream call stacks, review symbolic crash proofs, and copy auto-fix code **without leaving your shell** and **without opening a browser**. Your terminal history and scrollback are 100% preserved upon exit.
 
 ```bash
 # Launch interactive terminal inspector
-npx change-firewall interactive
-
-# Alias shortcut
 npx change-firewall inspect
+
+# Or use the full command name
+npx change-firewall interactive
 
 # Inspect only staged changes
 npx change-firewall inspect --staged
 ```
 
-#### Keyboard Controls:
-| Key | Action | What It Shows |
+#### ⌨️ Keyboard Controls:
+| Key | Tab View | What It Shows |
 |---|---|---|
-| `↓` / `↑` (or `j` / `k`) | **Scroll Findings** | Browse detected contract mutations and risk badges |
+| `↓` / `↑` (or `j` / `k`) | **Browse Findings** | Scroll through detected behavioral shifts |
 | `Tab` | **Call Stacks & Blast Radius** | Expand direct & indirect downstream consumers |
+| `g` | **Architecture Graph** | Displays Unicode Behavior Graph tree directly in the TUI |
 | `p` | **Symbolic Crash Proof** | Deterministic exception proof at exact caller line numbers |
 | `f` | **11-D Fingerprint Matrix** | Active mutation vectors and multi-dimensional scores |
 | `a` | **Auto-Fix Suggestion** | Instant 1-line code fix and Vitest test stub |
@@ -210,17 +216,45 @@ npx change-firewall inspect --staged
 
 ---
 
-### 3. `change-firewall preflight` (or `gate`) (CI/CD Merge Gate)
-Evaluates whether current code changes are safe to merge. Enforces strict exit codes for CI/CD gates and GitHub Actions.
+### 3. `change-firewall audit-agent` (AI Intent vs Reality Verifier)
+> **The AI hallucination and stealth mutation detector.**
 
+#### ❓ Why should I use this command?
+AI coding agents frequently claim one thing in their PR title (e.g. *"Fix button padding and header colors"*), but secretly modify authentication guards, change public TypeScript types, or touch 15+ backend files.
+`audit-agent` parses what the AI claimed it did (`-i "..."`) and compares it against the **real TypeScript AST diffs**. If a deceptive or out-of-scope mutation occurred, it flags a **`🚨 STEALTH MUTATION`** and exits with code `1` to block the PR!
+
+```bash
+# Audit an AI agent's stated intent against current uncommitted diffs
+npx change-firewall audit-agent -i "Fix button padding and header font size"
+
+# Audit a truthful task prompt
+npx change-firewall audit-agent -i "Update firewall contract memory and BehaviorRole type"
+
+# Automated GitHub Actions usage (audits against the PR title)
+npx change-firewall audit-agent -i "${{ github.event.pull_request.title }}"
+```
+
+#### 📊 Drift Score & Verdicts:
+* **`ALIGNED` (0% Drift)**: Code mutations strictly match stated intent (exit `0`).
+* **`MINOR_DRIFT` (1–39% Drift)**: Minor auxiliary adjustments detected, but conforms to intent (exit `0`).
+* **`HIGH_DRIFT` (40–59% Drift)**: Changes exceed declared scope. Review required (exit `1`).
+* **`STEALTH_MUTATION` (≥60% Drift)**: Unannounced security, auth, database, or contract alterations (exit `1`).
+
+---
+
+### 4. `change-firewall preflight` (or `gate`) (CI/CD Merge Gate)
+> **The automated merge-readiness gate for CI/CD pipelines.**
+
+#### ❓ Why should I use this command?
+Use this command in GitHub Actions, GitLab CI, or pre-commit hooks to prevent breaking changes from reaching `main`. It produces a deterministic yes/no decision with clear exit codes:
 * **Exit Code `0`**: Approved / Safe to merge.
-* **Exit Code `1`**: Blocked / Merge review required.
+* **Exit Code `1`**: Blocked / High risk or broken contracts detected.
 
 ```bash
 # Standard preflight gate (fails if risk > 60 or high-risk findings exist)
 npx change-firewall preflight
 
-# Or use the concise CI alias
+# Concise CI alias
 npx change-firewall gate
 
 # Set a custom risk score threshold (0-100)
@@ -232,36 +266,51 @@ npx change-firewall preflight --no-fail-on-high
 # Compare PR against base branch in CI
 npx change-firewall preflight --base origin/main
 
-# Emit JSON result for CI parsing
+# Emit JSON result for CI parsing & bot comments
 npx change-firewall preflight --json
 ```
 
-#### Flags:
-| Flag | Description | Default |
-|---|---|---|
-| `-m, --max-risk <number>` | Max acceptable risk score before blocking | `60` |
-| `--no-fail-on-high` | Do not block solely on HIGH severity findings | `false` |
-| `-b, --base <ref>` | Base branch/commit to diff against | `HEAD` |
-| `-s, --staged` | Evaluate staged changes only | `false` |
-| `--json` | Output preflight result as JSON | `false` |
-
 ---
 
-### 4. `change-firewall graph <file>` (Architectural Behavior Graph)
-Renders a visual Unicode/ASCII dependency tree showing the architectural role of a file (`API_ROUTE`, `AUTH_BOUNDARY`, `DATABASE_MODEL`, `TEST_SUITE`, `EVENT_PRODUCER`, `EVENT_CONSUMER`), its incoming callers, and multi-hop critical execution paths (`Route ➔ Auth Guard ➔ DB Model`).
+### 5. `change-firewall graph <file>` (Architectural Behavior Graph)
+> **The architectural Behavior Graph and caller visualizer.**
+
+#### ❓ Why should I use this command?
+When you want to understand what a file does in the broader architecture and see every single component that imports it. It automatically categorizes the architectural role (`API_ROUTE`, `AUTH_BOUNDARY`, `DATABASE_MODEL`, `SERVICE`, `TEST_SUITE`, `EVENT_CONSUMER`) and renders a clean Unicode tree of callers and critical execution paths.
 
 ```bash
 # Inspect behavior graph and critical execution flows for a file
 npx change-firewall graph src/index.ts
 
-# Inspect protected database flows for a route
-npx change-firewall graph src/routes/user.ts
+# Inspect callers and dependencies for core types or routes
+npx change-firewall graph src/types/index.ts
 ```
 
 ---
 
-### 5. `change-firewall memory` (Persistent Invariant Memory)
-Change Firewall maintains a persistent contract memory store in `.firewall/memory/` across git commits. It measures the **temporal stability** of functions and routes. If an AI agent refactors a symbol that has been stable for 40+ commits, Change Firewall flags a **Broken Historical Invariant**.
+### 6. `change-firewall impact <file>` (Blast Radius)
+> **The downstream blast-radius inspector.**
+
+#### ❓ Why should I use this command?
+Before you refactor, rename, or edit a shared function or service, run `impact` to know **who will be affected if you break it**. It calculates exact direct callers and multi-hop indirect dependents up to 3 levels deep.
+
+```bash
+npx change-firewall impact src/middleware/auth.ts
+```
+
+#### What It Displays:
+* Direct dependents list (1 hop away).
+* Transitive / indirect downstream consumers (2–3 hops away).
+* Protected API routes impacted.
+* Blast severity rating (`HIGH`, `MEDIUM`, `LOW`).
+
+---
+
+### 7. `change-firewall memory` (Persistent Invariant Memory)
+> **Persistent contract baseline memory engine.**
+
+#### ❓ Why should I use this command?
+To protect stable legacy code from being silently broken. Change Firewall saves verified function signatures and types into `.firewall/memory/invariants.json`. If an AI assistant refactors a symbol that has been stable for dozens of commits, Change Firewall immediately flags a **Broken Historical Invariant**.
 
 ```bash
 # Inspect memory status and verified baseline contracts
@@ -276,69 +325,27 @@ npx change-firewall memory reset
 
 ---
 
-### 6. `change-firewall audit-agent` (AI Intent vs Reality Verifier)
-Audits the stated intent or prompt given to an AI coding assistant against actual uncommitted AST changes. If the AI claims to *"Fix button padding"* but secretly removed an authorization check, Change Firewall catches the **Stealth Mutation** and computes an intentional **Drift Score (0–100%)**.
+### 8. `change-firewall watch` (Live Monitoring)
+> **Live background monitoring with real-time browser streaming.**
 
-```bash
-# Audit stated prompt against current uncommitted diffs
-npx change-firewall audit-agent -i "Fix button padding and header font size"
-
-# JSON output for automated agent safety loops
-npx change-firewall audit-agent -i "Refactor payment service" --json
-```
-
-* **ALIGNED (0% Drift)**: Code mutations strictly match stated intent.
-* **STEALTH_MUTATION (≥50% Drift)**: Unannounced security, auth, or database alterations (exits with code 1).
-
----
-
-### 7. `change-firewall impact <file>` (Blast Radius)
-Performs deep blast-radius tracing for a specific file across the codebase.
-
-```bash
-npx change-firewall impact src/middleware/auth.ts
-```
-
-#### What It Displays:
-* Direct dependents list (1 hop away).
-* Transitive / indirect downstream consumers (2–3 hops away).
-* Protected API routes impacted.
-* Blast severity rating (`HIGH`, `MEDIUM`, `LOW`).
-
----
-
-### 8. `change-firewall why <file>` (Architectural Role)
-Explains why a file matters to the system architecture and its historical stability.
-
-```bash
-npx change-firewall why src/services/userService.ts
-```
-
-#### What It Displays:
-* Architectural role (Authentication Middleware, Public Route, Service, Model, Test Suite).
-* Caller count & downstream consumers.
-* Git Churn analysis: total historical commits, high-churn warnings, unique contributors, and recent commits.
-
----
-
-### 9. `change-firewall watch` (Live Monitoring)
-Runs in the background while you or an AI agent (Cursor, Claude Code, Copilot, Antigravity) edit code:
-* Automatically debounces rapid file modifications (350ms).
-* Re-analyzes deltas on the fly (`Risk changed: 42 → 68`).
-* Live-streams updates to your browser dashboard via **Server-Sent Events (SSE)** without page reloads.
+#### ❓ Why should I use this command?
+When you are actively pair programming with an AI coding assistant (Cursor, Devin, Claude Code). Keep `watch` running in a terminal or on a second monitor. As the AI edits files, Change Firewall debounces changes, recalculates risk in milliseconds, and live-streams updates to your browser via Server-Sent Events (SSE) without page reloads!
 
 ```bash
 # Start watch mode with auto-opened dashboard
 npx change-firewall watch
 
 # Watch mode on custom port without auto-opening browser
-npx change-firewall watch -p 8080 --no-open
+npx change-firewall watch -p 5000 --no-open
 ```
 
 ---
 
-### 10. `change-firewall open` (Dashboard Server)
-Spins up the embedded local dashboard at `http://localhost:4783` loaded with the current working tree analysis.
+### 9. `change-firewall open` (Dashboard Server)
+> **The local interactive web dashboard.**
+
+#### ❓ Why should I use this command?
+When you want a rich, graphical user interface to explore your changes. It launches an embedded web dashboard at `http://localhost:4783` featuring an interactive SVG/Canvas node graph where you can click files, inspect blast radiuses, and view side-by-side AST contract diffs.
 
 ```bash
 npx change-firewall open
@@ -346,8 +353,39 @@ npx change-firewall open
 
 ---
 
+### 10. `change-firewall why <file>` (Architectural Role)
+> **Architectural role and Git churn analysis.**
+
+#### ❓ Why should I use this command?
+To understand a file's history and risk profile before editing it. Combines Git churn frequency, author count, and downstream blast radius to explain why a file is sensitive.
+
+```bash
+npx change-firewall why src/services/userService.ts
+```
+
+---
+
 ### 11. `change-firewall demo` (Simulation Mode)
-Launches an interactive simulation of the Golden Moment scenario without requiring any uncommitted Git changes. Great for exploring the tool and dashboard features immediately:
+> **Interactive simulation sandbox.**
+
+#### ❓ Why should I use this command?
+When you want to see Change Firewall in action without making uncommitted changes to your own code. It runs a pre-built simulation of a real-world API contract break and launches the dashboard.
+
+```bash
+npx change-firewall demo
+```
+
+---
+
+### 12. `change-firewall mcp` (Model Context Protocol)
+> **Model Context Protocol (MCP) server for AI assistants.**
+
+#### ❓ Why should I use this command?
+Connects Change Firewall directly to AI coding tools (Claude Desktop, Google Antigravity, Cursor, Windsurf) over standard I/O using JSON-RPC 2.0. This allows AI assistants to autonomously inspect their own diffs, evaluate preflight gates, and self-heal breaking changes before you ever review them!
+
+```bash
+npx change-firewall mcp
+```
 
 ```bash
 npx change-firewall demo
@@ -375,9 +413,9 @@ npx change-firewall mcp
 
 ---
 
-## 🧬 v0.2.1 Advanced Intelligence & Guarantees
+## 🧬 v0.2.2 Advanced Intelligence & Guarantees
 
-Change Firewall v0.2.1 introduces two industry-first deterministic intelligence systems designed specifically to catch silent breaks introduced by autonomous AI coding assistants:
+Change Firewall v0.2.2 introduces two industry-first deterministic intelligence systems designed specifically to catch silent breaks introduced by autonomous AI coding assistants:
 
 ### 1. 11-Dimensional Behavioral Fingerprint Matrix
 Rather than relying on vague linter warnings or nondeterministic LLM reviews, every code delta is evaluated across an 11-dimensional behavioral matrix:

@@ -190,7 +190,7 @@ export default function GeniusPillars() {
         <div className="text-center max-w-4xl mx-auto mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--surface-100)] border border-[var(--border-subtle)] text-[11px] font-mono font-semibold text-brand-cyan mb-4">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>v0.2.1 ARCHITECTURAL MASTER BLUEPRINT</span>
+            <span>v0.2.2 ARCHITECTURAL MASTER BLUEPRINT</span>
           </div>
 
           <h2 className="text-3xl sm:text-5xl font-black text-[var(--text-primary)] tracking-tight leading-[1.1]">
@@ -203,17 +203,18 @@ export default function GeniusPillars() {
         </div>
 
         {/* Master Architecture Diagram Header */}
-        <div className="mb-10 bg-[var(--surface-50)] border border-[var(--border-card)] rounded-2xl p-4 sm:p-6 shadow-sm overflow-x-auto">
-          <div className="text-center mb-4">
+        <div className="mb-10 bg-[var(--surface-50)] border border-[var(--border-card)] rounded-2xl p-4 sm:p-6 shadow-sm">
+          <div className="text-center mb-3">
             <span className="text-xs font-mono font-bold tracking-widest text-[var(--text-muted)] uppercase">
               Core Architecture Graph
             </span>
           </div>
 
-          <div className="min-w-[680px] max-w-4xl mx-auto font-mono text-xs select-none">
+          {/* Desktop & Tablet ASCII Tree View */}
+          <div className="hidden md:block max-w-4xl mx-auto font-mono text-xs select-none">
             <div className="flex justify-center">
               <div className="px-6 py-2.5 rounded-lg bg-[var(--surface-200)] border border-[var(--border-card)] text-[var(--text-primary)] font-bold shadow-xs">
-                THE CHANGE FIREWALL GENIUS CORE (v0.2.1)
+                THE CHANGE FIREWALL GENIUS CORE (v0.2.2)
               </div>
             </div>
 
@@ -254,10 +255,49 @@ export default function GeniusPillars() {
               })}
             </div>
           </div>
+
+          {/* Mobile Fluid 2x2 Pillar Selector */}
+          <div className="block md:hidden">
+            <div className="text-center mb-3">
+              <div className="inline-block px-3 py-1.5 rounded-lg bg-[var(--surface-200)] border border-[var(--border-card)] text-[var(--text-primary)] font-bold text-xs font-mono shadow-xs">
+                THE GENIUS CORE (v0.2.2)
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {PILLARS.map((pillar, idx) => {
+                const Icon = pillar.icon;
+                const isActive = activePillar === idx;
+                return (
+                  <button
+                    key={pillar.id}
+                    onClick={() => setActivePillar(idx)}
+                    className={`p-2.5 rounded-xl border text-left transition-all duration-200 flex flex-col justify-between min-h-[90px] ${
+                      isActive
+                        ? 'bg-[var(--surface-main)] border-brand-cyan shadow-md ring-1 ring-brand-cyan/20'
+                        : 'bg-[var(--surface-100)] border-[var(--border-subtle)] opacity-80'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[var(--surface-200)] text-[var(--text-muted)] font-mono">
+                        {pillar.number}
+                      </span>
+                      <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-brand-cyan' : 'text-[var(--text-muted)]'}`} />
+                    </div>
+                    <div className="font-bold text-[11px] text-[var(--text-primary)] leading-tight">
+                      {pillar.title}
+                    </div>
+                    <div className="text-[9px] text-[var(--text-muted)] mt-1 truncate">
+                      {pillar.badge}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
 
         {/* Dynamic Pillar Content Container */}
-        <div className="bg-[var(--surface-main)] border border-[var(--border-card)] rounded-2xl p-6 sm:p-8 shadow-sm">
+        <div className="bg-[var(--surface-main)] border border-[var(--border-card)] rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm">
           {/* Pillar 1: The Behavior Graph & 11-D Fingerprint */}
           {activePillar === 0 && (
             <div className="space-y-8 animate-in fade-in duration-300">
@@ -356,8 +396,8 @@ export default function GeniusPillars() {
                       onClick={() => setSelectedDimension(idx)}
                       className={`text-[10px] sm:text-[11px] font-mono px-2.5 py-1 rounded-md border transition-all ${
                         selectedDimension === idx
-                          ? 'bg-brand-cyan text-white border-brand-cyan font-bold shadow-xs'
-                          : 'bg-[var(--surface-100)] text-[var(--text-secondary)] border-[var(--border-subtle)] hover:border-[var(--border-card)]'
+                          ? 'bg-sky-100 text-sky-950 border-sky-500 dark:bg-cyan-500/20 dark:text-cyan-300 dark:border-cyan-400 font-bold shadow-xs ring-1 ring-sky-500/40 dark:ring-cyan-400/40'
+                          : 'bg-[var(--surface-100)] text-[var(--text-secondary)] border-[var(--border-subtle)] hover:border-[var(--border-card)] hover:text-[var(--text-primary)]'
                       }`}
                     >
                       {dim.name}

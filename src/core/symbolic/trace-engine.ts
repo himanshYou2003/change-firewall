@@ -139,22 +139,28 @@ export async function generateSymbolicCrashTraces(
       }
     }
 
-    // Check 3: API Response Contract Mutation
+    // Check 3: API Response Contract Mutation (scoped to API routes, services, controllers)
     if (diff.returnShapeChanged && diff.beforeReturnShape && diff.afterReturnShape) {
-      if (blast.affectedRoutes.length > 0 || blast.directDependents.length > 0) {
+      const isApiOrService =
+        diff.filePath.match(/\b(api|routes?|controllers?|services?|endpoints?)\b/i) ||
+        blast.affectedRoutes.length > 0;
+
+      if (isApiOrService && (blast.affectedRoutes.length > 0 || blast.directDependents.length > 0)) {
         const targetConsumer = blast.affectedRoutes[0] || blast.directDependents[0];
+        const cleanBefore = diff.beforeReturnShape.replace(/\s+/g, ' ').slice(0, 60);
+        const cleanAfter = diff.afterReturnShape.replace(/\s+/g, ' ').slice(0, 60);
         traces.push({
           id: nextTraceId(),
           sourceFile: diff.filePath,
           consumerFile: targetConsumer,
           failureType: 'TYPE_MISMATCH',
-          simulatedException: `ContractMismatch: Expected '${diff.beforeReturnShape}', received '${diff.afterReturnShape}'`,
+          simulatedException: `ContractMismatch: Expected '${cleanBefore}', received '${cleanAfter}'`,
           proofSteps: [
-            `1. ${diff.filePath} ➔ API return shape changed from '${diff.beforeReturnShape}' to '${diff.afterReturnShape}'.`,
+            `1. ${diff.filePath} ➔ API return shape changed from '${cleanBefore}' to '${cleanAfter}'.`,
             `2. ${targetConsumer} ➔ Expects previous response contract for deserialization.`,
             `3. Client Consumer ➔ Client runtime parsing throws payload validation error.`,
           ],
-          preventativeFix: `Update client schema and integration tests to consume the new shape '${diff.afterReturnShape}'`,
+          preventativeFix: `Update client schema and integration tests to consume the new shape '${cleanAfter}'`,
         });
       }
     }

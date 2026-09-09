@@ -6,8 +6,9 @@ import type {
   SymbolicFailureTrace,
   FingerprintVector,
 } from '../../types/index.js';
+import { formatBehaviorGraphAscii } from '../graph/behavior-graph.js';
 
-type ActivePanel = 'overview' | 'callstacks' | 'crashproof' | 'fingerprint' | 'autofix';
+type ActivePanel = 'overview' | 'callstacks' | 'graph' | 'crashproof' | 'fingerprint' | 'autofix';
 
 /**
  * Interactive Terminal Inspector for Change Firewall
@@ -37,6 +38,10 @@ export async function startInteractiveInspector(report: AnalysisReport): Promise
   const commandDisplay = rawArgs[0]?.includes('change-firewall') && !rawArgs[0].endsWith('.js')
     ? `change-firewall ${commandArgs}`.trim()
     : `node ${scriptName} ${commandArgs}`.trim();
+
+  const cwd = process.cwd();
+  const isWindows = process.platform === 'win32';
+  const promptLocation = isWindows ? `PS ${cwd}> ` : `${cwd} $ `;
 
   // Setup readline raw mode
   readline.emitKeypressEvents(process.stdin);
@@ -75,7 +80,7 @@ export async function startInteractiveInspector(report: AnalysisReport): Promise
     clearScreen();
 
     // Invoked Command Breadcrumb
-    console.log(pc.dim(`  $ ${commandDisplay}`));
+    console.log(`  ${pc.dim(promptLocation)}${pc.cyan(commandDisplay)}`);
 
     // Top Header
     console.log(pc.bgCyan(pc.black(pc.bold('  CHANGE FIREWALL  • Interactive Terminal Inspector  '))));
@@ -126,11 +131,12 @@ export async function startInteractiveInspector(report: AnalysisReport): Promise
     // Active View Tab Indicators
     const tabOverview = activePanel === 'overview' ? pc.bgWhite(pc.black(' 1. Overview ')) : pc.dim(' 1. Overview ');
     const tabStacks = activePanel === 'callstacks' ? pc.bgWhite(pc.black(' [Tab] Call Stacks ')) : pc.dim(' [Tab] Call Stacks ');
+    const tabGraph = activePanel === 'graph' ? pc.bgWhite(pc.black(' [g] Architecture ')) : pc.dim(' [g] Architecture ');
     const tabProof = activePanel === 'crashproof' ? pc.bgWhite(pc.black(' [p] Crash Proof ')) : pc.dim(' [p] Crash Proof ');
     const tabFingerprint = activePanel === 'fingerprint' ? pc.bgWhite(pc.black(' [f] 11-D Fingerprint ')) : pc.dim(' [f] 11-D Fingerprint ');
     const tabAutofix = activePanel === 'autofix' ? pc.bgWhite(pc.black(' [a] Auto-Fix ')) : pc.dim(' [a] Auto-Fix ');
 
-    console.log(`  VIEW: ${tabOverview} ${tabStacks} ${tabProof} ${tabFingerprint} ${tabAutofix}`);
+    console.log(`  VIEW: ${tabOverview} ${tabStacks} ${tabGraph} ${tabProof} ${tabFingerprint} ${tabAutofix}`);
     console.log(pc.dim('─'.repeat(72)));
 
     // Render Panel Content
@@ -191,6 +197,15 @@ export async function startInteractiveInspector(report: AnalysisReport): Promise
         }
       } else {
         console.log(pc.dim('  No blast radius recorded for this file.'));
+      }
+    } else if (activePanel === 'graph' && currentFinding) {
+      console.log(pc.bold(pc.cyan(`  BEHAVIOR GRAPH ARCHITECTURE & CALLER TREE`)));
+      console.log(pc.dim(`  Target: `) + pc.white(currentFinding.filePath));
+      if (report.behaviorGraph) {
+        const ascii = formatBehaviorGraphAscii(currentFinding.filePath, report.behaviorGraph, currentBlast);
+        console.log('\n' + ascii + '\n');
+      } else {
+        console.log(pc.dim('\n  No behavior graph recorded for this target file.'));
       }
     } else if (activePanel === 'crashproof') {
       console.log(pc.bold(pc.cyan(`  SYMBOLIC CRASH PROOF (Deterministic Runtime Verification)`)));
@@ -272,6 +287,7 @@ export async function startInteractiveInspector(report: AnalysisReport): Promise
     const countText = findings.length > 0 ? `the ${findings.length} findings` : 'findings';
     console.log(pc.cyan('  Press ↓ or ↑') + ` to scroll through ${countText}.`);
     console.log(pc.cyan('  Press Tab') + ' to expand the call stack and downstream consumers.');
+    console.log(pc.cyan('  Press g') + ' to view the Architecture Behavior Graph tree.');
     console.log(pc.cyan('  Press p') + ' to view the Symbolic Crash Proof.');
     console.log(pc.cyan('  Press f') + ' to inspect the 11-D Fingerprint Matrix.');
     console.log(pc.cyan('  Press a') + ' to generate an auto-fix suggestion and test stub.');
@@ -332,6 +348,12 @@ export async function startInteractiveInspector(report: AnalysisReport): Promise
 
       if (char === 'p') {
         activePanel = activePanel === 'crashproof' ? 'overview' : 'crashproof';
+        render();
+        return;
+      }
+
+      if (char === 'g') {
+        activePanel = activePanel === 'graph' ? 'overview' : 'graph';
         render();
         return;
       }

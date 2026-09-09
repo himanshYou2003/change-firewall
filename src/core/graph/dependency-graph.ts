@@ -87,46 +87,59 @@ function extractImports(sourceText: string, filePath: string): string[] {
 }
 
 function resolveImportPath(importSpecifier: string, fromFile: string, allFilesSet: Set<string>): string | null {
-  // Only resolve relative project imports (starting with ./ or ../)
-  if (!importSpecifier.startsWith('.')) {
+  const candidates: string[] = [];
+
+  if (importSpecifier.startsWith('.')) {
+    const fromDir = path.dirname(fromFile);
+    candidates.push(normalizePath(path.join(fromDir, importSpecifier)));
+  } else if (importSpecifier.startsWith('@/')) {
+    const rest = importSpecifier.slice(2);
+    candidates.push(normalizePath(rest));
+    candidates.push(normalizePath(path.join('src', rest)));
+  } else if (importSpecifier.startsWith('~/')) {
+    const rest = importSpecifier.slice(2);
+    candidates.push(normalizePath(rest));
+    candidates.push(normalizePath(path.join('src', rest)));
+  } else if (importSpecifier.startsWith('src/')) {
+    candidates.push(normalizePath(importSpecifier));
+  } else {
     return null;
   }
 
-  const fromDir = path.dirname(fromFile);
-  const rawTarget = normalizePath(path.join(fromDir, importSpecifier));
-
-  // 1. Direct exact match
-  if (allFilesSet.has(rawTarget)) {
-    return rawTarget;
-  }
-
-  // 2. TypeScript NodeNext ESM mapping: import foo from './foo.js' where on disk it is 'foo.ts'
-  const strippedTarget = rawTarget.replace(/\.(js|jsx|mjs|cjs|ts|tsx)$/, '');
-  for (const ext of SUPPORTED_EXTENSIONS) {
-    const withExt = strippedTarget + ext;
-    if (allFilesSet.has(withExt)) {
-      return withExt;
+  for (const rawTarget of candidates) {
+    // 1. Direct exact match
+    if (allFilesSet.has(rawTarget)) {
+      return rawTarget;
     }
-  }
 
-  // 3. Try appending extension to rawTarget
-  for (const ext of SUPPORTED_EXTENSIONS) {
-    const withExt = rawTarget + ext;
-    if (allFilesSet.has(withExt)) {
-      return withExt;
+    // 2. TypeScript NodeNext ESM mapping: import foo from './foo.js' where on disk it is 'foo.ts'
+    const strippedTarget = rawTarget.replace(/\.(js|jsx|mjs|cjs|ts|tsx)$/, '');
+    for (const ext of SUPPORTED_EXTENSIONS) {
+      const withExt = strippedTarget + ext;
+      if (allFilesSet.has(withExt)) {
+        return withExt;
+      }
     }
-    // Also check index files e.g. ./routes -> ./routes/index.ts
-    const indexWithExt = normalizePath(path.join(rawTarget, 'index' + ext));
-    if (allFilesSet.has(indexWithExt)) {
-      return indexWithExt;
-    }
-  }
 
-  // 4. Also check index inside stripped target
-  for (const ext of SUPPORTED_EXTENSIONS) {
-    const indexWithExt = normalizePath(path.join(strippedTarget, 'index' + ext));
-    if (allFilesSet.has(indexWithExt)) {
-      return indexWithExt;
+    // 3. Try appending extension to rawTarget
+    for (const ext of SUPPORTED_EXTENSIONS) {
+      const withExt = rawTarget + ext;
+      if (allFilesSet.has(withExt)) {
+        return withExt;
+      }
+      // Also check index files e.g. ./routes -> ./routes/index.ts
+      const indexWithExt = normalizePath(path.join(rawTarget, 'index' + ext));
+      if (allFilesSet.has(indexWithExt)) {
+        return indexWithExt;
+      }
+    }
+
+    // 4. Also check index inside stripped target
+    for (const ext of SUPPORTED_EXTENSIONS) {
+      const indexWithExt = normalizePath(path.join(strippedTarget, 'index' + ext));
+      if (allFilesSet.has(indexWithExt)) {
+        return indexWithExt;
+      }
     }
   }
 

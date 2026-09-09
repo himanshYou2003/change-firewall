@@ -116,6 +116,7 @@ export interface GitTimelineItem {
 export type BehaviorRole =
   | 'API_ROUTE'
   | 'API_CONSUMER'
+  | 'SERVICE'
   | 'DATABASE_MODEL'
   | 'TEST_SUITE'
   | 'EVENT_PRODUCER'

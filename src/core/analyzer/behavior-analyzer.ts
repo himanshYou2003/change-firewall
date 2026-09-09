@@ -5,6 +5,7 @@ import type {
   FindingCategory,
   SeverityLevel,
 } from '../../types/index.js';
+import { isCompatibleSignatureExtension } from '../memory/memory-engine.js';
 
 let findingCounter = 0;
 function nextId(): string {
@@ -110,8 +111,13 @@ export function detectBehavioralChanges(
         (returnPart.includes('| null') || returnPart.includes('| undefined') || returnPart.includes('null')) &&
         (!beforeReturnPart.includes('| null') && !beforeReturnPart.includes('| undefined') && !beforeReturnPart.includes('null'));
 
-      const isSeverityHigh = blastRadius.totalConsumers > 4 || isNullWidened;
-      const severity: SeverityLevel = isSeverityHigh ? 'HIGH' : 'MEDIUM';
+      const isExtension =
+        Boolean(sym.beforeSignature &&
+        sym.afterSignature &&
+        isCompatibleSignatureExtension(sym.beforeSignature, sym.afterSignature));
+
+      const isSeverityHigh = !isExtension && (blastRadius.totalConsumers > 4 || isNullWidened);
+      const severity: SeverityLevel = isExtension ? 'LOW' : isSeverityHigh ? 'HIGH' : 'MEDIUM';
 
       const evidence: string[] = [
         `Exported signature '${sym.name}' modified:`,
@@ -120,6 +126,10 @@ export function detectBehavioralChanges(
         `${blastRadius.directDependents.length} direct caller(s) detected.`,
       ];
 
+      if (isExtension) {
+        evidence.push('Contract extension is backwards-compatible (added optional or defaulted parameters).');
+      }
+
       if (isNullWidened) {
         evidence.push('Return type widened to include nullable/undefined value without verified caller guards.');
       }
@@ -127,16 +137,20 @@ export function detectBehavioralChanges(
       findings.push({
         id: nextId(),
         category: 'FUNCTION_CONTRACT',
-        title: `Export Contract Changed: ${sym.name}`,
-        description: isNullWidened
+        title: isExtension ? `Export Extended: ${sym.name}` : `Export Contract Changed: ${sym.name}`,
+        description: isExtension
+          ? `The exported interface for '${sym.name}' was extended with backwards-compatible optional parameters.`
+          : isNullWidened
           ? `The return contract for '${sym.name}' was widened to nullable/optional. Existing callers may encounter unhandled null references.`
           : `The exported interface/signature of '${sym.name}' changed, altering parameters or types for downstream callers.`,
         severity,
-        confidence: 89,
+        confidence: isExtension ? 98 : 89,
         filePath: diff.filePath,
         evidence,
         affectedFiles: blastRadius.directDependents,
-        recommendation: `Audit call-sites in ${blastRadius.directDependents.slice(0, 3).join(', ')} to verify compatibility with the new contract.`,
+        recommendation: isExtension
+          ? `Verify optional parameters default as expected in downstream call-sites.`
+          : `Audit call-sites in ${blastRadius.directDependents.slice(0, 3).join(', ')} to verify compatibility with the new contract.`,
       });
     } else if (sym.changeType === 'removed') {
       const severity: SeverityLevel = blastRadius.totalConsumers > 0 ? 'CRITICAL' : 'MEDIUM';

@@ -50,6 +50,46 @@ export async function loadFirewallMemory(projectRoot: string): Promise<FirewallM
   };
 }
 
+/**
+ * Determines whether a signature mutation is a backwards-compatible extension
+ * (e.g. adding optional parameters, default parameters, or rest parameters).
+ */
+export function isCompatibleSignatureExtension(oldSig: string, newSig: string): boolean {
+  if (oldSig === newSig) return true;
+  const oldParenClose = oldSig.lastIndexOf(')');
+  const newParenClose = newSig.lastIndexOf(')');
+  if (oldParenClose === -1 || newParenClose === -1) return false;
+
+  const oldParenOpen = oldSig.indexOf('(');
+  const newParenOpen = newSig.indexOf('(');
+  if (oldParenOpen === -1 || newParenOpen === -1) return false;
+
+  // Function name must match
+  const oldName = oldSig.slice(0, oldParenOpen).trim();
+  const newName = newSig.slice(0, newParenOpen).trim();
+  if (oldName !== newName) return false;
+
+  // Return type must match
+  const oldReturn = oldSig.slice(oldParenClose).trim();
+  const newReturn = newSig.slice(newParenClose).trim();
+  if (oldReturn !== newReturn) return false;
+
+  const oldParams = oldSig.slice(oldParenOpen + 1, oldParenClose).trim();
+  const newParams = newSig.slice(newParenOpen + 1, newParenClose).trim();
+
+  if (newParams === oldParams) return true;
+  if (newParams.startsWith(oldParams)) {
+    const addedParams = newParams.slice(oldParams.length).replace(/^[,\s]+/, '').trim();
+    if (addedParams.length === 0) return true;
+    const paramsList = addedParams.split(',').map((p) => p.trim()).filter(Boolean);
+    const allOptional = paramsList.every(
+      (p) => p.includes('?:') || p.includes('=') || p.startsWith('...')
+    );
+    if (allOptional) return true;
+  }
+  return false;
+}
+
 export function evaluateBrokenInvariants(
   diffs: ASTDiff[],
   projectRoot: string,
@@ -70,18 +110,27 @@ export function evaluateBrokenInvariants(
   }
 
   for (const diff of diffs) {
-    // 1. Check Return Shape Invariants
+    // 1. Check Return Shape Invariants (only on API routes/endpoints)
     const fileInvariant = invariants[diff.filePath];
-    if (fileInvariant && diff.returnShapeChanged) {
+    const isApiOrRoute =
+      diff.filePath.includes('api') ||
+      diff.filePath.includes('route') ||
+      diff.filePath.includes('controller') ||
+      diff.filePath.includes('endpoint');
+
+    if (fileInvariant && diff.returnShapeChanged && isApiOrRoute) {
+      const cleanRule = (fileInvariant.returnShape || 'original').replace(/\s+/g, ' ').slice(0, 80);
+      const cleanBefore = (diff.beforeReturnShape || '').replace(/\s+/g, ' ').slice(0, 80);
+      const cleanAfter = (diff.afterReturnShape || '').replace(/\s+/g, ' ').slice(0, 80);
       broken.push({
         symbolOrFile: diff.filePath,
-        rule: `Payload shape must match baseline '${fileInvariant.returnShape || 'original'}'`,
+        rule: `Payload shape must match baseline '${cleanRule}'`,
         historicalDuration: `${fileInvariant.observedCommitsCount || 10}+ commits verified`,
-        mutation: `Return shape mutated from '${diff.beforeReturnShape}' to '${diff.afterReturnShape}'`,
+        mutation: `Return shape mutated from '${cleanBefore}' to '${cleanAfter}'`,
       });
     }
 
-    // 2. Check Symbol Nullability Invariants
+    // 2. Check Symbol Nullability and Contract Invariants
     for (const sym of diff.symbols) {
       const key = `${diff.filePath}#${sym.name}`;
       const invariant = invariants[key];
@@ -98,11 +147,12 @@ export function evaluateBrokenInvariants(
         (!beforeReturnPart.includes('| null') && !beforeReturnPart.includes('| undefined') && !beforeReturnPart.includes('null'));
 
       if (isNullWidened) {
+        const cleanSig = (sym.afterSignature || '').replace(/\s+/g, ' ').slice(0, 80);
         broken.push({
           symbolOrFile: sym.name,
           rule: 'Contract guaranteed non-nullable return value',
           historicalDuration: invariant ? `${invariant.observedCommitsCount} commits` : 'Pre-existing invariant',
-          mutation: `Type widened to include null/undefined: '${sym.afterSignature}'`,
+          mutation: `Type widened to include null/undefined: '${cleanSig}'`,
         });
       } else if (sym.changeType === 'removed') {
         broken.push({
@@ -112,12 +162,17 @@ export function evaluateBrokenInvariants(
           mutation: `Exported symbol '${sym.name}' was deleted`,
         });
       } else if (invariant && invariant.signature && sym.afterSignature && invariant.signature !== sym.afterSignature) {
-        broken.push({
-          symbolOrFile: sym.name,
-          rule: `Export signature must adhere to established contract '${invariant.signature}'`,
-          historicalDuration: `${invariant.observedCommitsCount || 1} commit(s) verified`,
-          mutation: `Signature changed from '${invariant.signature}' to '${sym.afterSignature}'`,
-        });
+        // Only trigger broken invariant if the signature modification is NOT a backwards-compatible extension
+        if (!isCompatibleSignatureExtension(invariant.signature, sym.afterSignature)) {
+          const cleanInvSig = invariant.signature.replace(/\s+/g, ' ').slice(0, 80);
+          const cleanAfterSig = sym.afterSignature.replace(/\s+/g, ' ').slice(0, 80);
+          broken.push({
+            symbolOrFile: sym.name,
+            rule: `Export signature must adhere to established contract '${cleanInvSig}'`,
+            historicalDuration: `${invariant.observedCommitsCount || 1} commit(s) verified`,
+            mutation: `Signature changed from '${cleanInvSig}' to '${cleanAfterSig}'`,
+          });
+        }
       }
     }
   }
@@ -156,7 +211,13 @@ export async function recordMemorySnapshot(
   data.lastApprovalDate = new Date().toISOString();
 
   for (const diff of diffs) {
-    if (diff.beforeReturnShape) {
+    const isApiOrRoute =
+      diff.filePath.includes('api') ||
+      diff.filePath.includes('route') ||
+      diff.filePath.includes('controller') ||
+      diff.filePath.includes('endpoint');
+
+    if (diff.beforeReturnShape && isApiOrRoute) {
       data.invariants[diff.filePath] = {
         symbolOrFile: diff.filePath,
         signature: 'endpoint',

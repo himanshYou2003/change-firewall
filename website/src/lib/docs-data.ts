@@ -140,131 +140,38 @@ npx change-firewall --json`,
         folderTitle: 'CLI Command Reference',
         fileName: 'analyze.md',
         title: 'change-firewall (analyze)',
-        description: 'Deep behavioral diff analysis of your uncommitted working tree or staged commits.',
+        description: 'Instant behavioral diff analysis of your uncommitted working tree or staged commits.',
         readingTime: '2 min read',
         badge: 'Default Command',
         content: {
           overview:
-            'The default command parses all modified code files using the TypeScript AST engine, constructs the reverse dependency graph, and produces an actionable terminal report.',
-          codeLanguage: 'bash',
-          codeExample: `# Inspect uncommitted changes against Git HEAD
-npx change-firewall
-
-# Inspect only staged changes (git add)
-npx change-firewall --staged
-
-# Compare against a base branch (e.g. main or develop)
-npx change-firewall --base origin/main
-
-# Emit machine-readable JSON for agents and CI pipelines
-npx change-firewall --json`,
-          bulletPoints: [
-            '--staged: Analyzes files in the Git staging area before commit',
-            '--base <ref>: Calculates diff against a specific Git commit or branch',
-            '--json: Produces structured output for AI tools and scripts',
-          ],
-          prevDocId: 'core-concepts',
-          nextDocId: 'cli-preflight',
-        },
-      },
-      {
-        id: 'cli-preflight',
-        folderId: 'cli-commands',
-        folderTitle: 'CLI Command Reference',
-        fileName: 'preflight.md',
-        title: 'change-firewall preflight',
-        description: 'Automated merge readiness gate for pre-commit hooks, CI/CD pipelines, and AI self-correction.',
-        readingTime: '2 min read',
-        badge: 'Merge Gate',
-        content: {
-          overview:
-            'Evaluates whether the current changeset is safe to merge. Exits with status code 0 if safe, or code 1 if blocked by high-risk contract breaks or threshold breaches.',
-          codeLanguage: 'bash',
-          codeExample: `# Run preflight gate with default risk threshold (60/100)
-npx change-firewall preflight
-
-# Specify custom risk tolerance (e.g., maximum score of 40)
-npx change-firewall preflight --max-risk 40
-
-# JSON output for automated agent decision loops
-npx change-firewall preflight --json`,
-          callout: {
-            type: 'tip',
-            text: 'AI assistants can parse the preflight JSON blockers list to automatically rewrite and repair breaking changes without human intervention.',
-          },
-          prevDocId: 'cli-analyze',
-          nextDocId: 'cli-impact',
-        },
-      },
-      {
-        id: 'cli-impact',
-        folderId: 'cli-commands',
-        folderTitle: 'CLI Command Reference',
-        fileName: 'impact.md',
-        title: 'change-firewall impact <file>',
-        description: 'Calculates the downstream ripple effect, affected routes, and consumer components for any file.',
-        readingTime: '1 min read',
-        badge: 'Blast Radius',
-        content: {
-          overview:
-            'Traverses the reverse import dependency graph using breadth-first search to find all direct and transitive consumers up to 3 hops deep.',
-          codeLanguage: 'bash',
-          codeExample: `# Inspect downstream impact of changing auth service
-npx change-firewall impact src/services/auth.ts
-
-# Inspect impact of modifying a core UI component
-npx change-firewall impact src/components/Button.tsx`,
-          bulletPoints: [
-            'Displays total consumer count and depth breakdown',
-            'Highlights critical API routes and controller endpoints',
-            'Shows exact imported symbols per consumer file',
-          ],
-          prevDocId: 'cli-preflight',
-          nextDocId: 'cli-watch',
-        },
-      },
-      {
-        id: 'cli-watch',
-        folderId: 'cli-commands',
-        folderTitle: 'CLI Command Reference',
-        fileName: 'watch.md',
-        title: 'change-firewall watch',
-        description: 'Live file watcher that streams real-time updates over Server-Sent Events (SSE) to your browser.',
-        readingTime: '1 min read',
-        badge: 'Live Dashboard',
-        content: {
-          overview:
-            'Launches an embedded file watcher and HTTP server. Whenever an AI agent writes or modifies code in your workspace, the dashboard updates instantly.',
-          codeLanguage: 'bash',
-          codeExample: `# Start watch mode on default port 4783
-npx change-firewall watch
-
-# Custom port without auto-opening the browser
-npx change-firewall watch -p 5000 --no-open`,
-          prevDocId: 'cli-impact',
-          nextDocId: 'cli-mcp',
-        },
-      },
-      {
-        id: 'cli-mcp',
-        folderId: 'cli-commands',
-        folderTitle: 'CLI Command Reference',
-        fileName: 'mcp.md',
-        title: 'change-firewall mcp',
-        description: 'Starts the Model Context Protocol (MCP) server over standard I/O for native AI integration.',
-        readingTime: '2 min read',
-        badge: 'Stdio MCP',
-        content: {
-          overview:
-            'Starts a standard JSON-RPC 2.0 MCP server over stdio. Connects natively with Claude Desktop, Google Antigravity, Cursor, and Windsurf.',
-          codeLanguage: 'bash',
-          codeExample: `# Start MCP server process (normally managed by the AI client)
-npx change-firewall mcp`,
+            'Standard Git diffs only show lines added and removed (+10 / -4). They cannot detect broken API contracts, widened types, or downstream caller breaks. Run change-firewall to instantly translate raw code diffs into runtime consequences, caller blast radiuses, and a deterministic 0–100 risk score before you test or commit.',
           callout: {
             type: 'info',
-            text: 'All diagnostics and logs are written to stderr, preserving stdout exclusively for MCP JSON-RPC protocol frames.',
+            text: 'Why use this command? Run it immediately after you or an AI coding assistant finishes modifying code to verify behavioral safety in under 200ms.',
           },
-          prevDocId: 'cli-watch',
+          codeLanguage: 'bash',
+          codeExample: `# 1. Instant terminal report against Git HEAD
+npx change-firewall
+
+# 2. Analyze and automatically launch interactive visual browser dashboard
+npx change-firewall --open
+
+# 3. Only analyze files in the Git staging area (git add)
+npx change-firewall --staged
+
+# 4. Compare working branch against target branch before opening a PR
+npx change-firewall --base origin/main
+
+# 5. Emit machine-readable JSON for CI pipelines or AI agent loops
+npx change-firewall --json`,
+          bulletPoints: [
+            'Overall Risk Score (0-100): Calculated from blast radius, contract shifts, and file sensitivity',
+            'Behavioral Mutation: Identifies shifts like DEPENDENCY SHIFT, CONTRACT MUTATION, or PURE REFACTOR',
+            'Downstream Blast Radius: Counts all affected callers across the entire repository',
+            '100% offline & local execution with zero cloud telemetry or token costs',
+          ],
+          prevDocId: 'core-concepts',
           nextDocId: 'cli-interactive',
         },
       },
@@ -274,33 +181,114 @@ npx change-firewall mcp`,
         folderTitle: 'CLI Command Reference',
         fileName: 'interactive.md',
         title: 'change-firewall interactive (inspect)',
-        description: 'Keyboard-driven terminal inspector with call stacks, symbolic crash proof, and 11-D fingerprint.',
+        description: 'Keyboard-driven terminal inspector with call stacks, architecture graph, and symbolic crash proof.',
         readingTime: '2 min read',
         badge: 'Interactive TUI',
         content: {
           overview:
-            'Launches an interactive fullscreen terminal inspector preserving your terminal scrollback. Navigate findings with arrow keys, toggle call stacks, view mathematical runtime crash proofs, and generate instant test stubs.',
+            'When you want to thoroughly investigate findings, expand downstream caller stacks, review mathematical crash proofs, and copy auto-fixes without leaving your shell or opening a browser. Launches an interactive TUI in an alternate screen buffer, preserving 100% of your terminal scrollback history upon exit.',
+          callout: {
+            type: 'tip',
+            text: 'Why use this command? Inspect findings one-by-one with arrow keys and press [a] to immediately generate a copy-pasteable TypeScript repair snippet & Vitest stub.',
+          },
           codeLanguage: 'bash',
-          codeExample: `# Launch interactive terminal inspector
+          codeExample: `# Launch interactive terminal inspector (both commands are identical)
+npx change-firewall inspect
 npx change-firewall interactive
 
-# Alias shortcut
-npx change-firewall inspect
-
-# Inspect staged changes only
+# Inspect only staged changes
 npx change-firewall inspect --staged`,
           table: {
-            headers: ['Key / Shortcut', 'Action', 'Description'],
+            headers: ['Key / Shortcut', 'Action', 'What It Shows'],
             rows: [
-              ['↓ / ↑ or j / k', 'Scroll Findings', 'Navigate between detected behavioral shifts'],
-              ['Tab', 'Call Stacks & Blast Radius', 'Expand direct and indirect downstream callers'],
-              ['p', 'Symbolic Crash Proof', 'Inspect deterministic runtime exception trace'],
-              ['f', '11-D Fingerprint Matrix', 'Inspect active behavioral mutation vectors'],
-              ['a', 'Auto-Fix & Test Stub', 'Generate 1-line code fix and Vitest test stub'],
-              ['q / Ctrl+C', 'Quit', 'Cleanly exit and restore original terminal buffer'],
+              ['↓ / ↑ or j / k', 'Browse Findings', 'Scroll between detected contract mutations and risk badges'],
+              ['Tab', 'Call Stacks & Blast Radius', 'Expands full downstream caller list and blast radius depth'],
+              ['g', 'Architecture Graph', 'Displays Unicode Behavior Graph tree directly in the TUI'],
+              ['p', 'Symbolic Crash Proof', 'Traces deterministic runtime exception paths to exact caller line numbers'],
+              ['f', '11-D Fingerprint Matrix', 'Displays the 11-dimensional behavioral mutation vector radar'],
+              ['a', 'Auto-Fix & Test Stub', 'Generates 1-line code fix and Vitest test stub ready to paste'],
+              ['q / Ctrl+C', 'Quit', 'Cleanly exits and restores normal terminal cursor & scrollback'],
             ],
           },
-          prevDocId: 'cli-mcp',
+          prevDocId: 'cli-analyze',
+          nextDocId: 'cli-audit-agent',
+        },
+      },
+      {
+        id: 'cli-audit-agent',
+        folderId: 'cli-commands',
+        folderTitle: 'CLI Command Reference',
+        fileName: 'audit-agent.md',
+        title: 'change-firewall audit-agent',
+        description: 'Audits AI agent prompt intent vs actual code mutations to catch stealth changes and scope drift.',
+        readingTime: '2 min read',
+        badge: 'Agent Safety',
+        content: {
+          overview:
+            'AI coding assistants frequently claim a harmless task (e.g. "Fix button padding and header colors") but secretly modify auth guards, alter database models, or touch 15+ backend files. audit-agent compares the stated prompt text (-i "...") against the real TypeScript AST diffs. If an unannounced contract shift or non-UI mutation occurred, it flags a STEALTH_MUTATION and exits with code 1 to block the PR!',
+          callout: {
+            type: 'warning',
+            text: 'Why use this command? Run it in CI/CD against pull request titles or AI prompt descriptions to guarantee autonomous agents never sneak unauthorized backend changes into production.',
+          },
+          codeLanguage: 'bash',
+          codeExample: `# 1. Audit an agent task prompt against current uncommitted diffs
+npx change-firewall audit-agent -i "Fix button padding and header colors"
+
+# 2. Audit a truthful, aligned task prompt
+npx change-firewall audit-agent -i "Update firewall contract memory and BehaviorRole type"
+
+# 3. Automated GitHub Actions usage (audits against the PR title)
+npx change-firewall audit-agent -i "\${{ github.event.pull_request.title }}"`,
+          table: {
+            headers: ['Verdict', 'Drift Score', 'Behavior & CI Exit Code'],
+            rows: [
+              ['✓ ALIGNED', '0% Drift', 'Code mutations strictly match stated intent. Exit code 0 (Safe).'],
+              ['ℹ️ MINOR_DRIFT', '1–39% Drift', 'Minor peripheral adjustments detected. Exit code 0 (Approved).'],
+              ['⚠️ HIGH_DRIFT', '40–59% Drift', 'Changes exceed declared scope. Exit code 1 (Review Required).'],
+              ['🚨 STEALTH_MUTATION', '≥60% Drift', 'Critical intent mismatch (e.g., UI claimed, auth/types touched). Exit code 1 (Blocked).'],
+            ],
+          },
+          prevDocId: 'cli-interactive',
+          nextDocId: 'cli-preflight',
+        },
+      },
+      {
+        id: 'cli-preflight',
+        folderId: 'cli-commands',
+        folderTitle: 'CLI Command Reference',
+        fileName: 'preflight.md',
+        title: 'change-firewall preflight (gate)',
+        description: 'Automated merge readiness gate for pre-commit hooks, CI/CD pipelines, and GitHub Actions.',
+        readingTime: '2 min read',
+        badge: 'Merge Gate',
+        content: {
+          overview:
+            'Evaluates whether the current changeset is safe to merge into main. Exits with status code 0 if safe, or code 1 if blocked by broken contracts, excessive blast radius, or threshold breaches.',
+          callout: {
+            type: 'tip',
+            text: 'Why use this command? Use it in CI/CD workflows and pre-commit hooks as an automated quality gate that prevents high-risk changes from entering production.',
+          },
+          codeLanguage: 'bash',
+          codeExample: `# Standard preflight gate (fails if risk > 60 or high-severity findings exist)
+npx change-firewall preflight
+
+# Concise CI alias
+npx change-firewall gate
+
+# Specify custom risk tolerance (e.g., maximum score of 40)
+npx change-firewall preflight --max-risk 40
+
+# Compare PR against base branch in GitHub Actions
+npx change-firewall preflight --base origin/main
+
+# JSON output for automated bot comments and decision loops
+npx change-firewall preflight --json`,
+          bulletPoints: [
+            'Exit Code 0: Safe to merge. All contract invariants and risk limits are satisfied.',
+            'Exit Code 1: Merge blocked. One or more critical contract violations or risk breaches detected.',
+            '--no-fail-on-high: Soften gate to only evaluate overall score without auto-failing on single findings',
+          ],
+          prevDocId: 'cli-audit-agent',
           nextDocId: 'cli-graph',
         },
       },
@@ -315,19 +303,54 @@ npx change-firewall inspect --staged`,
         badge: 'Behavior Graph',
         content: {
           overview:
-            'Classifies the architectural role of target files (API_ROUTE, AUTH_BOUNDARY, DATABASE_MODEL, TEST_SUITE, EVENT_PRODUCER, EVENT_CONSUMER) and displays incoming callers, outgoing dependencies, and protected data flows.',
+            'Classifies the architectural role of target files (API_ROUTE, AUTH_BOUNDARY, DATABASE_MODEL, SERVICE, TEST_SUITE, EVENT_CONSUMER) and displays incoming callers, outgoing dependencies, and protected data flows.',
+          callout: {
+            type: 'info',
+            text: 'Why use this command? When you want to understand what a file does in the broader architecture and see every single component that imports it.',
+          },
           codeLanguage: 'bash',
           codeExample: `# Render behavior graph for core entrypoint
 npx change-firewall graph src/index.ts
 
 # Inspect API route critical flow (Route ➔ Auth Guard ➔ DB Model)
-npx change-firewall graph src/routes/user.ts`,
+npx change-firewall graph src/types/index.ts`,
           bulletPoints: [
             'Classifies semantic architectural roles with zero configuration',
             'Uncovers unprotected data access paths (missing auth guards)',
-            'Displays multi-hop downstream execution flows',
+            'Displays multi-hop downstream execution flows with exact caller roles',
           ],
-          prevDocId: 'cli-interactive',
+          prevDocId: 'cli-preflight',
+          nextDocId: 'cli-impact',
+        },
+      },
+      {
+        id: 'cli-impact',
+        folderId: 'cli-commands',
+        folderTitle: 'CLI Command Reference',
+        fileName: 'impact.md',
+        title: 'change-firewall impact <file>',
+        description: 'Calculates the downstream ripple effect, affected routes, and consumer components for any file.',
+        readingTime: '1 min read',
+        badge: 'Blast Radius',
+        content: {
+          overview:
+            'Traverses the reverse import dependency graph using breadth-first search to find all direct and transitive consumers up to 3 hops deep. Know exactly who will be affected before you refactor a function or service.',
+          callout: {
+            type: 'tip',
+            text: 'Why use this command? Run it before touching a shared file or type to know your exact blast radius before writing code.',
+          },
+          codeLanguage: 'bash',
+          codeExample: `# Inspect downstream impact of changing auth service
+npx change-firewall impact src/services/auth.ts
+
+# Inspect impact of modifying a core UI component
+npx change-firewall impact src/components/Button.tsx`,
+          bulletPoints: [
+            'Displays total consumer count and depth breakdown',
+            'Highlights critical API routes and controller endpoints',
+            'Shows exact imported symbols per consumer file',
+          ],
+          prevDocId: 'cli-graph',
           nextDocId: 'cli-memory',
         },
       },
@@ -342,7 +365,11 @@ npx change-firewall graph src/routes/user.ts`,
         badge: 'Temporal Memory',
         content: {
           overview:
-            'Persists verified symbol contracts and endpoint schemas in .firewall/memory/. Detects broken invariants when code that has been stable for dozens of commits is unexpectedly altered.',
+            'Persists verified symbol contracts and endpoint schemas in .firewall/memory/invariants.json. Detects broken invariants when code that has been stable for dozens of commits is unexpectedly altered by an AI assistant.',
+          callout: {
+            type: 'info',
+            text: 'Why use this command? Protects legacy code and long-standing contracts from being silently broken during large automated refactors.',
+          },
           codeLanguage: 'bash',
           codeExample: `# View persistent memory status & verified invariants count
 npx change-firewall memory status
@@ -352,38 +379,69 @@ npx change-firewall memory record
 
 # Reset persistent memory
 npx change-firewall memory reset`,
-          callout: {
-            type: 'info',
-            text: 'When an AI agent modifies a function with 50+ commits of historical stability, Change Firewall flags a Broken Historical Invariant.',
-          },
-          prevDocId: 'cli-graph',
-          nextDocId: 'cli-audit-agent',
+          bulletPoints: [
+            'Stamps the real Git commit hash and timestamp onto verified contracts',
+            'Tracks historical commit observation counts per function/type',
+            'Automatically alerts on Broken Historical Invariants when stable code mutates',
+          ],
+          prevDocId: 'cli-impact',
+          nextDocId: 'cli-watch',
         },
       },
       {
-        id: 'cli-audit-agent',
+        id: 'cli-watch',
         folderId: 'cli-commands',
         folderTitle: 'CLI Command Reference',
-        fileName: 'audit-agent.md',
-        title: 'change-firewall audit-agent',
-        description: 'Audits AI agent prompt intent vs actual code mutations to detect stealth changes.',
-        readingTime: '2 min read',
-        badge: 'Agent Safety',
+        fileName: 'watch.md',
+        title: 'change-firewall watch',
+        description: 'Live file watcher that streams real-time updates over Server-Sent Events (SSE) to your browser.',
+        readingTime: '1 min read',
+        badge: 'Live Dashboard',
         content: {
           overview:
-            'Compares the stated prompt or task given to an AI coding assistant against the uncommitted AST mutations. Flags STEALTH_MUTATION with high drift scores if the agent touched auth guards, deleted contracts, or altered databases without declaring it.',
+            'Launches an embedded file watcher and HTTP server. Whenever an AI agent writes or modifies code in your workspace, the dashboard recalculates risk in milliseconds and updates live over Server-Sent Events (SSE) without page reloads.',
+          callout: {
+            type: 'tip',
+            text: 'Why use this command? Keep it running on a second monitor while working with Cursor, Devin, or Claude Code to see your risk score update live as files are saved.',
+          },
           codeLanguage: 'bash',
-          codeExample: `# Audit stated intent against current uncommitted diffs
-npx change-firewall audit-agent -i "Fix button padding and header colors"
+          codeExample: `# Start watch mode on default port 4783
+npx change-firewall watch
 
-# Output machine-readable audit report for CI gates
-npx change-firewall audit-agent -i "Refactor payment service" --json`,
+# Custom port without auto-opening the browser
+npx change-firewall watch -p 5000 --no-open`,
           bulletPoints: [
-            'ALIGNED (0% Drift): Code mutations match declared intent',
-            'MODERATE_DRIFT (1-49% Drift): Minor auxiliary adjustments detected',
-            'STEALTH_MUTATION (≥50% Drift): Unannounced security or contract shifts (blocks merge)',
+            'Debounced file watcher (350ms) prevents thrashing during multi-file AI writes',
+            'Streams deltas directly to web dashboard via SSE',
+            'Zero configuration required — automatically discovers project root',
           ],
           prevDocId: 'cli-memory',
+          nextDocId: 'cli-open',
+        },
+      },
+      {
+        id: 'cli-open',
+        folderId: 'cli-commands',
+        folderTitle: 'CLI Command Reference',
+        fileName: 'open.md',
+        title: 'change-firewall open',
+        description: 'Spins up the embedded local web dashboard loaded with current working tree analysis.',
+        readingTime: '1 min read',
+        badge: 'Web UI',
+        content: {
+          overview:
+            'Launches the rich, interactive browser visualizer at http://localhost:4783. Explore interactive node graphs, click nodes to view blast radiuses, and review side-by-side AST contract comparisons.',
+          callout: {
+            type: 'info',
+            text: 'Why use this command? When you prefer a beautiful, graphical interface over the terminal to visually explore dependencies and findings.',
+          },
+          codeLanguage: 'bash',
+          codeExample: `# Open local dashboard on default port
+npx change-firewall open
+
+# Specify custom port
+npx change-firewall open -p 5000`,
+          prevDocId: 'cli-watch',
           nextDocId: 'cli-why',
         },
       },
@@ -399,9 +457,36 @@ npx change-firewall audit-agent -i "Refactor payment service" --json`,
         content: {
           overview:
             'Combines git commit history, churn frequency, author count, and downstream consumer blast radius to explain why a file is sensitive.',
+          callout: {
+            type: 'info',
+            text: 'Why use this command? Run it before editing an unfamiliar file to understand who wrote it, how often it changes, and its sensitivity.',
+          },
           codeLanguage: 'bash',
-          codeExample: `npx change-firewall why src/middlewares/auth.ts`,
-          prevDocId: 'cli-audit-agent',
+          codeExample: `npx change-firewall why src/index.ts`,
+          prevDocId: 'cli-open',
+          nextDocId: 'cli-mcp',
+        },
+      },
+      {
+        id: 'cli-mcp',
+        folderId: 'cli-commands',
+        folderTitle: 'CLI Command Reference',
+        fileName: 'mcp.md',
+        title: 'change-firewall mcp',
+        description: 'Starts the Model Context Protocol (MCP) server over standard I/O for native AI integration.',
+        readingTime: '2 min read',
+        badge: 'Stdio MCP',
+        content: {
+          overview:
+            'Starts a standard JSON-RPC 2.0 MCP server over stdio. Connects natively with Claude Desktop, Google Antigravity, Cursor, and Windsurf, enabling AI agents to autonomously evaluate diffs and self-heal breaking changes.',
+          callout: {
+            type: 'info',
+            text: 'Why use this command? Configure it in your AI assistant to give the model superpowers: it can call Change Firewall tools autonomously to test and fix its own code.',
+          },
+          codeLanguage: 'bash',
+          codeExample: `# Start MCP server process (normally managed by the AI client)
+npx change-firewall mcp`,
+          prevDocId: 'cli-why',
           nextDocId: 'mcp-claude',
         },
       },

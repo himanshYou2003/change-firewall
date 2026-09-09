@@ -154,9 +154,30 @@ function parseSourceFile(filePath: string, content: string): ParsedFile {
       });
     }
 
-    // Check return expressions
+    // Check return expressions (ignore JSX component markup)
     if (ts.isReturnStatement(node) && node.expression) {
-      returnExpressions.push(node.expression.getText(sourceFile).trim());
+      const isJsx =
+        ts.isJsxElement(node.expression) ||
+        ts.isJsxFragment(node.expression) ||
+        ts.isJsxSelfClosingElement(node.expression) ||
+        (ts.isParenthesizedExpression(node.expression) &&
+          (ts.isJsxElement(node.expression.expression) ||
+            ts.isJsxFragment(node.expression.expression) ||
+            ts.isJsxSelfClosingElement(node.expression.expression)));
+
+      if (!isJsx) {
+        const text = node.expression.getText(sourceFile).trim();
+        // Also ensure not raw JSX starting with < or HTML document template literals
+        const isHtmlTemplate =
+          text.startsWith('`<!DOCTYPE') ||
+          text.startsWith('`<html') ||
+          text.startsWith('`<!doctype') ||
+          text.startsWith('"<!DOCTYPE') ||
+          text.startsWith("'<!DOCTYPE");
+        if (!text.startsWith('<') && !text.startsWith('(<') && !isHtmlTemplate) {
+          returnExpressions.push(text);
+        }
+      }
     }
 
     // Check throws
@@ -213,7 +234,7 @@ function parseSourceFile(filePath: string, content: string): ParsedFile {
       const isAuthRelated =
         conditionText.includes('auth') ||
         conditionText.includes('user') ||
-        conditionText.includes('role') ||
+        (conditionText.includes('role') && !conditionText.includes('node.role') && !conditionText.includes('BehaviorRole')) ||
         conditionText.includes('permission') ||
         conditionText.includes('token') ||
         conditionText.includes('session');
@@ -365,9 +386,11 @@ export function analyzeASTDiff(
 
     if (beforePrimary !== afterPrimary) {
       returnShapeChanged = true;
-      beforeReturnShape = beforePrimary;
-      afterReturnShape = afterPrimary;
-      details.push(`Return statement changed from '${beforePrimary}' to '${afterPrimary}'`);
+      const cleanBefore = beforePrimary.replace(/\s+/g, ' ').slice(0, 80);
+      const cleanAfter = afterPrimary.replace(/\s+/g, ' ').slice(0, 80);
+      beforeReturnShape = cleanBefore;
+      afterReturnShape = cleanAfter;
+      details.push(`Return statement changed from '${cleanBefore}' to '${cleanAfter}'`);
     }
   }
 

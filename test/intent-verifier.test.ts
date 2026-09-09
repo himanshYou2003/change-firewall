@@ -53,4 +53,54 @@ describe('AI Agent Intent vs Reality Verifier', () => {
     expect(audit.driftScore).toBe(0);
     expect(audit.unannouncedMutations.length).toBe(0);
   });
+
+  it('detects STEALTH_MUTATION when agent claims UI styling but changes type contracts and backend files', () => {
+    const findings: BehavioralFinding[] = [
+      {
+        id: 'f-3',
+        category: 'FUNCTION_CONTRACT',
+        title: 'Export Contract Changed: BehaviorRole',
+        description: 'Exported signature changed',
+        severity: 'HIGH',
+        confidence: 89,
+        filePath: 'src/types/index.ts',
+        evidence: ['Added SERVICE to union'],
+        affectedFiles: ['src/core/agent/intent-verifier.ts'],
+        recommendation: 'Audit call-sites',
+      },
+    ];
+
+    const diffs: ASTDiff[] = [
+      {
+        filePath: 'src/types/index.ts',
+        symbols: [],
+        returnShapeChanged: false,
+        authConditionChanged: false,
+        errorHandlingChanged: false,
+        validationChanged: false,
+        callsAdded: [],
+        callsRemoved: [],
+        details: [],
+      },
+      {
+        filePath: 'src/core/analyzer/behavior-analyzer.ts',
+        symbols: [],
+        returnShapeChanged: false,
+        authConditionChanged: false,
+        errorHandlingChanged: false,
+        validationChanged: false,
+        callsAdded: [],
+        callsRemoved: [],
+        details: [],
+      },
+    ];
+
+    const audit = auditAgentIntent('Fix button padding and header colors', findings, diffs);
+
+    expect(audit.verdict).toBe('STEALTH_MUTATION');
+    expect(audit.driftScore).toBeGreaterThanOrEqual(60);
+    expect(audit.unannouncedMutations.length).toBeGreaterThanOrEqual(2);
+    expect(audit.unannouncedMutations.some((m) => m.includes('Contract Shift'))).toBe(true);
+    expect(audit.unannouncedMutations.some((m) => m.includes('Non-UI Modifications'))).toBe(true);
+  });
 });

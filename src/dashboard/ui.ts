@@ -1226,7 +1226,7 @@ export function getDashboardHtml(report: AnalysisReport): string {
         <div>
           <div class="brand-title-wrap">
             <span class="brand-title">Change Firewall</span>
-            <span class="brand-version-pill">v0.2.1</span>
+            <span class="brand-version-pill">v0.2.2</span>
           </div>
           <div class="brand-subtitle">AI Code Change Behavioral Verification Engine</div>
         </div>
@@ -1364,7 +1364,37 @@ export function getDashboardHtml(report: AnalysisReport): string {
                 </svg>
               </span>
               <div class="legend-dot" style="background: var(--brand-danger);"></div>
-              <span>Protected Route / High Blast</span>
+              <span>API Route / High Blast</span>
+            </div>
+
+            <div class="legend-item">
+              <span class="legend-icon-wrap" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2v20 M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+              </span>
+              <div class="legend-dot" style="background: #10b981;"></div>
+              <span>Service</span>
+            </div>
+
+            <div class="legend-item">
+              <span class="legend-icon-wrap" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+              </span>
+              <div class="legend-dot" style="background: #f59e0b;"></div>
+              <span>Auth Guard</span>
+            </div>
+
+            <div class="legend-item">
+              <span class="legend-icon-wrap" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.58 4 8 4s8-1.79 8-4M4 7c0-2.21 3.58-4 8-4s8 1.79 8 4"/>
+                </svg>
+              </span>
+              <div class="legend-dot" style="background: #3b82f6;"></div>
+              <span>DB Model</span>
             </div>
           </div>
         </div>
@@ -1377,15 +1407,19 @@ export function getDashboardHtml(report: AnalysisReport): string {
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               </svg>
-              <input type="text" id="graph-search" class="graph-search-input" placeholder="Search node or route..." />
+              <input type="text" id="graph-search" class="graph-search-input" placeholder="Search node, role, or consumer..." />
             </div>
 
             <div class="graph-filter-group">
               <span class="graph-toolbar-label">Role:</span>
               <button class="graph-pill-btn active" data-filter="all" onclick="filterGraphRole('all')">All</button>
               <button class="graph-pill-btn" data-filter="source" onclick="filterGraphRole('source')">Modified</button>
-              <button class="graph-pill-btn" data-filter="consumer" onclick="filterGraphRole('consumer')">Consumers</button>
               <button class="graph-pill-btn" data-filter="route" onclick="filterGraphRole('route')">Routes</button>
+              <button class="graph-pill-btn" data-filter="service" onclick="filterGraphRole('service')">Services</button>
+              <button class="graph-pill-btn" data-filter="model" onclick="filterGraphRole('model')">Models</button>
+              <button class="graph-pill-btn" data-filter="auth" onclick="filterGraphRole('auth')">Auth</button>
+              <button class="graph-pill-btn" data-filter="test" onclick="filterGraphRole('test')">Tests</button>
+              <button class="graph-pill-btn" data-filter="consumer" onclick="filterGraphRole('consumer')">Other</button>
             </div>
 
             <div class="graph-layout-group">
@@ -1535,7 +1569,7 @@ export function getDashboardHtml(report: AnalysisReport): string {
       <div>
         <a href="https://github.com/himanshYou2003/change-firewall" target="_blank" rel="noreferrer">GitHub</a>
         <span style="margin: 0 8px; opacity: 0.4;">|</span>
-        <a href="https://www.npmjs.com/package/change-firewall" target="_blank" rel="noreferrer">NPM v0.2.1</a>
+        <a href="https://www.npmjs.com/package/change-firewall" target="_blank" rel="noreferrer">NPM v0.2.2</a>
       </div>
     </footer>
   </div>
@@ -1571,6 +1605,11 @@ export function getDashboardHtml(report: AnalysisReport): string {
     }
 
     // Path & String Sanitizer Helpers (safe against unescaped newlines/regex tokens)
+    function normalizeClientPath(p) {
+      if (!p) return '';
+      return String(p).split(String.fromCharCode(92)).join('/');
+    }
+
     function getFileBaseName(p) {
       if (!p) return '';
       var slashIdx = Math.max(p.lastIndexOf('/'), p.lastIndexOf(String.fromCharCode(92)));
@@ -2315,48 +2354,92 @@ export function getDashboardHtml(report: AnalysisReport): string {
       var edges = [];
       var edgeKeySet = new Set();
 
+      function getNodeBehaviorRole(filePath) {
+        if (report && report.behaviorGraph && report.behaviorGraph.nodes) {
+          var bn = report.behaviorGraph.nodes[filePath] || report.behaviorGraph.nodes[normalizeClientPath(filePath)];
+          if (bn && bn.role) return bn.role;
+        }
+        var lower = filePath.toLowerCase();
+        if (lower.includes('/routes/') || lower.includes('/api/') || lower.endsWith('route.ts') || lower.endsWith('route.js') || lower.includes('controller')) return 'API_ROUTE';
+        if (lower.includes('/services/') || lower.includes('/service/') || lower.endsWith('.service.ts') || lower.endsWith('.service.js')) return 'SERVICE';
+        if (lower.includes('auth') || lower.includes('guard') || lower.includes('middleware') || lower.includes('permission')) return 'AUTH_BOUNDARY';
+        if (lower.includes('model') || lower.includes('schema') || lower.includes('prisma') || lower.includes('entities')) return 'DATABASE_MODEL';
+        if (lower.includes('.test.') || lower.includes('.spec.') || lower.includes('/tests/') || lower.includes('/__tests__/')) return 'TEST_SUITE';
+        return 'INTERNAL_LOGIC';
+      }
+
+      function resolveVisualType(file, isSource) {
+        if (isSource) return 'source';
+        var r = getNodeBehaviorRole(file);
+        if (r === 'API_ROUTE') return 'route';
+        if (r === 'SERVICE') return 'service';
+        if (r === 'AUTH_BOUNDARY') return 'auth';
+        if (r === 'DATABASE_MODEL') return 'model';
+        if (r === 'TEST_SUITE') return 'test';
+        return 'consumer';
+      }
+
       // 1. Collect all nodes
       blastEntries.forEach(function(entry) {
         var file = entry[0];
         var blast = entry[1];
-        var isRoute = blast.affectedRoutes && blast.affectedRoutes.indexOf(file) !== -1;
+        var bRole = getNodeBehaviorRole(file);
         nodes.set(file, {
           id: file,
           label: getFileBaseName(file),
           fullPath: file,
-          type: isRoute ? 'route' : 'source',
+          type: 'source',
+          behaviorRole: bRole,
           blast: blast,
         });
       });
+
+      var behaviorEdgeMap = new Map();
+      if (report && report.behaviorGraph && report.behaviorGraph.edges) {
+        report.behaviorGraph.edges.forEach(function(e) {
+          behaviorEdgeMap.set(e.source + '->' + e.target, e);
+          behaviorEdgeMap.set(normalizeClientPath(e.source) + '->' + normalizeClientPath(e.target), e);
+        });
+      }
 
       blastEntries.forEach(function(entry) {
         var file = entry[0];
         var blast = entry[1];
         (blast.directDependents || []).forEach(function(dep) {
           if (!nodes.has(dep)) {
-            var isRoute = blast.affectedRoutes && blast.affectedRoutes.indexOf(dep) !== -1;
+            var bRole = getNodeBehaviorRole(dep);
+            var vType = resolveVisualType(dep, false);
             nodes.set(dep, {
               id: dep,
               label: getFileBaseName(dep),
               fullPath: dep,
-              type: isRoute ? 'route' : 'consumer',
+              type: vType,
+              behaviorRole: bRole,
               blast: (report.blastRadiusMap && report.blastRadiusMap[dep]) || { totalConsumers: 0, directDependents: [] },
             });
           }
           var edgeKey = file + '->' + dep;
           if (!edgeKeySet.has(edgeKey) && file !== dep) {
             edgeKeySet.add(edgeKey);
-            edges.push({ from: file, to: dep });
+            var bEdge = behaviorEdgeMap.get(file + '->' + dep) || behaviorEdgeMap.get(dep + '->' + file);
+            edges.push({
+              from: file,
+              to: dep,
+              relationship: bEdge ? bEdge.relationship : 'imports',
+              details: bEdge ? bEdge.details : undefined
+            });
           }
         });
 
         (blast.affectedRoutes || []).forEach(function(route) {
           if (!nodes.has(route)) {
+            var bRole = getNodeBehaviorRole(route);
             nodes.set(route, {
               id: route,
               label: getFileBaseName(route),
               fullPath: route,
               type: 'route',
+              behaviorRole: bRole,
               blast: (report.blastRadiusMap && report.blastRadiusMap[route]) || { totalConsumers: 0, directDependents: [] },
             });
           }
@@ -2737,7 +2820,11 @@ export function getDashboardHtml(report: AnalysisReport): string {
 
         var getColor = function(type) {
           if (type === 'source') return isDark ? '#a855f7' : '#6d28d9';
-          if (type === 'route') return isDark ? '#f87171' : '#dc2626';
+          if (type === 'route') return isDark ? '#f43f5e' : '#dc2626';
+          if (type === 'service') return isDark ? '#10b981' : '#059669';
+          if (type === 'auth') return isDark ? '#f59e0b' : '#d97706';
+          if (type === 'model') return isDark ? '#3b82f6' : '#2563eb';
+          if (type === 'test') return isDark ? '#84cc16' : '#65a30d';
           return isDark ? '#38bdf8' : '#0369a1';
         };
 
@@ -2773,7 +2860,9 @@ export function getDashboardHtml(report: AnalysisReport): string {
         path.addEventListener('mouseenter', function(ev) {
           if (edgeTooltip) {
             edgeTooltip.style.display = 'block';
-            edgeTooltip.innerHTML = '<span style="color: ' + colorFrom + '; font-weight:700;">' + fromNode.label + '</span> ➔ <span style="color: ' + colorTo + '; font-weight:700;">' + toNode.label + '</span> <span style="color: var(--text-muted); font-size: 10px;">(' + (fromNode.type === 'source' ? 'imports' : 'downstream') + ')</span>';
+            var relText = edge.relationship || (fromNode.type === 'source' ? 'imports' : 'downstream');
+            if (edge.details) relText += ': ' + edge.details;
+            edgeTooltip.innerHTML = '<span style="color: ' + colorFrom + '; font-weight:700;">' + fromNode.label + '</span> ➔ <span style="color: ' + colorTo + '; font-weight:700;">' + toNode.label + '</span> <span style="color: var(--text-muted); font-size: 10px;">(' + relText + ')</span>';
             var wrapRect = document.getElementById('graph-wrapper').getBoundingClientRect();
             edgeTooltip.style.left = (ev.clientX - wrapRect.left) + 'px';
             edgeTooltip.style.top = (ev.clientY - wrapRect.top) + 'px';
@@ -2814,10 +2903,30 @@ export function getDashboardHtml(report: AnalysisReport): string {
           typeBadge = 'Modified';
           iconPath = 'M12 20h9 M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z';
         } else if (node.type === 'route') {
-          stroke = isDark ? '#f87171' : '#dc2626';
+          stroke = isDark ? '#f43f5e' : '#dc2626';
           iconColor = stroke;
-          typeBadge = 'Route';
+          typeBadge = 'API Route';
           iconPath = 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z M12 8v4 M12 16h.01';
+        } else if (node.type === 'service') {
+          stroke = isDark ? '#10b981' : '#059669';
+          iconColor = stroke;
+          typeBadge = 'Service';
+          iconPath = 'M12 2v20 M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6';
+        } else if (node.type === 'auth') {
+          stroke = isDark ? '#f59e0b' : '#d97706';
+          iconColor = stroke;
+          typeBadge = 'Auth Guard';
+          iconPath = 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z';
+        } else if (node.type === 'model') {
+          stroke = isDark ? '#3b82f6' : '#2563eb';
+          iconColor = stroke;
+          typeBadge = 'DB Model';
+          iconPath = 'M4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.58 4 8 4s8-1.79 8-4M4 7c0-2.21 3.58-4 8-4s8 1.79 8 4';
+        } else if (node.type === 'test') {
+          stroke = isDark ? '#84cc16' : '#65a30d';
+          iconColor = stroke;
+          typeBadge = 'Test Suite';
+          iconPath = 'M9 11l3 3L22 4 M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11';
         }
 
         var rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
@@ -2947,10 +3056,13 @@ export function getDashboardHtml(report: AnalysisReport): string {
       document.getElementById('inspector-title').textContent = node.fullPath;
       
       var badge = document.getElementById('inspector-badge');
+      var roleText = (node.behaviorRole || node.type).toUpperCase().replace(/_/g, ' ');
       badge.className = node.type === 'source' ? 'badge-medium' : (node.type === 'route' ? 'badge-high' : 'badge-low');
-      badge.textContent = node.type.toUpperCase();
+      badge.textContent = roleText;
 
-      document.getElementById('inspector-desc').textContent = 'Node Role: ' + node.type.toUpperCase() + ' • Direct Dependents: ' + (node.blast.directDependents ? node.blast.directDependents.length : 0) + ' • Total Blast Radius: ' + node.blast.totalConsumers + ' consumer(s)';
+      var dirCount = (node.blast && node.blast.directDependents) ? node.blast.directDependents.length : 0;
+      var totalCount = (node.blast && node.blast.totalConsumers) != null ? node.blast.totalConsumers : 0;
+      document.getElementById('inspector-desc').textContent = 'Role: ' + roleText + ' • Direct Dependents: ' + dirCount + ' • Total Blast Radius: ' + totalCount + ' consumer(s)';
 
       // Build interactive blast chain breadcrumbs
       var breadcrumbEl = document.getElementById('inspector-breadcrumb');
@@ -2996,7 +3108,61 @@ export function getDashboardHtml(report: AnalysisReport): string {
         detailsHtml += '<div style="color: var(--text-muted); font-size: 13px;">No breaking behavioral findings directly rooted in this node.</div>';
       }
 
+      // Render All Downstream Consumers (Complete List without Truncation)
+      var directDeps = (node.blast && node.blast.directDependents) || [];
+      var indirectDeps = (node.blast && node.blast.indirectDependents) || [];
+      var allDeps = directDeps.concat(indirectDeps.filter(function(x) { return directDeps.indexOf(x) === -1; }));
+
+      if (allDeps.length > 0) {
+        detailsHtml += '<div style="margin-top: 16px; margin-bottom: 6px; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--brand-cyan); display: flex; justify-content: space-between; align-items: center;">' +
+          '<span>All Downstream Consumers (' + allDeps.length + ' total):</span>' +
+          '<span style="font-size: 10px; font-weight: 500; color: var(--text-muted);">Click to jump</span>' +
+        '</div>';
+        detailsHtml += '<div style="display: flex; flex-direction: column; gap: 4px; max-height: 220px; overflow-y: auto; padding-right: 4px;">';
+        allDeps.forEach(function(dep) {
+          var isDirect = directDeps.indexOf(dep) !== -1;
+          var depRole = (report.behaviorGraph && report.behaviorGraph.nodes && (report.behaviorGraph.nodes[dep] || report.behaviorGraph.nodes[normalizeClientPath(dep)]))?.role || (isDirect ? 'DIRECT' : 'INDIRECT');
+          detailsHtml += '<button class="consumer-jump-btn" data-center-node="' + encodeURIComponent(dep) + '" style="display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; width: 100%; text-align: left; background: var(--surface-card); border: 1px solid var(--border-subtle); border-radius: 6px; cursor: pointer; transition: all 0.2s;">' +
+            '<span style="font-family: var(--font-jetbrains); font-size: 12px; color: var(--text-normal); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' + dep + '</span>' +
+            '<span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; background: ' + (isDirect ? 'rgba(56, 189, 248, 0.15)' : 'var(--surface-hover)') + '; color: ' + (isDirect ? 'var(--brand-cyan)' : 'var(--text-muted)') + '; font-weight: 600; white-space: nowrap; margin-left: 8px;">' + depRole.replace(/_/g, ' ') + '</span>' +
+          '</button>';
+        });
+        detailsHtml += '</div>';
+      }
+
+      // Critical Execution Paths
+      if (report.behaviorGraph && report.behaviorGraph.criticalPaths) {
+        var touchingPaths = report.behaviorGraph.criticalPaths.filter(function(cp) {
+          return cp.steps && cp.steps.some(function(s) {
+            return s === node.id || s === node.fullPath || s === normalizeClientPath(node.fullPath);
+          });
+        });
+        if (touchingPaths.length > 0) {
+          detailsHtml += '<div style="margin-top: 16px; margin-bottom: 6px; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--brand-danger);">' +
+            '⚡ Critical Execution Paths (' + touchingPaths.length + '):' +
+          '</div>';
+          touchingPaths.forEach(function(cp) {
+            detailsHtml += '<div style="margin-bottom: 6px; padding: 8px 12px; background: rgba(244, 63, 94, 0.08); border-radius: 8px; border: 1px solid rgba(244, 63, 94, 0.2); font-size: 12px;">' +
+              '<div style="font-weight: 700; color: var(--brand-danger);">' + cp.name + ' <span style="font-size: 10px; padding: 1px 5px; border-radius: 4px; background: rgba(244, 63, 94, 0.2);">' + cp.riskLevel + '</span></div>' +
+              '<div style="color: var(--text-muted); font-size: 11px; margin-top: 2px;">' + cp.description + '</div>' +
+              '<div style="color: var(--brand-cyan); font-family: var(--font-jetbrains); font-size: 10px; margin-top: 4px;">' + cp.steps.join(' ➔ ') + '</div>' +
+            '</div>';
+          });
+        }
+      }
+
       document.getElementById('inspector-details').innerHTML = detailsHtml;
+
+      var inspectorDetails = document.getElementById('inspector-details');
+      if (inspectorDetails && !inspectorDetails.dataset.listenerAttached) {
+        inspectorDetails.dataset.listenerAttached = 'true';
+        inspectorDetails.addEventListener('click', function(e) {
+          var btn = e.target.closest('.consumer-jump-btn');
+          if (btn && btn.dataset.centerNode) {
+            centerOnNode(decodeURIComponent(btn.dataset.centerNode));
+          }
+        });
+      }
     }
 
     var breadcrumbEl = document.getElementById('inspector-breadcrumb');

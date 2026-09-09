@@ -42,7 +42,7 @@ export default function HeroTrailer() {
         {/* Release Pill Badge */}
         <div className="inline-flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-1.5 rounded-full bg-[var(--surface-100)] border border-[var(--border-subtle)] text-[var(--text-secondary)] text-[11px] sm:text-xs font-medium mb-6 max-w-full">
           <Terminal className="w-3.5 h-3.5 text-brand-cyan shrink-0" />
-          <span className="font-semibold text-[var(--text-primary)] whitespace-nowrap">Change Firewall v0.2.1</span>
+          <span className="font-semibold text-[var(--text-primary)] whitespace-nowrap">Change Firewall v0.2.2</span>
           <span className="text-[var(--text-muted)]">•</span>
           <span className="whitespace-nowrap font-medium text-brand-cyan">The 4 Genius Pillars</span>
           <span className="text-[var(--text-muted)] hidden xs:inline">•</span>
@@ -52,12 +52,12 @@ export default function HeroTrailer() {
         {/* Hero Title with fluid modern typography */}
         <h1
           ref={titleRef}
-          className="font-black tracking-tight text-[var(--text-primary)] max-w-6xl leading-[1.08] w-full"
+          className="font-black tracking-tight text-[var(--text-primary)] max-w-5xl leading-[1.08] w-full"
         >
-          <span className="block text-[clamp(1.15rem,3.8vw,3.25rem)] font-extrabold text-[var(--text-primary)] mb-1 sm:mb-2">
+          <span className="block text-[clamp(1.4rem,4.2vw,3.25rem)] font-extrabold text-[var(--text-primary)] mb-1 sm:mb-2">
             Your AI wrote the code.
           </span>
-          <span className="block text-[clamp(1.35rem,5.2vw,5rem)] font-black text-[#ff5c26] dark:text-[#ff6e38] whitespace-nowrap tracking-tight leading-[1.05]">
+          <span className="block text-[clamp(1.85rem,6.5vw,5rem)] font-black text-[#ff5c26] dark:text-[#ff6e38] tracking-tight leading-[1.05]">
             We tell you what it broke.
           </span>
         </h1>
