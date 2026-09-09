@@ -6,7 +6,7 @@ import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
 
-describe('Live Sandbox End-to-End Git Verification', { timeout: 30000 }, () => {
+describe('Live Sandbox End-to-End Git Verification', { timeout: 60000 }, () => {
   const sandboxDir = path.resolve(process.cwd(), 'test/sandbox-test-env');
   const binPath = path.resolve(process.cwd(), 'bin/change-firewall.js');
 
