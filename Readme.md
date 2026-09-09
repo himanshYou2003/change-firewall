@@ -37,9 +37,12 @@ A local-first developer tool, CLI, and TypeScript engine that translates raw Git
   - [10. `change-firewall open` (Dashboard Server)](#10-change-firewall-open-dashboard-server)
   - [11. `change-firewall demo` (Simulation Mode)](#11-change-firewall-demo-simulation-mode)
   - [12. `change-firewall mcp` (Model Context Protocol)](#12-change-firewall-mcp-model-context-protocol)
-- [🧬 v0.2.2 Advanced Intelligence & Guarantees](#-v022-advanced-intelligence--guarantees)
+- [🧬 v0.3.0 Advanced Intelligence, Crash Simulation & Remediation Center](#-v030-advanced-intelligence-crash-simulation--remediation-center)
   - [11-Dimensional Behavioral Fingerprint Matrix](#11-dimensional-behavioral-fingerprint-matrix)
   - [Symbolic Runtime Crash Proof (Zero Guesswork)](#symbolic-runtime-crash-proof-zero-guesswork)
+  - [Crash Simulation Sandbox & Live Impact Visualizer](#crash-simulation-sandbox--live-impact-visualizer)
+  - [Deterministic AI Agent Remediation Command Center](#deterministic-ai-agent-remediation-command-center)
+  - [Responsive Scrollable Tabs Navigation Bar](#responsive-scrollable-tabs-navigation-bar)
 - [💻 Programmatic Node.js / TypeScript API](#-programmatic-nodejs--typescript-api)
   - [`analyzeChanges()`](#1-analyzechanges)
   - [`evaluatePreflight()`](#2-evaluatepreflight)
@@ -217,28 +220,62 @@ npx change-firewall inspect --staged
 ---
 
 ### 3. `change-firewall audit-agent` (AI Intent vs Reality Verifier)
-> **The AI hallucination and stealth mutation detector.**
+> **The AI hallucination, stealth mutation, and intent grounding detector.**
 
 #### ❓ Why should I use this command?
-AI coding agents frequently claim one thing in their PR title (e.g. *"Fix button padding and header colors"*), but secretly modify authentication guards, change public TypeScript types, or touch 15+ backend files.
-`audit-agent` parses what the AI claimed it did (`-i "..."`) and compares it against the **real TypeScript AST diffs**. If a deceptive or out-of-scope mutation occurred, it flags a **`🚨 STEALTH MUTATION`** and exits with code `1` to block the PR!
+AI coding agents (Cursor, Claude, Copilot, Antigravity) frequently claim one thing in their prompt or PR title (e.g. *"Fix button padding and header colors"*), but secretly modify authentication guards, change public TypeScript types, or touch 15+ backend files.
+Conversely, agents might claim changes were made that don't match the actual code changes at all.
+
+`audit-agent` performs **Bidirectional Semantic Grounding** between what the AI claimed (`-i "..."`) and the **real TypeScript AST deltas**. If a deceptive, out-of-scope, or ungrounded claim is detected, it flags a **`🚨 STEALTH MUTATION`** and exits with code `1` to block the PR!
 
 ```bash
-# Audit an AI agent's stated intent against current uncommitted diffs
-npx change-firewall audit-agent -i "Fix button padding and header font size"
+# 1. Audit a truthful, backwards-compatible intent prompt (Drift: 0% ALIGNED)
+npx change-firewall audit-agent -i "extend getInsurers with optional customInsurers default parameter"
 
-# Audit a truthful task prompt
-npx change-firewall audit-agent -i "Update firewall contract memory and BehaviorRole type"
+# 2. Audit a feature change with declared signature changes
+npx change-firewall audit-agent -i "add real data to weightage calculator and update exported signatures"
 
-# Automated GitHub Actions usage (audits against the PR title)
+# 3. Detect ungrounded/gibberish claims (Zero semantic overlap -> 70% Drift STEALTH MUTATION)
+npx change-firewall audit-agent -i "have i added chinta ta ta tit it"
+
+# 4. Automated GitHub Actions usage (audits against the PR title)
 npx change-firewall audit-agent -i "${{ github.event.pull_request.title }}"
 ```
+
+#### 🎯 How to Prompt `audit-agent` the Right Way
+
+##### 1. Understanding Bidirectional Semantic Grounding
+`audit-agent` extracts **substantive tokens** by stripping away conversational filler and auxiliary verbs (`have`, `did`, `added`, `is`, `we`, `i`, `the`, etc.). The engine then verifies bidirectional alignment:
+- **Grounding Verification**: The substantive tokens in your prompt **must** have semantic overlap with the modified files, exported symbols, or architectural roles. If an intent claim shares 0 substantive keywords with the actual changes, Change Firewall flags an **`Unrelated Intent Claim`** with a **+70 penalty**, instantly triggering `STEALTH_MUTATION` and blocking the merge.
+- **Unannounced Contract Shifts**: If public export contracts or function signatures are modified, but the prompt does not declare contract or signature changes, each unannounced breaking change incurs a **+35 penalty**.
+
+##### 2. Solution A: Best Practice for Adding Parameters to Existing Functions
+When an agent or developer adds new parameters to an existing exported function, existing callers throughout the codebase can break if the new parameter is mandatory:
+
+```typescript
+// ❌ Dangerous (Breaking Contract Change - Triggers HIGH Contract Shift):
+export function getInsurers(channel: string, customInsurers: string[])
+
+// ✅ Solution A (Backwards-Compatible Extension - 0% Contract Drift Penalty):
+export function getInsurers(channel: string, customInsurers: string[] = [])
+```
+
+> **Why Solution A Works**: Giving new parameters a default value (`= null`, `= []`, or `= {}`) ensures existing callers continue functioning without modification. Change Firewall classifies this as a `LOW` backwards-compatible extension, resulting in **zero contract drift penalty**.
+
+##### 3. Prompting DOs and DON'Ts
+
+| Pattern | Prompt Example | Result & Why |
+| :--- | :--- | :--- |
+| 🟢 **DO (Specific & Truthful)** | `npx change-firewall audit-agent -i "extend getInsurers with optional customInsurers default parameter"` | **ALIGNED (0% Drift)**: Declares the exact symbol modified and specifies backwards-compatible intent. |
+| 🟢 **DO (Declare Contract Changes)** | `npx change-firewall audit-agent -i "refactor calculateWeightage and update public export signatures"` | **ALIGNED / MINOR DRIFT**: Acknowledges signature shifts, so unannounced contract penalties are bypassed. |
+| 🔴 **DON'T (Gibberish or Unrelated)** | `npx change-firewall audit-agent -i "have i added chinta ta ta tit it"` | **STEALTH_MUTATION (70% Drift)**: Substantive tokens have zero overlap with changed code. Flagged as ungrounded hallucination. |
+| 🔴 **DON'T (Conceal Breaking Changes)** | `npx change-firewall audit-agent -i "minor tweak to weightage calculator"` | **STEALTH_MUTATION (100% Drift)**: Claiming a minor tweak while mutating 9 public export contracts incurs 9 × 35 = 315 penalty points. |
 
 #### 📊 Drift Score & Verdicts:
 * **`ALIGNED` (0% Drift)**: Code mutations strictly match stated intent (exit `0`).
 * **`MINOR_DRIFT` (1–39% Drift)**: Minor auxiliary adjustments detected, but conforms to intent (exit `0`).
 * **`HIGH_DRIFT` (40–59% Drift)**: Changes exceed declared scope. Review required (exit `1`).
-* **`STEALTH_MUTATION` (≥60% Drift)**: Unannounced security, auth, database, or contract alterations (exit `1`).
+* **`STEALTH_MUTATION` (≥60% Drift)**: Unannounced security, auth, database, contract alterations, or ungrounded claims (exit `1`).
 
 ---
 
@@ -413,9 +450,9 @@ npx change-firewall mcp
 
 ---
 
-## 🧬 v0.2.2 Advanced Intelligence & Guarantees
+## 🧬 v0.3.0 Advanced Intelligence, Crash Simulation & Remediation Center
 
-Change Firewall v0.2.2 introduces two industry-first deterministic intelligence systems designed specifically to catch silent breaks introduced by autonomous AI coding assistants:
+Change Firewall v0.3.0 introduces next-generation interactive diagnostic tools and remediation systems specifically engineered to catch silent breaks introduced by autonomous AI coding assistants and resolve them with zero manual friction:
 
 ### 1. 11-Dimensional Behavioral Fingerprint Matrix
 Rather than relying on vague linter warnings or nondeterministic LLM reviews, every code delta is evaluated across an 11-dimensional behavioral matrix:
@@ -449,6 +486,28 @@ Auto-Fix Advice: Add optional chaining 'fetchAccount()?.balance' or a null guard
 ```
 
 **Zero False Positives**: If the caller already guards the call using `account?.balance` or `if (!account) return`, Change Firewall recognizes the guard and suppresses the alert.
+
+### 3. Crash Simulation Sandbox & Live Impact Visualizer
+The live dashboard (`npx change-firewall open`) includes an interactive sandbox to simulate runtime failures before changes are committed or merged:
+* **Interactive Node Selection**: Click any finding or blast radius node to project how errors ripple upstream.
+* **Simulated Runtime Terminal**: Displays realistic stack traces and production exception dumps directly inside the UI.
+* **Visual Call Ladder**: Interactive breadcrumb chain displaying propagation paths: `Modified Source ➔ Dependent Consumer ➔ API Route / High Blast`.
+* **Symbolic Crash Proof Accordion**: Deep inspection of AST failure preconditions and suggested automated regression tests.
+
+### 4. Deterministic AI Agent Remediation Command Center
+Never waste time writing lengthy prompts explaining contract shifts or behavioral bugs back to your AI assistant:
+* **1-Click Clipboard Ready**: Instantly copy surgical remediation blueprints formatted specifically for **Cursor Composer**, **Claude Code**, **Google Antigravity**, and **GitHub Copilot**.
+* **Three Precision Modes**:
+  1. **Safe Backwards-Compatible Fix**: Enforces default parameters and preserves existing consumer contracts.
+  2. **Minimal AST Patch**: Produces the smallest possible diff targeting only the broken AST nodes.
+  3. **PR Remediation Summary**: Formats an executive GitHub PR comment documenting all regressions and verification steps.
+
+### 5. Responsive Scrollable Tabs Navigation Bar
+The dashboard features an ultra-smooth, high-density tab navigation bar:
+* **`<` and `>` Scroll Arrows**: Seamless horizontal scrolling on any display size.
+* **Mouse-Wheel Horizontal Scrolling**: Natural left/right wheel trackpad support.
+* **Sleek Custom Scrollbar**: High-visibility scrollbar styling that never hides tabs or clips risk metrics.
+* **Auto-Centering**: Clicking any tab smoothly auto-scrolls it into view.
 
 ---
 

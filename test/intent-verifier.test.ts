@@ -103,4 +103,85 @@ describe('AI Agent Intent vs Reality Verifier', () => {
     expect(audit.unannouncedMutations.some((m) => m.includes('Contract Shift'))).toBe(true);
     expect(audit.unannouncedMutations.some((m) => m.includes('Non-UI Modifications'))).toBe(true);
   });
+
+  it('correctly attributes in-scope feature contract changes without falsely triggering STEALTH_MUTATION', () => {
+    const fnNames = [
+      'getInsurers', 'getInsurer', 'getProducts', 'getProduct',
+      'getPptOptions', 'getPtOptions', 'getInsurerName', 'getProductName'
+    ];
+
+    const findings: BehavioralFinding[] = fnNames.map((name, idx) => ({
+      id: `f-${idx + 10}`,
+      category: 'FUNCTION_CONTRACT',
+      title: `Export Contract Changed: ${name}`,
+      description: `Exported signature '${name}' added parameter without default`,
+      severity: 'HIGH',
+      confidence: 90,
+      filePath: 'src/features/weightage/utils.js',
+      evidence: [`Before: ${name}(channel)`, `After: ${name}(channel, customInsurers)`],
+      affectedFiles: ['src/features/weightage/calculate.js'],
+      recommendation: `Provide default value 'customInsurers = null'`,
+    }));
+
+    const diffs: ASTDiff[] = [
+      {
+        filePath: 'src/features/weightage/utils.js',
+        symbols: [],
+        returnShapeChanged: false,
+        authConditionChanged: false,
+        errorHandlingChanged: false,
+        validationChanged: false,
+        callsAdded: [],
+        callsRemoved: [],
+        details: [],
+      },
+    ];
+
+    // Natural informal conversational prompt
+    const audit = auditAgentIntent('did we added weightage calculator with real data', findings, diffs);
+
+    // Should recognize the feature scope and NOT flag a 100% malicious stealth backdoor
+    expect(audit.verdict).not.toBe('STEALTH_MUTATION');
+    expect(audit.driftScore).toBeLessThan(60);
+    expect(audit.statedChanges).toContain('FEATURE_IMPLEMENTATION');
+    expect(audit.unannouncedMutations.some((m) => m.includes('Declared Scope'))).toBe(true);
+    expect(audit.unannouncedMutations.some((m) => m.includes('= null'))).toBe(true);
+  });
+
+  it('rejects unrelated gibberish intent (e.g. "have i added chinta ta ta tit it") when actual code changes do not match', () => {
+    const findings: BehavioralFinding[] = [];
+    const diffs: ASTDiff[] = [
+      {
+        filePath: 'src/dashboard/ui.ts',
+        symbols: [{ name: 'getDashboardHtml', kind: 'function', changeType: 'modified' }],
+        returnShapeChanged: false,
+        authConditionChanged: false,
+        errorHandlingChanged: false,
+        validationChanged: false,
+        callsAdded: [],
+        callsRemoved: [],
+        details: [],
+      },
+      {
+        filePath: 'src/core/parser/ast-parser.ts',
+        symbols: [{ name: 'analyzeASTDiff', kind: 'function', changeType: 'modified' }],
+        returnShapeChanged: false,
+        authConditionChanged: false,
+        errorHandlingChanged: false,
+        validationChanged: false,
+        callsAdded: [],
+        callsRemoved: [],
+        details: [],
+      },
+    ];
+
+    const audit = auditAgentIntent('have i added chinta ta ta tit it', findings, diffs);
+
+    expect(audit.verdict).toBe('STEALTH_MUTATION');
+    expect(audit.driftScore).toBeGreaterThanOrEqual(60);
+    expect(audit.summary).toContain('zero correlation');
+    expect(audit.unannouncedMutations.some((m) => m.includes('Unrelated Intent Claim'))).toBe(true);
+  });
 });
+
+

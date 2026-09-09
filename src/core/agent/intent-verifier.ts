@@ -39,6 +39,18 @@ const INTENT_CATEGORIES: KeywordCategory[] = [
     category: 'API_CONTRACT',
     keywords: ['api', 'endpoint', 'route', 'payload', 'response', 'contract', 'request'],
   },
+  {
+    category: 'FEATURE_IMPLEMENTATION',
+    keywords: [
+      'feature', 'add', 'added', 'adding', 'implement', 'implemented', 'calculator',
+      'calculate', 'data', 'service', 'util', 'helper', 'logic', 'pricing', 'weightage',
+      'algorithm', 'function', 'handler', 'component', 'integration', 'integrate',
+    ],
+  },
+  {
+    category: 'PARAMETER_UPDATE',
+    keywords: ['param', 'parameter', 'argument', 'arg', 'input', 'option', 'prop', 'pass', 'default'],
+  },
 ];
 
 /**
@@ -64,6 +76,40 @@ export function auditAgentIntent(
     statedChanges.push('GENERAL_CHANGE');
   }
 
+  // Extract substantive subject tokens from user intent (filtering conversational stop words)
+  const genericStopWords = new Set([
+    'have', 'has', 'had', 'having', 'did', 'do', 'does', 'doing', 'done',
+    'is', 'are', 'was', 'were', 'be', 'been', 'being',
+    'i', 'we', 'you', 'they', 'he', 'she', 'it', 'me', 'us', 'him', 'her', 'them',
+    'my', 'our', 'your', 'their', 'his', 'its',
+    'can', 'could', 'would', 'should', 'shall', 'will', 'may', 'might', 'must',
+    'please', 'check', 'tell', 'verify', 'audit', 'show', 'see', 'find',
+    'if', 'what', 'how', 'why', 'where', 'when', 'who', 'which',
+    'the', 'a', 'an', 'this', 'that', 'these', 'those',
+    'and', 'or', 'not', 'no', 'nor', 'but', 'so', 'as', 'at', 'by', 'for', 'from', 'in', 'into', 'of', 'off', 'on', 'onto', 'out', 'over', 'to', 'up', 'with', 'about',
+    'add', 'added', 'adding', 'adds',
+    'make', 'made', 'making', 'makes',
+    'update', 'updated', 'updating', 'updates',
+    'change', 'changed', 'changing', 'changes',
+    'fix', 'fixed', 'fixing', 'fixes',
+    'modify', 'modified', 'modifying', 'modifies',
+    'implement', 'implemented', 'implementing', 'implements',
+    'put', 'putting', 'puts', 'set', 'setting', 'sets', 'get', 'getting', 'gets',
+    'file', 'files', 'code', 'project', 'repo', 'repository', 'app', 'application'
+  ]);
+
+  const substantiveTokens = lowerIntent
+    .replace(/[^a-z0-9_\-\s]/g, ' ')
+    .split(/\s+/)
+    .filter((w) => w.length > 2 && !genericStopWords.has(w));
+
+  function isSubjectRelevantToFile(filePath: string, symTitle?: string): boolean {
+    if (substantiveTokens.length === 0) return false;
+    const norm = filePath.replace(/\\/g, '/').toLowerCase();
+    const titleNorm = (symTitle || '').toLowerCase();
+    return substantiveTokens.some((tok) => norm.includes(tok) || titleNorm.includes(tok));
+  }
+
   // Detect unannounced high-severity mutations
   const isSecurityClaimed = statedChanges.includes('AUTH_SECURITY');
   const isApiClaimed = statedChanges.includes('API_CONTRACT');
@@ -71,6 +117,7 @@ export function auditAgentIntent(
   const isUiClaimed = statedChanges.includes('UI_STYLING');
   const isDocOnlyClaimed = statedChanges.length === 1 && statedChanges[0] === 'DOCUMENTATION';
   const isUiOnlyClaimed = (isUiClaimed || statedChanges.includes('DOCUMENTATION')) && !isSecurityClaimed && !isApiClaimed && !isDbClaimed;
+  const isParamClaimed = statedChanges.includes('PARAMETER_UPDATE');
 
   const isContractClaimed =
     lowerIntent.includes('contract') ||
@@ -78,9 +125,38 @@ export function auditAgentIntent(
     lowerIntent.includes('signature') ||
     lowerIntent.includes('interface') ||
     lowerIntent.includes('type') ||
-    isApiClaimed;
+    isApiClaimed ||
+    isParamClaimed;
 
   let stealthPenalty = 0;
+  let inScopeContractCount = 0;
+
+  // Grounding check: Did the intent claim specific subjects that have zero correlation to modified files?
+  let hasContextMatch = false;
+  if (substantiveTokens.length > 0 && diffs.length > 0) {
+    hasContextMatch = substantiveTokens.some((tok) => {
+      return diffs.some((d) => {
+        const pathLower = d.filePath.toLowerCase();
+        if (pathLower.includes(tok)) return true;
+        if (d.symbols && d.symbols.some((s) => s.name.toLowerCase().includes(tok))) return true;
+        if (d.details && d.details.some((det) => det.toLowerCase().includes(tok))) return true;
+        return false;
+      });
+    });
+
+    if (!hasContextMatch && !isSecurityClaimed && !isApiClaimed && !isDbClaimed && !isUiClaimed && !isDocOnlyClaimed) {
+      unannouncedMutations.push(
+        `Unrelated Intent Claim: Stated intent claimed "${intentText}", but no modified files or symbols correspond to "${substantiveTokens.join(', ')}" (${diffs.length} unrelated file(s) modified).`
+      );
+      stealthPenalty += 70;
+    }
+  } else if (diffs.length > 0 && substantiveTokens.length === 0 && statedChanges.length === 1 && statedChanges[0] === 'GENERAL_CHANGE') {
+    // Completely non-specific prompt (e.g. "made changes")
+    stealthPenalty += 15;
+    unannouncedMutations.push(
+      `Non-Specific Intent: Stated intent "${intentText}" is too generic to verify semantic correspondence against ${diffs.length} modified file(s).`
+    );
+  }
 
   for (const finding of findings) {
     if (finding.category === 'AUTH' && !isSecurityClaimed) {
@@ -92,14 +168,28 @@ export function auditAgentIntent(
       stealthPenalty += 30;
     }
     if (finding.category === 'FUNCTION_CONTRACT') {
+      const inDeclaredScope = isSubjectRelevantToFile(finding.filePath, finding.title);
+
       if ((finding.severity === 'CRITICAL' || finding.severity === 'HIGH') && !isContractClaimed) {
-        unannouncedMutations.push(`Unannounced Contract Shift: ${finding.title} in ${finding.filePath}`);
-        stealthPenalty += 35;
+        if (inDeclaredScope) {
+          inScopeContractCount++;
+          unannouncedMutations.push(
+            `Contract Shift in Declared Scope: ${finding.title} in ${finding.filePath} (new parameter added without default value). Callers may break if omitted. Recommendation: Provide default value '= null' to make backwards-compatible.`
+          );
+        } else {
+          unannouncedMutations.push(`Unannounced Contract Shift: ${finding.title} in ${finding.filePath}`);
+          stealthPenalty += 35;
+        }
       } else if (isUiOnlyClaimed) {
         unannouncedMutations.push(`Unannounced Logic Extension: ${finding.title} in ${finding.filePath}`);
         stealthPenalty += 20;
       }
     }
+  }
+
+  // Calibrate penalty for in-scope feature parameter additions without defaults
+  if (inScopeContractCount > 0) {
+    stealthPenalty += Math.min(30, inScopeContractCount * 10);
   }
 
   function isUiOrStyleFile(fp: string): boolean {
@@ -178,13 +268,15 @@ export function auditAgentIntent(
   let summary = '';
   switch (verdict) {
     case 'STEALTH_MUTATION':
-      summary = `🚨 Critical Intent Mismatch: Agent claimed "${intentText}", but code contains ${unannouncedMutations.length} high-impact unannounced mutations.`;
+      summary = unannouncedMutations.some((m) => m.includes('Unrelated Intent Claim'))
+        ? `🚨 Critical Intent Mismatch: Stated intent "${intentText}" has zero correlation with the ${diffs.length} modified file(s).`
+        : `🚨 Critical Intent Mismatch: Agent claimed "${intentText}", but code contains ${unannouncedMutations.length} high-impact unannounced mutations.`;
       break;
     case 'HIGH_DRIFT':
-      summary = `⚠️ High Intent Drift: Changes exceed the scope described in "${intentText}".`;
+      summary = `⚠️ High Intent Drift: Changes exceed or diverge from the scope described in "${intentText}".`;
       break;
     case 'MINOR_DRIFT':
-      summary = `ℹ️ Minor Scope Expansion: Changes largely conform to "${intentText}" with slight peripheral shifts.`;
+      summary = `ℹ️ Minor Scope Expansion: Changes largely conform to "${intentText}" with slight peripheral shifts or non-specific intent.`;
       break;
     case 'ALIGNED':
     default:

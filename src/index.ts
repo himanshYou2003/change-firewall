@@ -48,6 +48,7 @@ import {
 } from './core/memory/memory-engine.js';
 import { generateSymbolicCrashTraces } from './core/symbolic/trace-engine.js';
 import { auditAgentIntent } from './core/agent/intent-verifier.js';
+import { generateRemediationPrompt } from './core/agent/remediation-generator.js';
 import { startInteractiveInspector } from './core/interactive/terminal-inspector.js';
 
 export * from './types/index.js';
@@ -80,6 +81,7 @@ export {
   resetMemory,
   generateSymbolicCrashTraces,
   auditAgentIntent,
+  generateRemediationPrompt,
   type PreflightOptions,
   type PreflightResult,
   type WatchOptions,
@@ -241,6 +243,14 @@ export async function analyzeChanges(options: AnalyzeOptions = {}): Promise<Anal
     recommendedAction,
   };
 
+  // AI Agent Remediation & PR Description Generator
+  const remediation = generateRemediationPrompt(
+    findings,
+    symbolicTraces,
+    blastRadiusMap,
+    brokenInvariants
+  );
+
   return {
     timestamp: new Date().toISOString(),
     projectPath: cwd,
@@ -264,5 +274,6 @@ export async function analyzeChanges(options: AnalyzeOptions = {}): Promise<Anal
     memoryContext,
     agentAudit,
     mutationDiagnosis,
+    remediation,
   };
 }

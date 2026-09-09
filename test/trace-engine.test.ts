@@ -130,4 +130,64 @@ export function handleProfile(id: string) {
     const traces = await generateSymbolicCrashTraces(diffs, blastMap, tempDir);
     expect(traces.length).toBe(0);
   });
+
+  it('symbolically proves missing argument exception when function adds required parameter', async () => {
+    const consumerPath = path.join(tempDir, 'src/pages/calculator.ts');
+    await fs.mkdir(path.dirname(consumerPath), { recursive: true });
+    await fs.writeFile(
+      consumerPath,
+      `import { getInsurers } from '../features/utils.js';
+export function renderPage() {
+  const list = getInsurers('channelA');
+  return list;
+}`,
+      'utf8'
+    );
+
+    const diffs: ASTDiff[] = [
+      {
+        filePath: 'src/features/utils.ts',
+        symbols: [
+          {
+            name: 'getInsurers',
+            kind: 'function',
+            changeType: 'modified',
+            beforeSignature: 'getInsurers(channel: string)',
+            afterSignature: 'getInsurers(channel: string, customInsurers: any)',
+          },
+        ],
+        returnShapeChanged: false,
+        authConditionChanged: false,
+        errorHandlingChanged: false,
+        validationChanged: false,
+        callsAdded: [],
+        callsRemoved: [],
+        details: [],
+      },
+    ];
+
+    const blastMap: Record<string, BlastRadius> = {
+      'src/features/utils.ts': {
+        filePath: 'src/features/utils.ts',
+        directDependents: ['src/pages/calculator.ts'],
+        indirectDependents: [],
+        affectedRoutes: [],
+        affectedServices: [],
+        affectedTests: [],
+        totalConsumers: 1,
+        level: 'HIGH',
+      },
+    };
+
+    const traces = await generateSymbolicCrashTraces(diffs, blastMap, tempDir);
+
+    expect(traces.length).toBe(1);
+    const trace = traces[0];
+    expect(trace.failureType).toBe('UNCAUGHT_EXCEPTION');
+    expect(trace.simulatedException).toContain("TypeError: Missing required argument 'customInsurers'");
+    expect(trace.consumerFile).toBe('src/pages/calculator.ts');
+    expect(trace.consumerLine).toBe(3);
+    expect(trace.proofSteps.length).toBe(3);
+    expect(trace.preventativeFix).toContain("customInsurers = null");
+  });
 });

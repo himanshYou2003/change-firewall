@@ -220,34 +220,42 @@ npx change-firewall inspect --staged`,
         folderTitle: 'CLI Command Reference',
         fileName: 'audit-agent.md',
         title: 'change-firewall audit-agent',
-        description: 'Audits AI agent prompt intent vs actual code mutations to catch stealth changes and scope drift.',
-        readingTime: '2 min read',
+        description: 'Audits AI agent prompt intent vs actual code mutations using Bidirectional Semantic Grounding.',
+        readingTime: '3 min read',
         badge: 'Agent Safety',
         content: {
           overview:
-            'AI coding assistants frequently claim a harmless task (e.g. "Fix button padding and header colors") but secretly modify auth guards, alter database models, or touch 15+ backend files. audit-agent compares the stated prompt text (-i "...") against the real TypeScript AST diffs. If an unannounced contract shift or non-UI mutation occurred, it flags a STEALTH_MUTATION and exits with code 1 to block the PR!',
+            'AI coding assistants frequently claim a harmless task (e.g. "Fix button padding and header colors") but secretly modify auth guards, alter database models, or touch 15+ backend files. The audit-agent command performs Bidirectional Semantic Grounding between the stated prompt text (-i "...") and the real TypeScript AST diffs. It verifies that what was claimed actually matches the code, detects unannounced breaking contract changes, and rejects unrelated or gibberish claims.',
           callout: {
             type: 'warning',
-            text: 'Why use this command? Run it in CI/CD against pull request titles or AI prompt descriptions to guarantee autonomous agents never sneak unauthorized backend changes into production.',
+            text: 'How to Prompt Correctly: Declare the specific feature domain or contract changes (e.g. "add real data to weightage calculator" or "extend getInsurers signature with optional customInsurers"). If an intent has zero correlation with the modified files (e.g. "i love india"), Change Firewall flags a STEALTH_MUTATION with 70% drift penalty!',
           },
           codeLanguage: 'bash',
-          codeExample: `# 1. Audit an agent task prompt against current uncommitted diffs
-npx change-firewall audit-agent -i "Fix button padding and header colors"
+          codeExample: `# 1. Audit a conversational feature implementation prompt
+npx change-firewall audit-agent -i "add real data to weightage calculator"
 
-# 2. Audit a truthful, aligned task prompt
-npx change-firewall audit-agent -i "Update firewall contract memory and BehaviorRole type"
+# 2. Audit an explicit contract signature extension
+npx change-firewall audit-agent -i "extend getInsurers with optional customInsurers default parameter"
 
-# 3. Automated GitHub Actions usage (audits against the PR title)
+# 3. Detect stealth mutations or unrelated claims (triggers STEALTH_MUTATION)
+npx change-firewall audit-agent -i "i love india"
+
+# 4. Automated CI/CD PR check against pull request title
 npx change-firewall audit-agent -i "\${{ github.event.pull_request.title }}"`,
           table: {
             headers: ['Verdict', 'Drift Score', 'Behavior & CI Exit Code'],
             rows: [
               ['✓ ALIGNED', '0% Drift', 'Code mutations strictly match stated intent. Exit code 0 (Safe).'],
-              ['ℹ️ MINOR_DRIFT', '1–39% Drift', 'Minor peripheral adjustments detected. Exit code 0 (Approved).'],
-              ['⚠️ HIGH_DRIFT', '40–59% Drift', 'Changes exceed declared scope. Exit code 1 (Review Required).'],
-              ['🚨 STEALTH_MUTATION', '≥60% Drift', 'Critical intent mismatch (e.g., UI claimed, auth/types touched). Exit code 1 (Blocked).'],
+              ['ℹ️ MINOR_DRIFT', '1–39% Drift', 'Minor peripheral adjustments or non-breaking feature extensions. Exit code 0 (Approved).'],
+              ['⚠️ HIGH_DRIFT', '40–59% Drift', 'Changes exceed declared scope or introduce unannounced required parameters. Exit code 1 (Review Required).'],
+              ['🚨 STEALTH_MUTATION', '≥60% Drift', 'Critical intent mismatch, zero subject correlation, or security/auth alteration. Exit code 1 (Blocked).'],
             ],
           },
+          bulletPoints: [
+            'Best Practice (Solution A): When adding new parameters to existing functions, always provide safe default values (e.g., "export function getInsurers(channel, customInsurers = null)"). This preserves compatibility for existing callers and reduces contract drift penalty to 0.',
+            'Conversational & Typo-Tolerant: Understands conversational queries ("did we add weightage calculator with real data") by extracting subject tokens and matching against changed modules.',
+            'Zero False Alignments: If an intent claims a topic completely absent from the changeset, it is strictly flagged as an Unrelated Intent Claim rather than falsely declaring alignment.',
+          ],
           prevDocId: 'cli-interactive',
           nextDocId: 'cli-preflight',
         },
@@ -921,24 +929,93 @@ npx change-firewall memory record`,
         folderTitle: 'Behavioral Intelligence Architecture',
         fileName: 'agent-intent-guard.md',
         title: '"AI Agent Intent vs Reality" Guard',
-        description: 'Compares Natural Language intent against actual AST mutations to catch stealth changes.',
-        readingTime: '2 min read',
+        description: 'Compares Natural Language intent against actual AST mutations with Bidirectional Semantic Grounding.',
+        readingTime: '4 min read',
         badge: 'Agent Safety',
         content: {
           overview:
-            'AI coding assistants are famous for hallucinatory collateral damage—claiming a simple style fix while accidentally deleting an authorization guard. The change-firewall audit-agent command compares prompt intent against AST deltas and computes an Intent Drift Score (0-100%).',
+            'AI coding assistants are famous for hallucinatory collateral damage—claiming a simple style fix while accidentally deleting an authorization guard, or asserting changes occurred when none did. Change Firewall performs Bidirectional Semantic Grounding between natural language intent (-i "...") and physical AST syntax deltas, computing an Intent Drift Score (0-100%).',
           codeLanguage: 'bash',
-          codeExample: `# Audit stated intent against current uncommitted diffs
-npx change-firewall audit-agent -i "Fix button padding in checkout UI"
+          codeExample: `# 1. Backwards-Compatible Intent (Drift: 0% ALIGNED)
+npx change-firewall audit-agent -i "extend getInsurers with optional customInsurers default parameter"
 
-# Output JSON report for automated agent loops
+# 2. Breaking Contract Modification (Unannounced HIGH shift penalty)
+npx change-firewall audit-agent -i "update weightage calculation"
+# If 9 exported signatures were modified without declaration -> Flags STEALTH_MUTATION (100% Drift)
+
+# 3. Gibberish or Unrelated Intent (Zero grounding overlap penalty)
+npx change-firewall audit-agent -i "i love india"
+# Flags STEALTH_MUTATION (70% Drift, Unrelated Intent Claim, Blocks Merge)
+
+# 4. JSON output for autonomous CI/CD or Agent loops
 npx change-firewall audit-agent -i "Refactor payment service" --json`,
           bulletPoints: [
-            'ALIGNED (0% Drift): Code mutations strictly match declared intent',
-            'MODERATE_DRIFT (1-49% Drift): Minor auxiliary adjustments detected',
-            'STEALTH_MUTATION (≥50% Drift): Unannounced security, auth, or database alterations (blocks merge)',
+            'Bidirectional Semantic Grounding: Substantive token extraction filters auxiliary verbs (have, did, added) and demands semantic overlap with modified files/symbols before granting alignment.',
+            'Unannounced Contract Penalties (+35 pts per HIGH change): If public export contracts or function signatures are modified without being declared in the intent prompt, drift score spikes.',
+            'Zero False Positives: Standard utility calls like parseParams, parseInt, and JSON.parse are recognized as non-breaking data parsing rather than strict payload schema mutators.',
+            'Solution A (Best Practice for Extended Parameters): Always supply default parameters (e.g. export function getInsurers(channel, customInsurers = null)) to preserve backwards compatibility for existing callers and keep contract drift at 0.',
           ],
           prevDocId: 'behavioral-memory-store',
+          nextDocId: 'crash-simulation-sandbox',
+        },
+      },
+      {
+        id: 'crash-simulation-sandbox',
+        folderId: 'advanced-intelligence',
+        folderTitle: 'Behavioral Intelligence Architecture',
+        fileName: 'crash-simulation-sandbox.md',
+        title: 'Crash Simulation Sandbox & Live Impact Visualizer',
+        description: 'Simulate runtime crashes, trace downstream call ladders, and inspect symbolic execution proofs.',
+        readingTime: '3 min read',
+        badge: 'Interactive Sandbox',
+        content: {
+          overview:
+            'The Crash Simulation Sandbox allows engineers and reviewers to simulate potential runtime crashes directly from the dashboard before merging. It maps out the exact call ladder from modified sources to high-blast API routes and provides deterministic symbolic proofs of failure.',
+          codeLanguage: 'bash',
+          codeExample: `# Start dashboard with Crash Simulation Sandbox
+npx change-firewall open`,
+          bulletPoints: [
+            'Live Impact Visualizer: Select any behavioral finding or blast radius node to project how runtime exceptions propagate upstream to entry points.',
+            'Simulated Runtime Terminal: Instant visual feedback mimicking production stack traces and unhandled exception alerts.',
+            'Call Ladder Hierarchy: Step-by-step visual breadcrumb showing Modified Source -> Dependent Consumer -> API Route / High Blast service.',
+            'Symbolic Crash Proof Accordion: Collapsible breakdown of the symbolic execution proof, precondition failures, and suggested unit test assertions.',
+          ],
+          prevDocId: 'agent-intent-guard',
+          nextDocId: 'ai-remediation-center',
+        },
+      },
+      {
+        id: 'ai-remediation-center',
+        folderId: 'advanced-intelligence',
+        folderTitle: 'Behavioral Intelligence Architecture',
+        fileName: 'ai-remediation-center.md',
+        title: 'AI Remediation Command Center',
+        description: 'Deterministic 1-click clipboard prompt provider for Cursor, Claude, Antigravity, and Copilot.',
+        readingTime: '3 min read',
+        badge: '1-Click Prompts',
+        content: {
+          overview:
+            'Instead of manually explaining contract drifts and behavioral regressions to your AI agent, Change Firewall generates surgical, context-aware prompt blueprints ready to paste directly into Cursor, Claude, Antigravity, or Copilot.',
+          codeLanguage: 'markdown',
+          codeExample: `### Step 1: Fix in \`src/services/insurer-service.ts\`
+**Preserve Existing Contract Interface:**
+\`\`\`typescript
+// Before:
+export function getInsurers(channel: string, customInsurers: string[])
+// Fix: Add default parameter to maintain backwards compatibility
+export function getInsurers(channel: string, customInsurers: string[] = [])
+\`\`\`
+
+### Strict Constraints:
+1. Do NOT modify public export interfaces of files outside this scope.
+2. Keep all modifications backwards-compatible with existing downstream consumers.`,
+          bulletPoints: [
+            'Three Precision Modes: "Safe Backwards-Compatible Fix" (preserves caller compatibility), "Minimal AST Patch" (least code changed), and "PR Remediation Summary" (team-ready markdown report).',
+            'Context-Aware Clipboard Copy: Formats findings, affected files, line numbers, and strict behavioral constraints with one click.',
+            'Cross-Agent Tested: Works seamlessly with Cursor Composer, Claude Code CLI & Desktop, Google Antigravity, and GitHub Copilot.',
+            'Scrollable Tabs Navigation: Quick-jump between Impact Visual Map, Crash Simulator, Suspicious Changes, Git Timeline, Blast Radius Table, and Changed Files.',
+          ],
+          prevDocId: 'crash-simulation-sandbox',
           nextDocId: 'real-world-scenarios',
         },
       },
@@ -959,7 +1036,7 @@ npx change-firewall audit-agent -i "Refactor payment service" --json`,
             'Scenario 2 (Stealth Mutation): Developer prompts AI: "Adjust navbar spacing". The AI modifies CSS but also accidentally deletes a role check in auth.ts. Change Firewall flags STEALTH_MUTATION with 80% drift.',
             'Scenario 3 (Nullability Widening): AI changes a helper from returning string to string | null. Downstream callers continue executing without null guards. Change Firewall provides the Symbolic Crash Proof pointing directly to the crash line.',
           ],
-          prevDocId: 'agent-intent-guard',
+          prevDocId: 'ai-remediation-center',
         },
       },
     ],

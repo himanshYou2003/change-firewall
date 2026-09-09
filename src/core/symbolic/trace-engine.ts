@@ -137,6 +137,87 @@ export async function generateSymbolicCrashTraces(
           });
         }
       }
+
+      // Check 4: Added Required Parameter / Missing Call Arguments
+      if (sym.changeType === 'modified' && sym.beforeSignature && sym.afterSignature) {
+        const extractSignatureParams = (sig: string) => {
+          const openParen = sig.indexOf('(');
+          const closeParen = sig.lastIndexOf(')');
+          if (openParen === -1 || closeParen <= openParen) return [];
+          const inner = sig.slice(openParen + 1, closeParen).trim();
+          if (!inner) return [];
+          return inner.split(',').map((p) => {
+            const trimmed = p.trim();
+            const isOptional = trimmed.includes('=') || trimmed.includes('?') || trimmed.startsWith('...');
+            const name = trimmed.split(/[:=\s?]/)[0].trim();
+            return { name, isOptional };
+          });
+        };
+
+        const beforeParams = extractSignatureParams(sym.beforeSignature);
+        const afterParams = extractSignatureParams(sym.afterSignature);
+
+        const beforeReq = beforeParams.filter((p) => !p.isOptional).length;
+        const afterReq = afterParams.filter((p) => !p.isOptional).length;
+
+        if (afterReq > beforeReq && blast.directDependents.length > 0) {
+          const newlyRequiredParam = afterParams.find((p, idx) => !p.isOptional && idx >= beforeReq)?.name || 'argument';
+
+          for (const depFile of blast.directDependents) {
+            try {
+              const depPath = path.join(projectRoot, depFile);
+              const content = await fs.readFile(depPath, 'utf8');
+              const sourceFile = ts.createSourceFile(
+                depFile,
+                content,
+                ts.ScriptTarget.Latest,
+                true,
+                depFile.endsWith('.tsx') || depFile.endsWith('.jsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS
+              );
+
+              let underArityCallLine: number | undefined;
+              let passedArgsCount = 0;
+
+              function scanCalls(node: ts.Node) {
+                if (ts.isCallExpression(node)) {
+                  const text = node.expression.getText(sourceFile);
+                  if (text === sym.name || text.endsWith(`.${sym.name}`)) {
+                    if (node.arguments.length < afterReq) {
+                      const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart());
+                      underArityCallLine = line + 1;
+                      passedArgsCount = node.arguments.length;
+                    }
+                  }
+                }
+                ts.forEachChild(node, scanCalls);
+              }
+
+              scanCalls(sourceFile);
+
+              if (underArityCallLine) {
+                traces.push({
+                  id: nextTraceId(),
+                  sourceFile: diff.filePath,
+                  sourceSymbol: sym.name,
+                  consumerFile: depFile,
+                  consumerLine: underArityCallLine,
+                  consumerSymbol: sym.name,
+                  failureType: 'UNCAUGHT_EXCEPTION',
+                  simulatedException: `TypeError: Missing required argument '${newlyRequiredParam}' in call to '${sym.name}'`,
+                  proofSteps: [
+                    `1. ${diff.filePath} ➔ '${sym.name}' export signature updated to require '${newlyRequiredParam}'.`,
+                    `2. ${depFile}:${underArityCallLine} ➔ Invokes '${sym.name}' with ${passedArgsCount} argument(s), omitting '${newlyRequiredParam}'.`,
+                    `3. Runtime Evaluation ➔ Parameter '${newlyRequiredParam}' evaluates to 'undefined' in '${sym.name}'.`,
+                  ],
+                  preventativeFix: `Provide default value '${newlyRequiredParam} = null' in ${diff.filePath} or supply argument in ${depFile}:${underArityCallLine}`,
+                });
+              }
+            } catch {
+              // Ignore file read/parse errors
+            }
+          }
+        }
+      }
     }
 
     // Check 3: API Response Contract Mutation (scoped to API routes, services, controllers)

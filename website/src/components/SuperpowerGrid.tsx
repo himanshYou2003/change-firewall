@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Network, ShieldCheck, Bug, Fingerprint, Bot, Database } from 'lucide-react';
+import { Network, ShieldCheck, Bug, Fingerprint, Bot, Database, Terminal, Sparkles } from 'lucide-react';
 
 const SUPERPOWERS = [
   {
@@ -11,6 +11,22 @@ const SUPERPOWERS = [
     pillar: 'Pillar 3',
     description:
       'Traces backward-slice data flows from widened return types to consumer call sites. Mathematically proves unhandled TypeErrors and null dereferences at exact line numbers with zero false alarms.',
+  },
+  {
+    icon: Terminal,
+    title: 'Interactive Crash Simulator Sandbox',
+    tag: 'Live Sandbox',
+    pillar: 'Pillar 3',
+    description:
+      'Simulates real Node.js runtime exceptions in the dashboard with active stack traces, visual call ladder progression, step-by-step symbolic proofs, and 1-click preventative fixes.',
+  },
+  {
+    icon: Sparkles,
+    title: 'AI Remediation Command Center',
+    tag: '1-Click Auto-Fix',
+    pillar: 'Pillar 4',
+    description:
+      'Converts detected behavioral shifts and arity breaks into surgical, zero-hallucination prompts tailored for Cursor, Claude Code, Antigravity, and Copilot with Safe Fix, Minimal, and PR modes.',
   },
   {
     icon: Fingerprint,
@@ -34,7 +50,7 @@ const SUPERPOWERS = [
     tag: 'Agent Safety',
     pillar: 'Pillar 4',
     description:
-      'Compares stated prompt intent against actual AST mutations. Detects when AI coding assistants silently delete auth middleware, alter database queries, or touch undeclared services.',
+      'Performs bidirectional semantic grounding on stated prompts vs AST diffs. Accurately verifies feature scope, detects missing parameter defaults (= null), and rejects unrelated claims.',
   },
   {
     icon: Network,

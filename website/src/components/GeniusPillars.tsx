@@ -190,7 +190,7 @@ export default function GeniusPillars() {
         <div className="text-center max-w-4xl mx-auto mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--surface-100)] border border-[var(--border-subtle)] text-[11px] font-mono font-semibold text-brand-cyan mb-4">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>v0.2.2 ARCHITECTURAL MASTER BLUEPRINT</span>
+            <span>v0.3.0 ARCHITECTURAL MASTER BLUEPRINT</span>
           </div>
 
           <h2 className="text-3xl sm:text-5xl font-black text-[var(--text-primary)] tracking-tight leading-[1.1]">
@@ -214,7 +214,7 @@ export default function GeniusPillars() {
           <div className="hidden md:block max-w-4xl mx-auto font-mono text-xs select-none">
             <div className="flex justify-center">
               <div className="px-6 py-2.5 rounded-lg bg-[var(--surface-200)] border border-[var(--border-card)] text-[var(--text-primary)] font-bold shadow-xs">
-                THE CHANGE FIREWALL GENIUS CORE (v0.2.2)
+                THE CHANGE FIREWALL GENIUS CORE (v0.3.0)
               </div>
             </div>
 
@@ -260,7 +260,7 @@ export default function GeniusPillars() {
           <div className="block md:hidden">
             <div className="text-center mb-3">
               <div className="inline-block px-3 py-1.5 rounded-lg bg-[var(--surface-200)] border border-[var(--border-card)] text-[var(--text-primary)] font-bold text-xs font-mono shadow-xs">
-                THE GENIUS CORE (v0.2.2)
+                THE GENIUS CORE (v0.3.0)
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2">

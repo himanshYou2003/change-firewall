@@ -190,8 +190,25 @@ function parseSourceFile(filePath: string, content: string): ParsedFile {
       const callText = node.expression.getText(sourceFile);
       calls.add(callText);
 
-      // Check validation
-      if (callText.includes('parse') || callText.includes('validate') || callText.includes('safeParse')) {
+      // Check validation (Zod, Yup, Joi, class-validator, express-validator)
+      let isSchemaValidation = false;
+      if (ts.isPropertyAccessExpression(node.expression)) {
+        const methodName = node.expression.name.getText(sourceFile);
+        const targetObj = node.expression.expression.getText(sourceFile);
+        if (['safeParse', 'parse', 'validate', 'validateSync', 'validateOrReject'].includes(methodName)) {
+          const isStdLib = /^(?:JSON|Date|path|url|querystring|qs|ts)$/i.test(targetObj);
+          if (!isStdLib) {
+            isSchemaValidation = true;
+          }
+        }
+      } else if (ts.isIdentifier(node.expression)) {
+        const fnName = node.expression.getText(sourceFile);
+        if (['validateOrReject', 'validationResult'].includes(fnName)) {
+          isSchemaValidation = true;
+        }
+      }
+
+      if (isSchemaValidation) {
         hasZodValidation = true;
       }
 

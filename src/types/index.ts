@@ -253,6 +253,17 @@ export interface BehavioralMutationReport {
   recommendedAction: string;
 }
 
+// ==========================================
+// 7. AI AGENT REMEDIATION & PR GENERATOR
+// ==========================================
+export interface RemediationPromptResult {
+  safeFixPrompt: string;
+  minimalFixPrompt: string;
+  prDescription: string;
+  hasIssues: boolean;
+  totalIssuesCount: number;
+}
+
 // Master Analysis Report
 export interface AnalysisReport {
   timestamp: string;
@@ -277,6 +288,7 @@ export interface AnalysisReport {
   memoryContext?: FirewallMemory;
   agentAudit?: AgentIntentAudit;
   mutationDiagnosis?: BehavioralMutationReport;
+  remediation?: RemediationPromptResult;
 }
 
 export type ChangeReport = AnalysisReport;

@@ -17,7 +17,7 @@ const program = new Command();
 program
   .name('change-firewall')
   .description('Converts code diffs into behavior-aware change reports and deterministic risk scoring')
-  .version('0.2.2');
+  .version('0.3.0');
 
 // Default / analyze command
 program

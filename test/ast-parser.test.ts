@@ -175,4 +175,34 @@ describe('AST Parser & Semantic Diff', () => {
     const diff = analyzeASTDiff('src/pages/MyPage.jsx', beforeJsx, afterJsx);
     expect(diff.returnShapeChanged).toBe(false);
   });
+
+  it('accurately identifies schema payload validation without false positives from JSON/parseInt/parseParams', () => {
+    // False positive check: parseInt, JSON.parse, parseParams should NOT trigger validationChanged
+    const beforeUtil = `
+      export function processData(input: string) {
+        return input.trim();
+      }
+    `;
+    const afterUtil = `
+      export function processData(input: string) {
+        const num = parseInt(input, 10);
+        const obj = JSON.parse(input);
+        const parsed = parseParams(input);
+        return { num, obj, parsed };
+      }
+    `;
+    const diffUtil = analyzeASTDiff('src/utils/data.ts', beforeUtil, afterUtil);
+    expect(diffUtil.validationChanged).toBe(false);
+
+    // True positive check: zod / schema parse SHOULD trigger validationChanged
+    const afterZod = `
+      export function processData(input: string) {
+        const validated = userSchema.parse(input);
+        return validated;
+      }
+    `;
+    const diffZod = analyzeASTDiff('src/utils/data.ts', beforeUtil, afterZod);
+    expect(diffZod.validationChanged).toBe(true);
+  });
 });
+

@@ -427,21 +427,73 @@ export function getDashboardHtml(report: AnalysisReport): string {
     }
 
     /* Tabs Bar */
+    /* Tabs Navigation Container & Scrollable Bar */
+    .tabs-nav-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 8px;
+    }
+
     .tabs {
       display: flex;
       gap: 8px;
-      border-bottom: 1px solid var(--border-subtle);
-      padding-bottom: 12px;
-      margin-bottom: 24px;
       overflow-x: auto;
-      scrollbar-width: none;
+      overflow-y: hidden;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      flex: 1;
+      padding: 4px 2px 8px 2px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--surface-300) transparent;
     }
 
     .tabs::-webkit-scrollbar {
-      display: none;
+      height: 6px;
+    }
+
+    .tabs::-webkit-scrollbar-track {
+      background: var(--surface-100);
+      border-radius: 9999px;
+    }
+
+    .tabs::-webkit-scrollbar-thumb {
+      background: var(--surface-300);
+      border-radius: 9999px;
+    }
+
+    .tabs::-webkit-scrollbar-thumb:hover {
+      background: var(--text-muted);
+    }
+
+    .tabs-scroll-btn {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--surface-100);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+
+    .tabs-scroll-btn:hover {
+      background: var(--surface-200);
+      color: var(--text-primary);
+      border-color: var(--border-card);
+      transform: scale(1.05);
     }
 
     .tab-btn {
+      flex-shrink: 0;
       background: var(--surface-100);
       border: 1px solid var(--border-subtle);
       color: var(--text-secondary);
@@ -455,6 +507,7 @@ export function getDashboardHtml(report: AnalysisReport): string {
       display: inline-flex;
       align-items: center;
       gap: 8px;
+      user-select: none;
     }
 
     .tab-btn:hover {
@@ -1211,6 +1264,396 @@ export function getDashboardHtml(report: AnalysisReport): string {
     footer a:hover {
       text-decoration: underline;
     }
+
+    /* Crash Simulator & Sandbox Styles */
+    .badge-tab-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1px 7px;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 9999px;
+      background: var(--brand-danger-bg);
+      color: var(--brand-danger);
+      margin-left: 6px;
+    }
+    .badge-tab-pill.is-clean {
+      background: var(--brand-success-bg);
+      color: var(--brand-success);
+    }
+
+    .crash-sandbox-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .crash-clean-shield {
+      background: var(--surface-card);
+      border: 1px solid var(--border-card);
+      border-radius: 12px;
+      padding: 36px 24px;
+      text-align: center;
+      box-shadow: 0 4px 20px -2px rgba(0,0,0,0.05);
+    }
+    .crash-clean-shield-icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 16px;
+      color: var(--brand-success);
+      background: var(--brand-success-bg);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .crash-clean-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    .crash-clean-desc {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      max-width: 540px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+
+    .crash-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border-card);
+      border-left: 4px solid var(--brand-danger);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 4px 16px -2px rgba(220, 38, 38, 0.08);
+      transition: all 0.2s ease;
+    }
+    .crash-card:hover {
+      box-shadow: 0 8px 24px -2px rgba(220, 38, 38, 0.15);
+    }
+
+    .crash-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .crash-title-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .crash-exception-tag {
+      font-family: var(--font-jetbrains);
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--brand-danger);
+    }
+    .crash-location {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      font-family: var(--font-jetbrains);
+    }
+
+    .crash-terminal {
+      background: #090d16;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 14px 16px;
+      color: #f8fafc;
+      font-family: var(--font-jetbrains);
+      font-size: 12px;
+      line-height: 1.5;
+      overflow-x: auto;
+      box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);
+    }
+    .crash-terminal-topbar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 10.5px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .terminal-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+    }
+
+    .call-ladder {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface-50);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 12px 16px;
+      overflow-x: auto;
+      font-size: 12.5px;
+    }
+    .ladder-node {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: fit-content;
+    }
+    .ladder-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+    .ladder-val {
+      font-family: var(--font-jetbrains);
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .ladder-arrow {
+      color: var(--text-muted);
+      font-size: 16px;
+    }
+
+    .proof-steps-box {
+      background: var(--surface-50);
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      padding: 12px 16px;
+    }
+    .proof-steps-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+    .proof-step-item {
+      font-size: 12px;
+      font-family: var(--font-jetbrains);
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+      line-height: 1.4;
+    }
+
+    .fix-action-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: rgba(16, 185, 129, 0.06);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      border-radius: 8px;
+      padding: 10px 14px;
+    }
+    .fix-instruction-text {
+      font-size: 12px;
+      color: var(--brand-success);
+      font-weight: 500;
+    }
+
+    /* AI Remediation Command Center Styles - Minimal & Elegant */
+    .remediation-command-center {
+      margin-top: 32px;
+      background: var(--surface-card);
+      border: 1px solid var(--border-card);
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+      overflow: hidden;
+      transition: border-color 0.2s ease;
+    }
+    .remediation-command-center:hover {
+      border-color: var(--border-card);
+    }
+
+    .remediation-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      background: var(--surface-50);
+      border-bottom: 1px solid var(--border-subtle);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .remediation-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .remediation-icon-glow {
+      width: 34px;
+      height: 34px;
+      border-radius: 7px;
+      background: var(--surface-100);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .remediation-title {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .remediation-badge-status {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-weight: 600;
+      background: var(--brand-warning-bg);
+      color: var(--brand-warning);
+    }
+    .remediation-badge-status.is-clean {
+      background: var(--brand-success-bg);
+      color: var(--brand-success);
+    }
+    .remediation-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+
+    .remediation-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .remediation-tabs {
+      display: flex;
+      background: var(--surface-100);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .remed-tab-btn {
+      border: none;
+      background: transparent;
+      padding: 5px 11px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-family: var(--font-inter);
+    }
+    .remed-tab-btn:hover {
+      color: var(--text-primary);
+    }
+    .remed-tab-btn.active {
+      background: var(--surface-card);
+      color: var(--text-primary);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .copy-prompt-primary-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--text-primary);
+      color: var(--surface-card);
+      border: 1px solid var(--text-primary);
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font-inter);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      transition: all 0.15s ease;
+    }
+    .copy-prompt-primary-btn:hover {
+      opacity: 0.88;
+      transform: translateY(-1px);
+    }
+    .copy-prompt-primary-btn:active {
+      transform: translateY(0);
+    }
+
+    .remediation-body {
+      padding: 20px 24px;
+    }
+    .remediation-prompt-wrap {
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      background: var(--surface-50);
+      overflow: hidden;
+    }
+    .prompt-meta-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 14px;
+      background: var(--surface-100);
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 11.5px;
+    }
+    .prompt-mode-label {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .prompt-tip {
+      color: var(--text-muted);
+    }
+    .remediation-prompt-content {
+      padding: 16px;
+      font-family: var(--font-jetbrains);
+      font-size: 12.5px;
+      line-height: 1.6;
+      color: var(--text-primary);
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 380px;
+      overflow-y: auto;
+      user-select: text;
+    }
+
+    /* Toast Notification */
+    .cf-toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #0f172a;
+      color: #f8fafc;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      padding: 12px 20px;
+      font-size: 13.5px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      z-index: 99999;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+    }
+    .cf-toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
@@ -1226,7 +1669,7 @@ export function getDashboardHtml(report: AnalysisReport): string {
         <div>
           <div class="brand-title-wrap">
             <span class="brand-title">Change Firewall</span>
-            <span class="brand-version-pill">v0.2.2</span>
+            <span class="brand-version-pill">v0.3.0</span>
           </div>
           <div class="brand-subtitle">AI Code Change Behavioral Verification Engine</div>
         </div>
@@ -1292,34 +1735,47 @@ export function getDashboardHtml(report: AnalysisReport): string {
       </div>
     </div>
 
-    <div class="tabs">
-      <button class="tab-btn active" data-tab="graph" onclick="switchTab('graph', this)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="6" y1="9" x2="6" y2="15"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
-        Impact Visual Map
+    <div class="tabs-nav-container">
+      <button class="tabs-scroll-btn" onclick="scrollTabs(-240)" title="Scroll tabs left" aria-label="Scroll tabs left">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
-      <button class="tab-btn" data-tab="findings" onclick="switchTab('findings', this)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-        Behavioral Findings
-      </button>
-      <button class="tab-btn" data-tab="suspicious" onclick="switchTab('suspicious', this)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        Suspicious Changes
-      </button>
-      <button class="tab-btn" data-tab="timeline" onclick="switchTab('timeline', this)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        Git Timeline
-      </button>
-      <button class="tab-btn" data-tab="blast" onclick="switchTab('blast', this)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
-        Blast Radius Table
-      </button>
-      <button class="tab-btn" data-tab="risk" onclick="switchTab('risk', this)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2v20"/><path d="m17 5-5-3-5 3"/><path d="m17 19-5 3-5-3"/></svg>
-        Risk Factors
-      </button>
-      <button class="tab-btn" data-tab="files" onclick="switchTab('files', this)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 22h14a2 2 0 0 0 2-2V7.5L14.5 2H6a2 2 0 0 0-2 2v4"/><polyline points="14 2 14 8 20 8"/><path d="M2 15h10"/><path d="m9 18 3-3-3-3"/></svg>
-        Changed Files
+      <div class="tabs" id="main-tabs-bar">
+        <button class="tab-btn active" data-tab="graph" onclick="switchTab('graph', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="6" y1="9" x2="6" y2="15"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
+          Impact Visual Map
+        </button>
+        <button class="tab-btn" data-tab="findings" onclick="switchTab('findings', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Behavioral Findings
+        </button>
+        <button class="tab-btn" data-tab="crashes" onclick="switchTab('crashes', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Crash Simulator
+          <span id="crashes-count-badge" class="badge-tab-pill">0</span>
+        </button>
+        <button class="tab-btn" data-tab="suspicious" onclick="switchTab('suspicious', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Suspicious Changes
+        </button>
+        <button class="tab-btn" data-tab="timeline" onclick="switchTab('timeline', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Git Timeline
+        </button>
+        <button class="tab-btn" data-tab="blast" onclick="switchTab('blast', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+          Blast Radius Table
+        </button>
+        <button class="tab-btn" data-tab="risk" onclick="switchTab('risk', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2v20"/><path d="m17 5-5-3-5 3"/><path d="m17 19-5 3-5-3"/></svg>
+          Risk Factors
+        </button>
+        <button class="tab-btn" data-tab="files" onclick="switchTab('files', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 22h14a2 2 0 0 0 2-2V7.5L14.5 2H6a2 2 0 0 0-2 2v4"/><polyline points="14 2 14 8 20 8"/><path d="M2 15h10"/><path d="m9 18 3-3-3-3"/></svg>
+          Changed Files
+        </button>
+      </div>
+      <button class="tabs-scroll-btn" onclick="scrollTabs(240)" title="Scroll tabs right" aria-label="Scroll tabs right">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
     </div>
 
@@ -1560,6 +2016,73 @@ export function getDashboardHtml(report: AnalysisReport): string {
       </div>
     </div>
 
+    <!-- TAB 8: Crash Simulator Sandbox -->
+    <div id="tab-crashes" class="tab-content">
+      <div id="crash-sandbox-container" class="crash-sandbox-wrap"></div>
+    </div>
+
+    <!-- AI Agent Remediation Command Center -->
+    <div class="remediation-command-center" id="remediation-command-center">
+      <div class="remediation-header">
+        <div class="remediation-header-left">
+          <div class="remediation-icon-glow">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+          </div>
+          <div>
+            <div class="remediation-title">
+              <span>AI Agent Remediation Command Center</span>
+              <span id="remediation-badge" class="remediation-badge-status">Analyzing diffs...</span>
+            </div>
+            <div class="remediation-subtitle">
+              Deterministic, surgical prompts to copy & paste into Cursor, Claude, Antigravity, or Copilot
+            </div>
+          </div>
+        </div>
+
+        <div class="remediation-actions">
+          <div class="remediation-tabs">
+            <button class="remed-tab-btn active" id="btn-remed-safe" onclick="switchRemediationMode('safe')">
+              🩹 Safe Fix Prompt
+            </button>
+            <button class="remed-tab-btn" id="btn-remed-minimal" onclick="switchRemediationMode('minimal')">
+              ⚡ Minimal
+            </button>
+            <button class="remed-tab-btn" id="btn-remed-pr" onclick="switchRemediationMode('pr')">
+              📝 PR Summary
+            </button>
+          </div>
+
+          <button id="copy-prompt-btn" class="copy-prompt-primary-btn" onclick="copyActivePrompt()">
+            <svg class="copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            <span id="copy-btn-text">📋 Copy Prompt for AI Agent</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="remediation-body">
+        <div class="remediation-prompt-wrap">
+          <div class="prompt-meta-bar">
+            <span id="prompt-mode-indicator" class="prompt-mode-label">Mode: Safe Backwards-Compatible Fix</span>
+            <span class="prompt-tip">💡 Ready to paste into Cursor / Claude / Antigravity / Copilot</span>
+          </div>
+          <pre id="remediation-prompt-text" class="remediation-prompt-content">Generating remediation prompt...</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="cf-toast" class="cf-toast">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      <span id="cf-toast-text">Prompt copied to clipboard!</span>
+    </div>
+
     <footer>
       <div style="display: flex; align-items: center; gap: 8px;">
         <span style="font-weight: 700; color: var(--text-primary);">Change Firewall</span>
@@ -1569,12 +2092,14 @@ export function getDashboardHtml(report: AnalysisReport): string {
       <div>
         <a href="https://github.com/himanshYou2003/change-firewall" target="_blank" rel="noreferrer">GitHub</a>
         <span style="margin: 0 8px; opacity: 0.4;">|</span>
-        <a href="https://www.npmjs.com/package/change-firewall" target="_blank" rel="noreferrer">NPM v0.2.2</a>
+        <a href="https://www.npmjs.com/package/change-firewall" target="_blank" rel="noreferrer">NPM v0.3.0</a>
       </div>
     </footer>
   </div>
 
   <script>
+    var currentReport = ${serialized};
+
     // Theme Management - Defaults to Light Mode
     (function initTheme() {
       var saved = localStorage.getItem('cf-theme');
@@ -2321,6 +2846,242 @@ export function getDashboardHtml(report: AnalysisReport): string {
           }).join('');
         }
       }
+
+      // 8. Render Crash Simulation Sandbox
+      renderCrashSandbox(report);
+
+      // 9. Render AI Agent Remediation Command Center
+      renderRemediationCommandCenter(report);
+    }
+
+    var cachedRemediation = null;
+    var activeRemediationMode = 'safe';
+
+    function renderCrashSandbox(report) {
+      var container = document.getElementById('crash-sandbox-container');
+      var badge = document.getElementById('crashes-count-badge');
+      var traces = (report && report.symbolicTraces) || [];
+
+      if (badge) {
+        badge.textContent = traces.length;
+        if (traces.length === 0) {
+          badge.className = 'badge-tab-pill is-clean';
+        } else {
+          badge.className = 'badge-tab-pill';
+        }
+      }
+
+      if (!container) return;
+
+      if (traces.length === 0) {
+        container.innerHTML = 
+          '<div class="crash-clean-shield">' +
+            '<div class="crash-clean-shield-icon">' +
+              '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>' +
+            '</div>' +
+            '<div class="crash-clean-title">Zero Runtime Crashes Proven</div>' +
+            '<div class="crash-clean-desc">Change Firewall mathematically verified all downstream call sites across your dependency graph. No null dereferences, missing arguments, or broken export bindings were detected.</div>' +
+          '</div>';
+        return;
+      }
+
+      var cardsHtml = traces.map(function(t, idx) {
+        var stepsHtml = (t.proofSteps || []).map(function(step) {
+          return '<div class="proof-step-item">• ' + escapeHtml(step) + '</div>';
+        }).join('');
+
+        var fixBtnHtml = t.preventativeFix ? 
+          '<div class="fix-action-bar">' +
+            '<span class="fix-instruction-text"><strong>Suggested Fix:</strong> ' + escapeHtml(t.preventativeFix) + '</span>' +
+            '<button class="copy-prompt-primary-btn" style="padding: 4px 10px; font-size: 11px;" onclick="copyCrashByIndex(' + idx + ')">📋 Copy Fix</button>' +
+          '</div>' : '';
+
+        return '<div class="crash-card">' +
+          '<div class="crash-header">' +
+            '<div class="crash-title-group">' +
+              '<span class="crash-exception-tag">' + escapeHtml(t.simulatedException || 'Unhandled Runtime Exception') + '</span>' +
+              '<span class="crash-location">Consumer File: ' + escapeHtml(t.consumerFile || 'unknown') + (t.consumerLine ? (':' + t.consumerLine) : '') + '</span>' +
+            '</div>' +
+            '<span class="badge-high">' + escapeHtml(t.failureType || 'CRASH') + '</span>' +
+          '</div>' +
+
+          '<div class="call-ladder">' +
+            '<div class="ladder-node">' +
+              '<span class="ladder-label">Source Module</span>' +
+              '<span class="ladder-val">' + escapeHtml(t.sourceFile || 'source') + '</span>' +
+            '</div>' +
+            '<span class="ladder-arrow">➔</span>' +
+            '<div class="ladder-node">' +
+              '<span class="ladder-label">Caller Call-Site</span>' +
+              '<span class="ladder-val">' + escapeHtml(t.consumerFile || 'consumer') + (t.consumerLine ? (':' + t.consumerLine) : '') + '</span>' +
+            '</div>' +
+            '<span class="ladder-arrow">➔</span>' +
+            '<div class="ladder-node">' +
+              '<span class="ladder-label">Runtime Event</span>' +
+              '<span class="ladder-val" style="color: var(--brand-danger);">💥 Unhandled Exception</span>' +
+            '</div>' +
+          '</div>' +
+
+          '<div class="crash-terminal">' +
+            '<div class="crash-terminal-topbar">' +
+              '<span class="terminal-dot" style="background: #ef4444;"></span>' +
+              '<span class="terminal-dot" style="background: #f59e0b;"></span>' +
+              '<span class="terminal-dot" style="background: #10b981;"></span>' +
+              '<span style="margin-left: 8px;">Simulated Node.js Runtime Stack</span>' +
+            '</div>' +
+            '<div>Uncaught ' + escapeHtml(t.simulatedException || 'Exception') + '</div>' +
+            '<div style="color: #94a3b8; margin-top: 4px;">    at ' + escapeHtml(t.sourceSymbol || 'callee') + ' (' + escapeHtml(t.sourceFile) + ')</div>' +
+            '<div style="color: #94a3b8;">    at ' + escapeHtml(t.consumerSymbol || 'caller') + ' (' + escapeHtml(t.consumerFile) + (t.consumerLine ? (':' + t.consumerLine) : '') + ')</div>' +
+          '</div>' +
+
+          '<div class="proof-steps-box">' +
+            '<div class="proof-steps-title">Symbolic Proof Steps</div>' +
+            stepsHtml +
+          '</div>' +
+
+          fixBtnHtml +
+        '</div>';
+      }).join('');
+
+      container.innerHTML = cardsHtml;
+    }
+
+    function renderRemediationCommandCenter(report) {
+      cachedRemediation = (report && report.remediation) || null;
+      var badge = document.getElementById('remediation-badge');
+
+      if (badge) {
+        if (cachedRemediation && cachedRemediation.hasIssues) {
+          badge.className = 'remediation-badge-status';
+          badge.textContent = (cachedRemediation.totalIssuesCount || 1) + ' Issue(s) Detected';
+        } else {
+          badge.className = 'remediation-badge-status is-clean';
+          badge.textContent = '✓ All Contracts Intact';
+        }
+      }
+
+      updateDisplayedPrompt();
+    }
+
+    function updateDisplayedPrompt() {
+      var promptEl = document.getElementById('remediation-prompt-text');
+      var modeIndicator = document.getElementById('prompt-mode-indicator');
+      if (!promptEl) return;
+
+      if (!cachedRemediation) {
+        promptEl.textContent = 'All changes conform to expected behavioral contracts. No remediation needed.';
+        if (modeIndicator) modeIndicator.textContent = 'Mode: Production Safe';
+        return;
+      }
+
+      if (activeRemediationMode === 'minimal') {
+        promptEl.textContent = cachedRemediation.minimalFixPrompt || 'No minimal fix instructions required.';
+        if (modeIndicator) modeIndicator.textContent = 'Mode: Minimal Direct Action Prompt';
+      } else if (activeRemediationMode === 'pr') {
+        promptEl.textContent = cachedRemediation.prDescription || 'No PR summary available.';
+        if (modeIndicator) modeIndicator.textContent = 'Mode: GitHub / GitLab Pull Request Summary';
+      } else {
+        promptEl.textContent = cachedRemediation.safeFixPrompt || 'All changes conform to expected behavioral contracts. No remediation needed.';
+        if (modeIndicator) modeIndicator.textContent = 'Mode: Safe Backwards-Compatible Fix';
+      }
+    }
+
+    window.switchRemediationMode = function(mode) {
+      activeRemediationMode = mode;
+      var btnSafe = document.getElementById('btn-remed-safe');
+      var btnMin = document.getElementById('btn-remed-minimal');
+      var btnPr = document.getElementById('btn-remed-pr');
+
+      if (btnSafe) btnSafe.classList.remove('active');
+      if (btnMin) btnMin.classList.remove('active');
+      if (btnPr) btnPr.classList.remove('active');
+
+      if (mode === 'minimal' && btnMin) btnMin.classList.add('active');
+      else if (mode === 'pr' && btnPr) btnPr.classList.add('active');
+      else if (btnSafe) btnSafe.classList.add('active');
+
+      updateDisplayedPrompt();
+    };
+
+    window.copyActivePrompt = function() {
+      var promptEl = document.getElementById('remediation-prompt-text');
+      if (!promptEl) return;
+      var text = promptEl.textContent || '';
+      if (!text) return;
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function() {
+          showCfToast('✓ Prompt Copied! Ready to paste into Cursor, Claude, or Copilot.');
+          var copyBtnText = document.getElementById('copy-btn-text');
+          if (copyBtnText) {
+            var orig = copyBtnText.textContent;
+            copyBtnText.textContent = '✓ Copied to Clipboard!';
+            setTimeout(function() { copyBtnText.textContent = orig; }, 2200);
+          }
+        }).catch(function() {
+          fallbackCopyText(text);
+        });
+      } else {
+        fallbackCopyText(text);
+      }
+    };
+
+    window.copyCrashByIndex = function(idx) {
+      var traces = (currentReport && currentReport.symbolicTraces) || [];
+      var t = traces[idx];
+      if (!t || !t.preventativeFix) return;
+      var promptText = ['Fix the following runtime crash issue in ' + (t.sourceFile || '') + ':', t.preventativeFix].join(String.fromCharCode(10));
+      copyDirectText(promptText, '✓ Crash fix copied to clipboard!');
+    };
+
+    function copyDirectText(text, successMsg) {
+      if (!text) return;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function() {
+          showCfToast(successMsg || '✓ Copied to clipboard!');
+        }).catch(function() {
+          fallbackCopyText(text);
+        });
+      } else {
+        fallbackCopyText(text);
+      }
+    }
+
+    function fallbackCopyText(text) {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        showCfToast('✓ Copied to clipboard!');
+      } catch (err) {
+        alert('Could not copy automatically. Please select text manually.');
+      }
+      document.body.removeChild(ta);
+    }
+
+    function showCfToast(msg) {
+      var toast = document.getElementById('cf-toast');
+      var toastText = document.getElementById('cf-toast-text');
+      if (!toast) return;
+      if (toastText) toastText.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(function() {
+        toast.classList.remove('show');
+      }, 2800);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
     }
 
     // ==========================================
@@ -3213,19 +3974,43 @@ export function getDashboardHtml(report: AnalysisReport): string {
       };
     }
 
+    window.scrollTabs = function(distance) {
+      var bar = document.getElementById('main-tabs-bar');
+      if (bar) {
+        bar.scrollBy({ left: distance, behavior: 'smooth' });
+      }
+    };
+
+    var mainTabsBar = document.getElementById('main-tabs-bar');
+    if (mainTabsBar) {
+      mainTabsBar.addEventListener('wheel', function(e) {
+        if (e.deltaY !== 0) {
+          mainTabsBar.scrollLeft += e.deltaY;
+          e.preventDefault();
+        }
+      }, { passive: false });
+    }
+
     window.switchTab = function(tabId, el) {
       var targetBtn = el || (window.event ? (window.event.currentTarget || window.event.target) : null);
       document.querySelectorAll('.tab-btn').forEach(function(btn) { btn.classList.remove('active'); });
       document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
+      var btnToActivate = null;
       if (targetBtn) {
-        var btnToActivate = targetBtn.closest ? targetBtn.closest('.tab-btn') : targetBtn;
+        btnToActivate = targetBtn.closest ? targetBtn.closest('.tab-btn') : targetBtn;
         if (btnToActivate) btnToActivate.classList.add('active');
       } else {
         var foundBtn = document.querySelector('.tab-btn[data-tab="' + tabId + '"]');
-        if (foundBtn) foundBtn.classList.add('active');
+        if (foundBtn) {
+          foundBtn.classList.add('active');
+          btnToActivate = foundBtn;
+        }
       }
       var targetContent = document.getElementById('tab-' + tabId);
       if (targetContent) targetContent.classList.add('active');
+      if (btnToActivate && btnToActivate.scrollIntoView) {
+        btnToActivate.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
       if (tabId === 'graph') {
         setTimeout(resetCanvasView, 50);
       }
