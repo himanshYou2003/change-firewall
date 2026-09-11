@@ -39,7 +39,7 @@
   - [10. `change-firewall open` (Dashboard Server)](#10-change-firewall-open-dashboard-server)
   - [11. `change-firewall demo` (Simulation Mode)](#11-change-firewall-demo-simulation-mode)
   - [12. `change-firewall mcp` (Model Context Protocol)](#12-change-firewall-mcp-model-context-protocol)
-- [🧬 v0.3.0 Advanced Intelligence, Crash Simulation & Remediation Center](#-v030-advanced-intelligence-crash-simulation--remediation-center)
+- [🧬 v0.3.1 Advanced Intelligence, Crash Simulation & Remediation Center](#-v031-advanced-intelligence-crash-simulation--remediation-center)
   - [11-Dimensional Behavioral Fingerprint Matrix](#11-dimensional-behavioral-fingerprint-matrix)
   - [Symbolic Runtime Crash Proof (Zero Guesswork)](#symbolic-runtime-crash-proof-zero-guesswork)
   - [Crash Simulation Sandbox & Live Impact Visualizer](#crash-simulation-sandbox--live-impact-visualizer)
@@ -470,9 +470,9 @@ npx change-firewall mcp
 
 ---
 
-## 🧬 v0.3.0 Advanced Intelligence, Crash Simulation & Remediation Center
+## 🧬 v0.3.1 Advanced Intelligence, Crash Simulation & Remediation Center
 
-Change Firewall v0.3.0 introduces next-generation interactive diagnostic tools and remediation systems specifically engineered to catch silent breaks introduced by autonomous AI coding assistants and resolve them with zero manual friction:
+Change Firewall v0.3.1 introduces next-generation interactive diagnostic tools and remediation systems specifically engineered to catch silent breaks introduced by autonomous AI coding assistants and resolve them with zero manual friction:
 
 ### 1. 11-Dimensional Behavioral Fingerprint Matrix
 Rather than relying on vague linter warnings or nondeterministic LLM reviews, every code delta is evaluated across an 11-dimensional behavioral matrix:

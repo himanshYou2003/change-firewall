@@ -1669,7 +1669,7 @@ export function getDashboardHtml(report: AnalysisReport): string {
         <div>
           <div class="brand-title-wrap">
             <span class="brand-title">Change Firewall</span>
-            <span class="brand-version-pill">v0.3.0</span>
+            <span class="brand-version-pill">v0.3.1</span>
           </div>
           <div class="brand-subtitle">AI Code Change Behavioral Verification Engine</div>
         </div>
@@ -2092,7 +2092,7 @@ export function getDashboardHtml(report: AnalysisReport): string {
       <div>
         <a href="https://github.com/himanshYou2003/change-firewall" target="_blank" rel="noreferrer">GitHub</a>
         <span style="margin: 0 8px; opacity: 0.4;">|</span>
-        <a href="https://www.npmjs.com/package/change-firewall" target="_blank" rel="noreferrer">NPM v0.3.0</a>
+        <a href="https://www.npmjs.com/package/change-firewall" target="_blank" rel="noreferrer">NPM v0.3.1</a>
       </div>
     </footer>
   </div>

@@ -17,7 +17,7 @@ const program = new Command();
 program
   .name('change-firewall')
   .description('The deterministic trust layer & referee for autonomous AI coding agents. Verifies agent actions, blast radius, invariant memory, and crash proofs.')
-  .version('0.3.0');
+  .version('0.3.1');
 
 // Default / analyze command
 program

@@ -137,7 +137,7 @@ export default function Navbar() {
             title="View package on npm"
             className="text-[10px] sm:text-[11px] font-mono font-medium px-2 py-0.5 rounded-md bg-[var(--surface-100)] hover:bg-[var(--surface-200)] text-[var(--text-muted)] hover:text-brand-cyan border border-[var(--border-subtle)] transition-colors whitespace-nowrap shrink-0"
           >
-            v0.3.0
+            v0.3.1
           </a>
         </div>
 
@@ -220,7 +220,7 @@ export default function Navbar() {
               npm
             </span>
             <span className="hidden sm:inline-block text-[10px] font-mono px-1.5 py-0.2 rounded bg-[var(--surface-200)] text-[var(--text-muted)] border border-[var(--border-subtle)]">
-              v0.3.0
+              v0.3.1
             </span>
           </a>
 
@@ -386,7 +386,7 @@ export default function Navbar() {
                     </span>
                     <span className="font-mono text-[11px] font-semibold">npm</span>
                     <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[var(--surface-200)] text-[var(--text-muted)] border border-[var(--border-subtle)]">
-                      v0.3.0
+                      v0.3.1
                     </span>
                     <ExternalLink className="w-3 h-3 text-[var(--text-muted)] group-hover:text-[#cb3837] transition-colors" />
                   </a>

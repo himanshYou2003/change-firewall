@@ -31,7 +31,7 @@ function assertProof(feature, testDescription, condition, details) {
 
 async function runDeepTesterSuite() {
   console.log('\n' + '='.repeat(80));
-  console.log('  🔬 PRINCIPAL SDET & WORLD-CLASS TEST HARNESS: CHANGE FIREWALL v0.3.0');
+  console.log('  🔬 PRINCIPAL SDET & WORLD-CLASS TEST HARNESS: CHANGE FIREWALL v0.3.1');
   console.log('  Empirical Proof of 100% Operational Features (Zero Guesswork)');
   console.log('='.repeat(80) + '\n');
 
@@ -491,7 +491,7 @@ export function render() {
   
   // change-firewall --version
   const { stdout: verOut } = await execFileAsync('node', [binPath, '--version']);
-  assertProof('CLI Suite', 'change-firewall --version outputs 0.3.0', verOut.trim() === '0.3.0', `Version: ${verOut.trim()}`);
+  assertProof('CLI Suite', 'change-firewall --version outputs 0.3.1', verOut.trim() === '0.3.1', `Version: ${verOut.trim()}`);
 
   const stripAnsi = (str) => str.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '');
 
