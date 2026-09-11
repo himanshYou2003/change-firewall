@@ -190,15 +190,15 @@ export default function GeniusPillars() {
         <div className="text-center max-w-4xl mx-auto mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--surface-100)] border border-[var(--border-subtle)] text-[11px] font-mono font-semibold text-brand-cyan mb-4">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>v0.3.0 ARCHITECTURAL MASTER BLUEPRINT</span>
+            <span>v0.3.0 THE AGENT TRUST ARCHITECTURE</span>
           </div>
 
           <h2 className="text-3xl sm:text-5xl font-black text-[var(--text-primary)] tracking-tight leading-[1.1]">
-            The 4 Genius Pillars for <span className="text-[#ff5c26] dark:text-[#ff6e38]">Change Firewall</span>
+            The 4 Pillars of the <span className="text-[#ff5c26] dark:text-[#ff6e38]">AI Code Referee</span>
           </h2>
 
           <p className="mt-4 text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed max-w-2xl mx-auto">
-            Conventional linters cry wolf with vague warnings, hallucinate false positives, and have <strong className="text-[var(--text-primary)]">zero memory</strong> of codebase intent. Change Firewall replaces guesswork with deterministic behavioral intelligence.
+            Autonomous coding agents rewrite 20 files in seconds and grade their own homework. Change Firewall replaces blind trust and probabilistic LLM reviews with deterministic, compiler-grounded verification.
           </p>
         </div>
 
@@ -206,7 +206,7 @@ export default function GeniusPillars() {
         <div className="mb-10 bg-[var(--surface-50)] border border-[var(--border-card)] rounded-2xl p-4 sm:p-6 shadow-sm">
           <div className="text-center mb-3">
             <span className="text-xs font-mono font-bold tracking-widest text-[var(--text-muted)] uppercase">
-              Core Architecture Graph
+              Trust Layer Architecture
             </span>
           </div>
 
@@ -214,7 +214,7 @@ export default function GeniusPillars() {
           <div className="hidden md:block max-w-4xl mx-auto font-mono text-xs select-none">
             <div className="flex justify-center">
               <div className="px-6 py-2.5 rounded-lg bg-[var(--surface-200)] border border-[var(--border-card)] text-[var(--text-primary)] font-bold shadow-xs">
-                THE CHANGE FIREWALL GENIUS CORE (v0.3.0)
+                THE DETERMINISTIC AI AGENT REFEREE (v0.3.0)
               </div>
             </div>
 
@@ -260,7 +260,7 @@ export default function GeniusPillars() {
           <div className="block md:hidden">
             <div className="text-center mb-3">
               <div className="inline-block px-3 py-1.5 rounded-lg bg-[var(--surface-200)] border border-[var(--border-card)] text-[var(--text-primary)] font-bold text-xs font-mono shadow-xs">
-                THE GENIUS CORE (v0.3.0)
+                THE AGENT REFEREE CORE (v0.3.0)
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -585,27 +585,27 @@ export default function GeniusPillars() {
                   <div>
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-xs font-mono font-bold text-red-500 uppercase tracking-wider">
-                        The Flaw of Conventional Linters
+                        Linters & LLM-on-LLM Reviewers
                       </span>
                       <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-red-500/10 text-red-500">
-                        Ignored in 3 Days
+                        Blind or Hallucinated
                       </span>
                     </div>
                     <div className="font-mono text-xs p-3 rounded bg-[var(--surface-main)] border border-red-500/20 text-red-400 mb-3">
-                      ⚠ Warning: Potential null reference in downstream callers.
+                      ⚠ Reviewer LLM: &quot;Changes look clean! All tests pass. LGTM.&quot;
                     </div>
                     <ul className="text-xs text-[var(--text-secondary)] space-y-2">
                       <li className="flex items-start gap-2">
                         <span className="text-red-500 font-bold">✕</span>
-                        <span>Hallucinates false alarms on calls that already have <code className="font-mono text-[11px]">?.</code> optional chaining.</span>
+                        <span>Probabilistic LLMs grade their own homework, repeating the coder agent&apos;s blind spots.</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-red-500 font-bold">✕</span>
-                        <span>Zero call stack awareness: doesn&apos;t know which route or API consumer actually crashes.</span>
+                        <span>Zero compiler-grounded call stack awareness: blind to unhandled TypeErrors 3 hops deep.</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-red-500 font-bold">✕</span>
-                        <span>Engineers suffer alert fatigue and add <code className="font-mono text-[11px]">// eslint-disable</code> comments.</span>
+                        <span>Engineers suffer false-trust fatigue and merge breaking PRs straight to staging.</span>
                       </li>
                     </ul>
                   </div>

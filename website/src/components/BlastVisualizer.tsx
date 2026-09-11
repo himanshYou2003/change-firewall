@@ -328,7 +328,7 @@ export default function BlastVisualizer() {
             </div>
 
             {/* SVG Radar Map */}
-            <svg viewBox="0 0 560 420" className="w-full h-full max-h-[380px] sm:max-h-[460px]">
+            <svg viewBox="0 0 560 420" className="w-full h-full max-h-[420px] sm:max-h-[500px] lg:max-h-[560px]">
               <defs>
                 {/* Sonar Radar Gradient */}
                 <radialGradient id="radarGlow" cx="50%" cy="50%" r="50%">
@@ -699,46 +699,48 @@ export default function BlastVisualizer() {
 
           {/* Dynamic Diagnosis & Callout Card */}
           {mode === 'firewall' ? (
-            <div className="glass-panel-danger rounded-xl p-4 sm:p-5 space-y-3 text-left shadow-sm">
+            <div className="rounded-xl p-4 sm:p-5 space-y-3.5 text-left border border-rose-500/35 dark:border-rose-500/25 bg-rose-500/[0.08] dark:bg-[rgba(30,16,24,0.6)] backdrop-blur-sm shadow-sm">
               {/* Header Status Bar */}
               <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 text-rose-500 dark:text-rose-400 font-bold text-xs uppercase tracking-wider">
-                  <ShieldAlert className="w-4 h-4 shrink-0" />
+                <div className="flex items-center gap-2 text-rose-700 dark:text-rose-400 font-bold text-xs uppercase tracking-wider">
+                  <ShieldAlert className="w-4 h-4 shrink-0 text-rose-600 dark:text-rose-400" />
                   <span>High Risk Mutation Detected</span>
                 </div>
-                <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-rose-500/15 text-rose-500 dark:text-rose-400 border border-rose-500/30">
+                <span className="font-mono text-xs font-bold px-2.5 py-1 rounded-md bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30 shadow-2xs">
                   Risk Score: {score} / 100
                 </span>
               </div>
 
               {/* Animated Progress bar */}
-              <div className="w-full bg-black/30 dark:bg-white/10 rounded-full h-2 overflow-hidden border border-black/10 dark:border-white/10">
+              <div className="w-full bg-slate-300/60 dark:bg-white/10 rounded-full h-2 overflow-hidden border border-slate-300/80 dark:border-white/10">
                 <div
                   ref={meterFillRef}
-                  className="h-full bg-gradient-to-r from-amber-400 to-rose-600 w-[74%]"
+                  className="h-full bg-gradient-to-r from-amber-500 to-rose-600 w-[74%]"
                 />
               </div>
 
               {/* Node-Specific Inspection or Full Blast Summary */}
               {selectedNode ? (
-                <div className="space-y-2.5 pt-1">
-                  <div className="flex items-center justify-between pb-1.5 border-b border-rose-500/20">
+                <div className="space-y-3 pt-1">
+                  <div className="flex items-center justify-between pb-2 border-b border-rose-500/20">
                     <div>
-                      <span className="text-xs font-bold text-[var(--text-primary)] font-mono">
+                      <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white font-mono block">
                         {selectedNode.name}
                       </span>
-                      <span className="text-[11px] text-[var(--text-muted)] font-mono block">
+                      <span className="text-[11px] text-slate-600 dark:text-slate-400 font-mono block mt-0.5">
                         {selectedNode.path}:{selectedNode.lineNo}
                       </span>
                     </div>
-                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-rose-500/20 text-rose-500 border border-rose-500/30">
+                    <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30 uppercase">
                       {selectedNode.severity}
                     </span>
                   </div>
 
                   {/* Broken Callsite Snippet */}
-                  <div className="bg-black/50 p-2.5 rounded-lg border border-white/5 font-mono text-[11px] space-y-1">
-                    <div className="text-slate-400 text-[10px]">Broken Callsite (Line {selectedNode.lineNo}):</div>
+                  <div className="bg-slate-950 text-slate-100 dark:bg-black/60 p-3 rounded-lg border border-slate-800 dark:border-white/10 font-mono text-[11px] space-y-1 shadow-inner">
+                    <div className="text-slate-400 text-[10px] font-semibold uppercase tracking-wider">
+                      Broken Callsite (Line {selectedNode.lineNo}):
+                    </div>
                     <div className="text-rose-300 font-semibold truncate">
                       {selectedNode.callsite}
                     </div>
@@ -746,42 +748,47 @@ export default function BlastVisualizer() {
 
                   {/* Expected vs Actual */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-mono">
-                    <div className="p-2 rounded bg-white/[0.03] border border-white/5">
-                      <span className="text-slate-400 block text-[10px]">Expected:</span>
-                      <span className="text-emerald-400 font-medium break-all">
+                    <div className="p-2.5 rounded-lg bg-emerald-500/10 dark:bg-emerald-500/10 border border-emerald-500/30">
+                      <span className="text-emerald-800 dark:text-emerald-300 block text-[10px] font-bold uppercase tracking-wider">
+                        Expected:
+                      </span>
+                      <span className="text-emerald-950 dark:text-emerald-200 font-semibold break-all text-xs">
                         {selectedNode.expected}
                       </span>
                     </div>
-                    <div className="p-2 rounded bg-white/[0.03] border border-white/5">
-                      <span className="text-slate-400 block text-[10px]">Runtime Result:</span>
-                      <span className="text-rose-400 font-medium break-all">
+                    <div className="p-2.5 rounded-lg bg-rose-500/10 dark:bg-rose-500/10 border border-rose-500/30">
+                      <span className="text-rose-800 dark:text-rose-300 block text-[10px] font-bold uppercase tracking-wider">
+                        Runtime Result:
+                      </span>
+                      <span className="text-rose-950 dark:text-rose-200 font-semibold break-all text-xs">
                         {selectedNode.actual}
                       </span>
                     </div>
                   </div>
 
                   {/* Impact Description */}
-                  <div className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                    <strong className="text-[var(--text-primary)]">Failure Impact: </strong>
-                    {selectedNode.impactDesc}
+                  <div className="p-3 rounded-lg bg-[var(--surface-100)] dark:bg-white/[0.04] border border-[var(--border-subtle)] text-xs text-slate-800 dark:text-slate-200 leading-relaxed shadow-2xs">
+                    <strong className="text-slate-900 dark:text-white font-bold">Failure Impact: </strong>
+                    <span>{selectedNode.impactDesc}</span>
                   </div>
 
                   <button
                     onClick={() => setSelectedNode(null)}
-                    className="w-full mt-1 py-1.5 rounded-lg bg-[var(--surface-100)] hover:bg-[var(--surface-200)] text-[var(--text-primary)] text-xs font-mono transition-colors border border-[var(--border-subtle)] text-center"
+                    className="w-full mt-1 py-2 rounded-lg bg-[var(--surface-100)] hover:bg-[var(--surface-200)] text-slate-900 dark:text-white text-xs font-mono font-semibold transition-colors border border-[var(--border-subtle)] text-center shadow-xs"
                   >
                     ← View All 6 Broken Callers
                   </button>
                 </div>
               ) : (
-                <div className="space-y-2.5 pt-1">
-                  <div className="text-xs space-y-1">
-                    <p className="font-bold text-[var(--text-primary)]">
-                      💥 6 Downstream Callers Severed
+                <div className="space-y-3 pt-1">
+                  <div className="text-xs space-y-1.5">
+                    <p className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                      <span>💥</span>
+                      <span>6 Downstream Callers Severed</span>
                     </p>
-                    <p className="text-[var(--text-secondary)] text-[11px] leading-relaxed">
+                    <p className="text-slate-700 dark:text-slate-300 text-[11px] leading-relaxed">
                       AST analysis discovered that 6 consumer files depend on the direct properties of{' '}
-                      <code className="px-1 py-0.2 rounded bg-black/20 text-[var(--text-primary)] font-mono">
+                      <code className="px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-800 dark:text-rose-300 border border-rose-500/30 font-mono text-[10.5px]">
                         user
                       </code>
                       . Without Change Firewall, this innocent 1-line change silently breaks web, auth, and billing.
@@ -794,19 +801,19 @@ export default function BlastVisualizer() {
                       <button
                         key={c.id}
                         onClick={() => setSelectedNode(c)}
-                        className="p-1.5 rounded text-left bg-[var(--surface-main)] hover:bg-[var(--surface-100)] border border-[var(--border-subtle)] transition-colors group flex items-center justify-between"
+                        className="p-2 rounded-lg text-left bg-[var(--surface-main)] hover:bg-[var(--surface-100)] border border-[var(--border-subtle)] hover:border-rose-500/40 transition-all group flex items-center justify-between shadow-2xs"
                       >
-                        <span className="font-mono text-[10.5px] text-[var(--text-primary)] truncate mr-1">
+                        <span className="font-mono text-[11px] font-semibold text-slate-800 dark:text-slate-200 group-hover:text-rose-600 dark:group-hover:text-rose-400 truncate mr-1">
                           {c.name}
                         </span>
-                        <ChevronRight className="w-3 h-3 text-[var(--text-muted)] group-hover:text-[var(--text-primary)] shrink-0" />
+                        <ChevronRight className="w-3 h-3 text-slate-400 group-hover:text-rose-500 shrink-0" />
                       </button>
                     ))}
                   </div>
 
-                  <div className="pt-2 border-t border-rose-500/20 flex items-center justify-between text-[11px]">
-                    <span className="text-[var(--text-muted)] font-mono">Automated CI Gate:</span>
-                    <span className="text-rose-500 dark:text-rose-400 font-bold font-mono">
+                  <div className="pt-2.5 border-t border-rose-500/20 flex items-center justify-between text-[11px]">
+                    <span className="text-slate-600 dark:text-slate-400 font-mono">Automated CI Gate:</span>
+                    <span className="text-rose-700 dark:text-rose-400 font-bold font-mono px-2 py-0.5 rounded bg-rose-500/15 border border-rose-500/30">
                       MERGE BLOCKED (Exit 1)
                     </span>
                   </div>
@@ -814,13 +821,13 @@ export default function BlastVisualizer() {
               )}
             </div>
           ) : (
-            <div className="glass-panel rounded-xl p-4 sm:p-5 space-y-3 border-emerald-500/25 text-left shadow-sm">
+            <div className="glass-panel rounded-xl p-4 sm:p-5 space-y-3 border-emerald-500/30 text-left shadow-sm bg-emerald-500/[0.04]">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-emerald-500 font-bold text-xs uppercase tracking-wider">
-                  <CheckCircle2 className="w-4 h-4" />
+                <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-bold text-xs uppercase tracking-wider">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   <span>Standard Git Diff View</span>
                 </div>
-                <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
                   +1 / -1 lines
                 </span>
               </div>
@@ -828,19 +835,21 @@ export default function BlastVisualizer() {
               <div className="text-xs text-[var(--text-secondary)] space-y-2 leading-relaxed">
                 <p>Standard diff marks this change as small and harmless.</p>
                 <div className="p-3 rounded-lg bg-[var(--surface-50)] border border-[var(--border-subtle)] text-[11px] text-[var(--text-muted)] space-y-1">
-                  <div className="text-[var(--text-primary)] font-semibold flex items-center gap-1.5">
+                  <div className="text-slate-900 dark:text-white font-semibold flex items-center gap-1.5">
                     <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
                     <span>The Silent Mutation Trap</span>
                   </div>
-                  <p>
+                  <p className="text-slate-700 dark:text-slate-300">
                     Traditional PR review tools and GitHub diffs only count textual additions and deletions. They do not parse the Abstract Syntax Tree or compute callers. Standard CI passes this PR, allowing 6 breaking runtime crashes into production.
                   </p>
                 </div>
               </div>
 
               <div className="pt-2 border-t border-[var(--border-subtle)] flex items-center justify-between text-[11px]">
-                <span className="text-[var(--text-muted)] font-mono">Traditional Gate:</span>
-                <span className="text-emerald-500 font-semibold font-mono">PASSED (Exit 0)</span>
+                <span className="text-slate-600 dark:text-slate-400 font-mono">Traditional Gate:</span>
+                <span className="text-emerald-700 dark:text-emerald-400 font-bold font-mono px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30">
+                  PASSED (Exit 0)
+                </span>
               </div>
             </div>
           )}

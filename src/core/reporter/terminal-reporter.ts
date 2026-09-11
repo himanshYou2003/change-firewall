@@ -36,7 +36,7 @@ export function renderTerminalReport(report: AnalysisReport, dashboardUrl?: stri
   const doubleSeparator = pc.cyan('═'.repeat(66));
 
   console.log('\n' + doubleSeparator);
-  console.log(pc.bold(pc.cyan('  CHANGE FIREWALL  ')) + pc.dim('• Behavior-Aware Change Intelligence Engine'));
+  console.log(pc.bold(pc.cyan('  CHANGE FIREWALL  ')) + pc.dim('• The Deterministic Trust Layer for AI Coding Agents'));
   console.log(doubleSeparator);
 
   // Summary Metrics

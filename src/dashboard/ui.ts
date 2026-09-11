@@ -9,7 +9,7 @@ export function getDashboardHtml(report: AnalysisReport): string {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Change Firewall — AI Code Change Behavioral Verification Engine</title>
+  <title>Change Firewall — The Deterministic Trust Layer for AI Coding Agents</title>
   <link rel="icon" type="image/png" href="${LOGO_DATA_URI}" />
   <link rel="apple-touch-icon" href="${LOGO_DATA_URI}" />
   <link rel="preconnect" href="https://fonts.googleapis.com">

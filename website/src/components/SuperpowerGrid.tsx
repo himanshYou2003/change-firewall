@@ -76,13 +76,13 @@ export default function SuperpowerGrid() {
       <div className="w-full max-w-[1550px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="text-xs font-bold font-mono tracking-widest text-brand-cyan uppercase">
-            Behavior-Aware Protection
+            The Trust Layer Primitives
           </span>
           <h2 className="text-3xl sm:text-5xl font-extrabold text-[var(--text-primary)] tracking-tight mt-2">
-            Engineered for the Agentic Coding Era
+            Why AI Agents Need a Non-LLM Referee
           </h2>
           <p className="mt-4 text-[var(--text-secondary)] text-sm sm:text-base leading-relaxed">
-            Standard linters and tests aren&apos;t enough when autonomous AI modifies 20 files in 5 seconds.
+            When autonomous agents rewrite entire codebases in seconds, probabilistic LLM reviews fail. You need deterministic, compiler-level enforcement before anything merges.
           </p>
         </div>
 

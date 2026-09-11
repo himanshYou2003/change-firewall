@@ -16,13 +16,13 @@ const program = new Command();
 
 program
   .name('change-firewall')
-  .description('Converts code diffs into behavior-aware change reports and deterministic risk scoring')
+  .description('The deterministic trust layer & referee for autonomous AI coding agents. Verifies agent actions, blast radius, invariant memory, and crash proofs.')
   .version('0.3.0');
 
 // Default / analyze command
 program
   .command('analyze', { isDefault: true })
-  .description('Analyze the current Git working tree for behavioral changes and risk')
+  .description('Deterministic verification of code changes, downstream blast radius, and contract invariants')
   .option('--json', 'Output results in JSON format for CI and AI agents')
   .option('--interactive', 'Launch keyboard-driven interactive terminal inspector (Tab: call stacks, p: crash proof, f: fingerprint, a: auto-fix)')
   .option('--inspect', 'Alias for --interactive')

@@ -99,9 +99,9 @@ export default function Navbar() {
     },
     {
       title: 'MCP',
-      href: isDocs ? '/#mcp-hub' : '#mcp-hub',
+      href: isDocs ? '/#mcp' : '#mcp',
       isHash: true,
-      hashId: 'mcp-hub',
+      hashId: 'mcp',
     },
     {
       title: 'Docs',
@@ -200,6 +200,29 @@ export default function Navbar() {
               )}
             </div>
           </button>
+
+          {/* Official White & Red NPM Package Link */}
+          <a
+            href="https://www.npmjs.com/package/change-firewall"
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-xl bg-[var(--surface-100)] border border-[var(--border-subtle)] hover:border-[#cb3837]/50 text-xs font-medium text-[var(--text-primary)] hover:bg-[var(--surface-200)] transition-all shadow-xs group shrink-0 whitespace-nowrap"
+            aria-label="NPM Package"
+            title="View change-firewall on npm"
+          >
+            {/* White and Red NPM Design Icon */}
+            <span className="w-5 h-3.5 rounded-[2px] bg-[#cb3837] flex items-center justify-center px-0.5 shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+              <svg viewBox="0 0 780 250" className="w-full h-full fill-white" aria-hidden="true">
+                <path d="M240,250h100v-50h100V0H240V250z M340,50h50v100h-50V50z M480,0v200h100V50h50v150h50V50h50v150h50V0H480z M0,200h100V50h50v150h50V0H0V200z" />
+              </svg>
+            </span>
+            <span className="hidden sm:inline font-mono text-[11px] font-semibold text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]">
+              npm
+            </span>
+            <span className="hidden sm:inline-block text-[10px] font-mono px-1.5 py-0.2 rounded bg-[var(--surface-200)] text-[var(--text-muted)] border border-[var(--border-subtle)]">
+              v0.3.0
+            </span>
+          </a>
 
           {/* Beautiful GitHub Link */}
           <a
@@ -354,13 +377,18 @@ export default function Navbar() {
                     href="https://www.npmjs.com/package/change-firewall"
                     target="_blank"
                     rel="noreferrer"
-                    className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-[var(--surface-100)] border border-[var(--border-subtle)] hover:border-brand-cyan/40 text-xs font-medium text-[var(--text-primary)] hover:bg-[var(--surface-200)] transition-all shadow-xs group"
+                    className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-[var(--surface-100)] border border-[var(--border-subtle)] hover:border-[#cb3837]/50 text-xs font-medium text-[var(--text-primary)] hover:bg-[var(--surface-200)] transition-all shadow-xs group"
                   >
-                    <span className="text-[10px] font-black font-mono px-1.5 py-0.5 rounded bg-red-500/10 text-red-500 dark:text-red-400 border border-red-500/20">
-                      npm
+                    <span className="w-5 h-3.5 rounded-[2px] bg-[#cb3837] flex items-center justify-center px-0.5 shrink-0 shadow-2xs">
+                      <svg viewBox="0 0 780 250" className="w-full h-full fill-white" aria-hidden="true">
+                        <path d="M240,250h100v-50h100V0H240V250z M340,50h50v100h-50V50z M480,0v200h100V50h50v150h50V50h50v150h50V0H480z M0,200h100V50h50v150h50V0H0V200z" />
+                      </svg>
                     </span>
-                    <span>v0.3.0</span>
-                    <ExternalLink className="w-3 h-3 text-[var(--text-muted)] group-hover:text-brand-cyan transition-colors" />
+                    <span className="font-mono text-[11px] font-semibold">npm</span>
+                    <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[var(--surface-200)] text-[var(--text-muted)] border border-[var(--border-subtle)]">
+                      v0.3.0
+                    </span>
+                    <ExternalLink className="w-3 h-3 text-[var(--text-muted)] group-hover:text-[#cb3837] transition-colors" />
                   </a>
                 </div>
               </div>

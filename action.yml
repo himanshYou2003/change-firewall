@@ -1,0 +1,22 @@
+name: 'Change Firewall PR Merge Gate'
+description: 'Deterministic trust layer & neutral AST referee for AI coding agents. Intercepts breaking changes before merge.'
+author: 'Himanshu'
+branding:
+  icon: 'shield'
+  color: 'blue'
+inputs:
+  base:
+    description: 'Base Git branch or commit to compare against'
+    required: false
+    default: 'origin/main'
+  threshold:
+    description: 'Max acceptable behavioral risk score (0-100) before blocking'
+    required: false
+    default: '70'
+runs:
+  using: 'composite'
+  steps:
+    - name: Run Change Firewall Preflight Gate
+      shell: bash
+      run: |
+        npx --yes change-firewall@latest preflight --base "${{ inputs.base }}" --threshold "${{ inputs.threshold }}"

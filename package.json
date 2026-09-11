@@ -1,7 +1,7 @@
 {
   "name": "change-firewall",
-  "version": "0.3.0",
-  "description": "Converts code diffs into behavior-aware change reports, blast radius mapping, and deterministic risk scoring.",
+  "version": "0.3.1",
+  "description": "The deterministic trust layer for autonomous AI coding agents. Compiler-grounded verification of what an agent actually did vs. what it claimed, blast radius mapping, and persistent contract memory.",
   "type": "module",
   "bin": {
     "change-firewall": "bin/change-firewall.js"
@@ -22,20 +22,32 @@
     "prepublishOnly": "npm run build && npm run verify:mcp"
   },
   "keywords": [
-    "ai",
-    "diff",
-    "behavior-analysis",
-    "ast",
-    "blast-radius",
-    "risk-analysis",
-    "code-review",
-    "agentic-coding",
     "mcp",
-    "model-context-protocol",
     "mcp-server",
-    "claude",
-    "antigravity"
+    "model-context-protocol",
+    "claude-code",
+    "cursor",
+    "cursor-agent",
+    "windsurf",
+    "agentic-coding",
+    "ai-coding-agents",
+    "ai-agent-verification",
+    "trust-layer",
+    "code-review",
+    "ast-diff",
+    "git-diff",
+    "blast-radius",
+    "static-analysis",
+    "symbolic-execution",
+    "crash-proof",
+    "merge-gate",
+    "pre-commit",
+    "developer-tools",
+    "typescript"
   ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "author": "Himanshu",
   "license": "MIT",
   "repository": {

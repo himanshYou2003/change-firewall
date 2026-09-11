@@ -42,13 +42,13 @@ export const DOCS_TREE: DocFolder[] = [
         folderId: 'overview',
         folderTitle: 'Overview & Architecture',
         fileName: 'why-change-firewall.md',
-        title: 'Why Raw Diffs Fail in AI Coding',
-        description: 'Why line-based git diffs are blind to semantic breakage caused by autonomous coding agents.',
+        title: 'Why AI Agents Need a Deterministic Referee',
+        description: 'Why line-based git diffs and LLM-on-LLM reviews fail when autonomous coding agents refactor code.',
         readingTime: '2 min read',
-        badge: 'Core Problem',
+        badge: 'The Trust Problem',
         content: {
           overview:
-            'AI coding assistants (Cursor, Claude Code, Antigravity, Devin, Copilot) write code in bursts across multiple files. A standard git diff only sees character additions and subtractions (+1 / -1). It has no awareness of syntax trees, method signatures, return type mutations, or downstream callers. Change Firewall acts as an intelligent AST gate between AI code output and your main repository.',
+            'Autonomous AI coding agents (Claude Code, Cursor Agent, Antigravity, Devin, Copilot) write code in bursts across dozens of files and self-report success. A standard git diff only sees line additions (+1 / -1), while using an LLM to review an LLM is a probabilistic hallucination loop. Change Firewall acts as the neutral, compiler-grounded referee between agent claims and your main repository.',
           callout: {
             type: 'warning',
             text: 'A 1-line return type change (e.g., returning { user } instead of user) looks innocent in git diff, but breaks every single client component at runtime.',
@@ -812,28 +812,28 @@ if (!gate.readyToMerge) {
         folderId: 'advanced-intelligence',
         folderTitle: 'Behavioral Intelligence Architecture',
         fileName: 'four-genius-pillars.md',
-        title: 'The 4 Genius Pillars for Change Firewall',
-        description: 'The master architectural blueprint engineered to deliver 100% trusted behavioral intelligence.',
+        title: 'The 4 Pillars of the AI Code Referee',
+        description: 'The deterministic trust architecture engineered to verify autonomous AI coding agents before merge.',
         readingTime: '3 min read',
         badge: 'Core Blueprint',
         content: {
           overview:
-            'Conventional linters and scanners fail because they cry wolf with vague warnings, hallucinate false positives, and have zero memory of the codebase history or intent. Change Firewall solves this with 4 Genius Pillars: The Behavior Graph & 11-D Fingerprint, The Behavioral Memory Store, Symbolic Crash Trace & Proof, and the AI Agent Intent vs Reality Guard.',
+            'Autonomous coding agents rewrite 20 files in seconds and grade their own homework. Conventional linters and LLM-on-LLM reviews fail with hallucinations, alert fatigue, and zero temporal memory. Change Firewall provides the deterministic trust layer with 4 Core Pillars: The Behavior Graph & 11-D Fingerprint, The Behavioral Memory Store, Symbolic Crash Trace & Proof, and the AI Agent Intent vs Reality Guard.',
           codeLanguage: 'text',
           codeExample: `┌──────────────────────────────────────────────┐
-│       THE CHANGE FIREWALL GENIUS CORE        │
+│     THE DETERMINISTIC AI AGENT REFEREE       │
 └──────────────────────┬───────────────────────┘
                        │
 ┌──────────────────────┼──────────────────────┬──────────────────────┐
 ▼                      ▼                      ▼                      ▼
 1. BEHAVIOR GRAPH &    2. BEHAVIORAL          3. SYMBOLIC            4. "AGENT INTENT
    11-D FINGERPRINT       MEMORY STORE           CRASH TRACE            VS REALITY"
-   (The Brain)            (.firewall/memory)     (Zero-Guesswork)       VERIFIER`,
+   (Blast Radius)         (.firewall/memory)     (Mathematical Proof)   REFEREE`,
           bulletPoints: [
-            'Pillar 1 (The Brain): Living boundary classification across API, Database, Event, Auth, and Test boundaries evaluated over an 11-D matrix',
+            'Pillar 1 (Blast Radius): Living boundary classification across API, Database, Event, Auth, and Test boundaries evaluated over an 11-D matrix',
             'Pillar 2 (The Memory): Zero-config persistent cache in .firewall/memory/ tracking contract invariant history over time',
             'Pillar 3 (The Proof): Mathematical proof chains simulating unhandled TypeErrors at caller line numbers with zero false alarms',
-            'Pillar 4 (The Agent Guard): Compares Natural Language intent against AST mutations to catch stealth changes and compute Intent Drift',
+            'Pillar 4 (The Referee): Compares stated prompt intentions against actual AST mutations to catch stealth changes and compute Intent Drift',
           ],
           prevDocId: 'programmatic-api',
           nextDocId: 'symbolic-crash-proof',

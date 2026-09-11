@@ -9,25 +9,29 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'Change Firewall ⚡ — AST Behavioral Diffing, Blast Radius & MCP for AI Code',
+  title: 'Change Firewall ⚡ — The Deterministic Trust Layer for AI Coding Agents',
   description:
-    'Converts raw code diffs into behavior-aware change reports, downstream caller blast radius mapping, and deterministic risk scoring (0-100). Native MCP integration for Claude, Antigravity, Cursor, and Windsurf.',
+    'The neutral, non-LLM referee between "Agent says it\'s done" and "Safe to merge." Deterministic compiler-grounded verification of AI agent actions, blast radius mapping, invariant memory, and symbolic runtime crash proofs.',
   keywords: [
     'Change Firewall',
-    'AI Code Review',
+    'AI Coding Agent Trust Layer',
+    'AI Code Referee',
+    'Deterministic Verification',
     'Model Context Protocol',
     'MCP Server',
-    'Claude Desktop MCP',
-    'Cursor MCP',
-    'Blast Radius Mapping',
-    'AST Diffing',
+    'Claude Code MCP',
+    'Cursor Agent MCP',
+    'Devin',
     'Antigravity IDE',
+    'Blast Radius Mapping',
+    'Symbolic Crash Proofs',
+    'AST Diffing',
   ],
   authors: [{ name: 'Himanshu' }],
   openGraph: {
-    title: 'Change Firewall ⚡ Your AI wrote the code. We tell you what it broke.',
+    title: 'Change Firewall ⚡ Stop Letting AI Coding Agents Grade Their Own Homework.',
     description:
-      'Deterministic AST behavioral diffing, caller blast radius mapping, and native Model Context Protocol (MCP) server for modern AI engineering.',
+      'The neutral, compiler-grounded referee sitting between "Agent says it\'s done" and "Safe to merge." Deterministic AST verification, blast radius mapping, and invariant memory.',
     url: 'https://change-firewall.vercel.app',
     siteName: 'Change Firewall',
     type: 'website',
@@ -47,7 +51,10 @@ export default function RootLayout({
             __html: `
               (function() {
                 try {
-                  var stored = localStorage.getItem('cf-theme');
+                  if (localStorage.getItem('cf-theme') && !localStorage.getItem('cf-theme-mode')) {
+                    localStorage.removeItem('cf-theme');
+                  }
+                  var stored = localStorage.getItem('cf-theme-mode');
                   if (stored === 'dark') {
                     document.documentElement.classList.add('dark');
                     document.documentElement.classList.remove('light');
@@ -70,7 +77,7 @@ export default function RootLayout({
           <div className="fixed inset-0 bg-radial-gradient pointer-events-none z-0" />
           <div className="relative z-10 flex flex-col min-h-screen">
             <Navbar />
-            <main className="flex-1">{children}</main>
+            <main className="flex-1 min-h-0 flex flex-col">{children}</main>
             <Footer />
           </div>
         </ThemeProvider>

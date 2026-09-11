@@ -22,15 +22,24 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setMounted(true);
-    const stored = localStorage.getItem('cf-theme') as Theme | null;
-    if (stored === 'light' || stored === 'dark') {
-      setThemeState(stored);
-      applyTheme(stored);
-    } else {
-      // By default: light theme for web, android, and all devices
-      const initial: Theme = 'light';
-      setThemeState(initial);
-      applyTheme(initial);
+    try {
+      // Clear legacy theme key if it was stuck on dark
+      if (localStorage.getItem('cf-theme') && !localStorage.getItem('cf-theme-mode')) {
+        localStorage.removeItem('cf-theme');
+      }
+
+      const stored = localStorage.getItem('cf-theme-mode') as Theme | null;
+      if (stored === 'dark') {
+        setThemeState('dark');
+        applyTheme('dark');
+      } else {
+        // By default: Light mode
+        setThemeState('light');
+        applyTheme('light');
+      }
+    } catch {
+      setThemeState('light');
+      applyTheme('light');
     }
   }, []);
 
@@ -48,7 +57,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
-    localStorage.setItem('cf-theme', newTheme);
+    try {
+      localStorage.setItem('cf-theme-mode', newTheme);
+    } catch {}
     applyTheme(newTheme);
   };
 

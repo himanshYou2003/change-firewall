@@ -1,10 +1,11 @@
 <div align="center">
   <img src="./assets/icon.png" alt="Change Firewall Logo" width="120" height="120" />
   <h1>Change Firewall ⚡</h1>
-  <p><strong>Your AI wrote the code. Change Firewall tells you what it actually broke.</strong></p>
+  <p><strong>Stop letting AI coding agents grade their own homework.</strong></p>
+  <p><em>The deterministic trust layer & neutral, non-LLM referee between "Agent says it's done" and "Safe to merge."</em></p>
 
   <p>
-    <a href="https://change-firewall.vercel.app/"><strong>🌐 Live Web App & Simulator: change-firewall.vercel.app</strong></a>
+    <a href="https://change-firewall.vercel.app/"><strong>🌐 Live Web App & Interactive Simulator: change-firewall.vercel.app</strong></a>
   </p>
 
   [![Website](https://img.shields.io/badge/Website-change--firewall.vercel.app-06b6d4?style=flat-square&logo=vercel)](https://change-firewall.vercel.app/)
@@ -14,14 +15,15 @@
   [![node version](https://img.shields.io/node/v/change-firewall.svg?style=flat-square)](https://nodejs.org)
 </div>
 
-A local-first developer tool, CLI, and TypeScript engine that translates raw Git diffs into **behavior-aware change reports, downstream blast-radius mapping, and deterministic risk scores (0–100)**. Native Model Context Protocol (MCP) server for Claude, Antigravity, Cursor, and Windsurf.
+**Change Firewall** is the missing trust layer for autonomous AI coding agents. It provides **deterministic, compiler-grounded verification** of what an AI coding agent actually did versus what it claimed to do, multi-hop downstream blast-radius mapping, persistent contract memory, and symbolic runtime crash proofs (0–100 risk score). Works as a 1-second CLI, CI/CD merge gate, and native Model Context Protocol (MCP) server for Claude Code, Cursor, Antigravity, and Windsurf.
 
 ---
 
 ## 📑 Table of Contents
-- [❓ Why Use Change Firewall?](#-why-use-change-firewall)
-  - [The Core Problem (Intent vs Consequences)](#the-core-problem-intent-vs-consequences)
-  - [Git Diff vs Change Firewall](#git-diff-vs-change-firewall)
+- [❓ Why Change Firewall? (The Missing Trust Layer for AI Agents)](#-why-change-firewall-the-missing-trust-layer-for-ai-agents)
+  - [The 2026 Reality: Who Verifies the AI Agent?](#the-2026-reality-who-verifies-the-ai-agent)
+  - [The "Self-Grading Homework" Trap (Why LLM-on-LLM Review Fails)](#the-self-grading-homework-trap-why-llm-on-llm-review-fails)
+  - [Git Diff vs Change Firewall Referee](#git-diff-vs-change-firewall-referee)
 - [🚀 Quick Start (Zero Install)](#-quick-start-zero-install)
 - [📦 Installation Options](#-installation-options)
 - [🛠️ CLI Command Reference & Flags](#️-cli-command-reference--flags)
@@ -61,39 +63,57 @@ A local-first developer tool, CLI, and TypeScript engine that translates raw Git
 
 ---
 
-## ❓ Why Use Change Firewall?
+## ❓ Why Change Firewall? (The Missing Trust Layer for AI Agents)
 
-### The Core Problem (Intent vs Consequences)
+### The 2026 Reality: Who Verifies the AI Agent?
 
-AI coding assistants (Cursor, Claude Code, GitHub Copilot, Devin, Antigravity) are rewriting software development. They can modify 20 files in under 5 seconds and report:
+Autonomous coding agents (Claude Code, Cursor Agent, Devin, GitHub Copilot, Codex, Antigravity) are transforming engineering velocity. They can refactor 20 files in under 5 seconds and self-report success:
 
 ```text
-✓ Authentication added
+✓ Authentication refactored
 ✓ Tests passing
 ✓ Build successful
 ```
 
-**The summary tells you what the AI intended to do.** It does **not** tell you:
-* What existing behavior secretly mutated?
+**The summary tells you what the AI agent *intended* or *claimed* to do.** It does **not** tell you:
+* What existing behavior secretly mutated 3 layers deep?
 * What API response contracts silently broke for downstream consumers?
-* Which database models, routes, or callers depend on the changed code?
-* What permissions or security assumptions shifted?
+* What parameter defaults were accidentally stripped, introducing hidden `undefined` crashes?
+* What database models, routes, or auth checks shifted assumptions?
 
-Tests only verify what they were originally written to test. Standard Git diffs only show line additions and deletions (`+1, -1`), concealing architectural ripple effects.
+### The "Self-Grading Homework" Trap: Why LLM-on-LLM Review Fails
 
-### Git Diff vs Change Firewall
+When engineering teams realize agents make subtle architectural mistakes, the intuitive reaction is: *"Let's ask another LLM to review the PR!"*
 
-Consider this innocent-looking change:
+This fails because **you cannot use a probabilistic LLM to catch probabilistic errors**:
+1. **Hallucination Circle:** Reviewer LLMs suffer from the exact same hallucinations, sycophancy, and blind spots as the coder agent.
+2. **Context Truncation:** Large multi-file diffs lose cross-boundary dependency context in prompt windows.
+3. **High Latency & Token Costs:** Re-analyzing whole repos with frontier models is expensive, non-deterministic, and slow.
+
+### The Solution: A Neutral, Compiler-Grounded Referee
+
+**Change Firewall is not an LLM.** It is a **deterministic, compiler-grounded referee** built directly on the TypeScript AST, symbolic data-flow analysis, and persistent invariant history:
+
+* 🛡️ **Grounds Agent Intent vs. Reality:** Compares stated prompt intentions against actual AST mutations to catch drift, missing defaults, and scope creep (`change-firewall audit-agent`).
+* 💥 **Maps Blast Radius Across Living Boundaries:** Calculates downstream impact across API contracts, Auth guards, Database models, and Event hooks up to 3 hops deep.
+* 🧠 **Persistent Invariant Memory (`.firewall/memory/`):** A temporal anchor that ensures an agent cannot silently erode contracts that have been stable across 100+ commits.
+* 🧪 **Symbolic Runtime Crash Proofs:** Mathematically proves exact line-numbered TypeErrors with **0% guesswork and 0 false alarms** before any code is merged.
+* ⚡ **100% Offline, Zero API Keys, 0ms Cloud Latency:** Runs instantly on your local machine or in CI.
+
+### Git Diff vs Change Firewall Referee
+
+Consider this innocent-looking change made by an AI agent:
 
 ```diff
 - return user;
 + return { user };
 ```
 
-| Tool | What It Sees | Result |
-|---|---|---|
-| **Git Diff** | `1 line modified (+1, -1)` | Looks tiny and harmless. Developer approves PR. |
-| **Change Firewall** | **🔴 HIGH RISK: API Response Contract Mutated**<br>• Endpoint: `GET /api/user`<br>• Before: `User`<br>• After: `{ user: User }`<br>• Blast Radius: `7 client consumers depend on this endpoint structure!`<br>• Action: Update client response deserializers or revert wrapper. | **Catches the breaking change before staging or production crashes!** |
+| Dimension | Git Diff | Reviewer LLM | Change Firewall (Deterministic Referee) |
+|---|---|---|---|
+| **What It Sees** | `1 line modified (+1, -1)` | "Looks like user object was wrapped in a payload object. LGTM!" | **🔴 CRITICAL: API Response Contract Mutated**<br>• Endpoint: `GET /api/user`<br>• Before: `User`<br>• After: `{ user: User }`<br>• Blast Radius: `7 client consumers depend on this endpoint structure!` |
+| **Trust Model** | Blind line counter | Probabilistic guess (may hallucinate) | **100% Compiler Grounded (AST Proof)** |
+| **Outcome** | Developer merges. Client crashes in prod. | Passed review. Client crashes in prod. | **Blocked at preflight before merging!** |
 
 ---
 
@@ -921,6 +941,18 @@ npx husky add .husky/pre-commit "npx change-firewall preflight --staged"
 ```
 
 If an AI tool breaks an API response contract or alters security middleware without adding tests, the commit is safely intercepted!
+
+---
+
+## 🛡️ Add Verification Badge to Your Repo
+
+Show contributors and users that your repository's AI-assisted commits and PRs are deterministically verified:
+
+```markdown
+[![Verified with Change Firewall](https://img.shields.io/badge/Verified%20with-Change%20Firewall-06b6d4?style=flat-square&logo=shield)](https://github.com/himanshYou2003/change-firewall)
+```
+
+Preview: [![Verified with Change Firewall](https://img.shields.io/badge/Verified%20with-Change%20Firewall-06b6d4?style=flat-square&logo=shield)](https://github.com/himanshYou2003/change-firewall)
 
 ---
 

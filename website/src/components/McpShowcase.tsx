@@ -423,20 +423,23 @@ export default function McpShowcase() {
   };
 
   return (
-    <section id="mcp-hub" className="py-20 relative">
+    <section id="mcp" className="py-20 relative scroll-mt-20">
+      {/* Anchor alias for #mcp-hub */}
+      <span id="mcp-hub" className="absolute -top-20" aria-hidden="true" />
       <div className="w-full max-w-[1550px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header - Clean & Minimal */}
         <div className="text-center max-w-3xl mx-auto mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-[var(--surface-100)] border border-[var(--border-subtle)] text-xs font-mono text-[var(--text-muted)] mb-3">
+            <Bot className="w-3.5 h-3.5 text-brand-cyan" />
             <span>Open Standard Protocol (MCP)</span>
           </div>
 
           <h2 className="text-2xl sm:text-4xl font-bold text-[var(--text-primary)] tracking-tight">
-            Universal AI Integration
+            Give Your Agent a Neutral Referee
           </h2>
 
           <p className="mt-3 text-[var(--text-secondary)] text-sm sm:text-base leading-relaxed">
-            Configure once. Connect Change Firewall natively to Claude Desktop, Google Antigravity, Cursor, Windsurf, and Copilot with zero custom wrappers.
+            Configure once. Claude Code, Cursor, Google Antigravity, and Windsurf query Change Firewall natively via MCP before presenting code to you — catching breaking mutations autonomously in their own feedback loop.
           </p>
         </div>
 

@@ -260,7 +260,7 @@ export default function CliExperience() {
         <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--surface-100)] border border-[var(--border-subtle)] text-[11px] font-mono font-semibold text-brand-cyan mb-3">
             <Command className="w-3.5 h-3.5" />
-            <span>BEHAVIOR-AWARE CLI COMMAND SUITE</span>
+            <span>THE DETERMINISTIC REFEREE COMMAND SUITE</span>
           </div>
 
           <h2 className="text-3xl sm:text-5xl font-black text-[var(--text-primary)] tracking-tight">
@@ -268,7 +268,7 @@ export default function CliExperience() {
           </h2>
 
           <p className="mt-3 sm:mt-4 text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed">
-            Zero ambiguity. Tap any command below to understand <strong className="text-[var(--text-primary)]">why you should use it</strong>, what problem it solves, and how to read the exact terminal output.
+            Zero ambiguity. Run Change Firewall locally in your terminal, enforce it as a CI merge gate, or let Claude and Cursor query it autonomously via MCP.
           </p>
         </div>
 
