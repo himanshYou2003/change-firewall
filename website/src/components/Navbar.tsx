@@ -74,7 +74,7 @@ export default function Navbar() {
 
   const NAV_ITEMS = [
     {
-      title: 'Simulator',
+      title: 'Radar',
       href: isDocs ? '/#simulator' : '#simulator',
       isHash: true,
       hashId: 'simulator',
@@ -90,6 +90,12 @@ export default function Navbar() {
       href: isDocs ? '/#cli' : '#cli',
       isHash: true,
       hashId: 'cli',
+    },
+    {
+      title: 'Playground',
+      href: isDocs ? '/#playground' : '#playground',
+      isHash: true,
+      hashId: 'playground',
     },
     {
       title: 'Features',

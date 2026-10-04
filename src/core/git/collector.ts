@@ -9,7 +9,8 @@ const execFileAsync = promisify(execFile);
 async function runGit(args: string[], cwd: string): Promise<string> {
   const { stdout } = await execFileAsync('git', ['-c', 'core.quotepath=false', ...args], {
     cwd,
-    maxBuffer: 20 * 1024 * 1024, // 20MB
+    maxBuffer: 20 * 1024 * 1024,
+    encoding: 'utf8',
   });
   return stdout;
 }
@@ -47,18 +48,129 @@ export interface CollectDiffOptions {
   staged?: boolean;
 }
 
-export async function collectFileDiffs(options: CollectDiffOptions): Promise<FileDiff[]> {
-  const { cwd, base, staged } = options;
+interface NameStatusEntry {
+  statusCode: string;
+  path: string;
+  oldPath?: string;
+}
 
-  const isRepo = await isGitRepo(cwd);
-  if (!isRepo) {
-    return [];
+function normalizePath(filePath: string): string {
+  return filePath.replace(/\\/g, '/');
+}
+
+function parseNameStatus(output: string): NameStatusEntry[] {
+  const fields = output.split('\0');
+  const entries: NameStatusEntry[] = [];
+
+  for (let index = 0; index < fields.length; ) {
+    const status = fields[index++];
+    if (!status) continue;
+
+    const statusCode = status[0];
+    if (statusCode === 'R' || statusCode === 'C') {
+      const oldPath = fields[index++];
+      const filePath = fields[index++];
+      if (oldPath && filePath) {
+        entries.push({
+          statusCode,
+          oldPath: normalizePath(oldPath),
+          path: normalizePath(filePath),
+        });
+      }
+      continue;
+    }
+
+    const filePath = fields[index++];
+    if (filePath) entries.push({ statusCode, path: normalizePath(filePath) });
   }
 
-  const baseRef = base || 'HEAD';
+  return entries;
+}
+
+function countLines(content: string): number {
+  if (!content) return 0;
+  return content.endsWith('\n')
+    ? content.slice(0, -1).split('\n').length
+    : content.split('\n').length;
+}
+
+async function readWorkingTreeFile(cwd: string, filePath: string): Promise<string | undefined> {
+  try {
+    return await fs.readFile(path.resolve(cwd, filePath), 'utf8');
+  } catch {
+    return undefined;
+  }
+}
+
+async function readGitObject(cwd: string, revision: string, filePath: string): Promise<string | undefined> {
+  try {
+    return await runGit(['show', `${revision}:${filePath}`], cwd);
+  } catch {
+    return undefined;
+  }
+}
+
+async function getNumstat(
+  cwd: string,
+  baseRef: string | undefined,
+  staged: boolean,
+  filePath: string,
+  oldPath?: string
+): Promise<{ linesAdded: number; linesDeleted: number }> {
+  const args = ['diff'];
+  if (staged) args.push('--cached');
+  args.push('--numstat');
+  if (baseRef) args.push(baseRef);
+  args.push('--');
+  if (oldPath) args.push(oldPath);
+  args.push(filePath);
+
+  try {
+    const output = await runGit(args, cwd);
+    let linesAdded = 0;
+    let linesDeleted = 0;
+    for (const line of output.trim().split('\n')) {
+      if (!line) continue;
+      const [added, deleted] = line.split('\t');
+      linesAdded += Number.parseInt(added, 10) || 0;
+      linesDeleted += Number.parseInt(deleted, 10) || 0;
+    }
+    return { linesAdded, linesDeleted };
+  } catch {
+    return { linesAdded: 0, linesDeleted: 0 };
+  }
+}
+
+async function collectInitialWorkingTree(cwd: string): Promise<FileDiff[]> {
+  // With no HEAD, compare the current working tree with an empty repository.
+  const output = await runGit(
+    ['ls-files', '--cached', '--others', '--exclude-standard', '-z'],
+    cwd
+  );
+  const paths = Array.from(
+    new Set(output.split('\0').filter(Boolean).map(normalizePath))
+  ).sort();
   const diffs: FileDiff[] = [];
 
-  // Check if HEAD exists (could be fresh repo with no commits)
+  for (const filePath of paths) {
+    const afterContent = await readWorkingTreeFile(cwd, filePath);
+    if (afterContent === undefined) continue;
+    diffs.push({
+      path: filePath,
+      changeType: 'added',
+      afterContent,
+      linesAdded: countLines(afterContent),
+      linesDeleted: 0,
+    });
+  }
+
+  return diffs;
+}
+
+export async function collectFileDiffs(options: CollectDiffOptions): Promise<FileDiff[]> {
+  const { cwd, base, staged = false } = options;
+  if (!(await isGitRepo(cwd))) return [];
+
   let hasCommits = true;
   try {
     await runGit(['rev-parse', '--verify', 'HEAD'], cwd);
@@ -66,148 +178,63 @@ export async function collectFileDiffs(options: CollectDiffOptions): Promise<Fil
     hasCommits = false;
   }
 
-  if (!hasCommits) {
-    // Initial commit scenario - all files in directory are untracked/added
-    const statusOut = await runGit(['status', '--porcelain', '-uall'], cwd);
-    const lines = statusOut.split('\n').filter((l) => l.trim().length > 0);
+  if (!hasCommits && !staged) return collectInitialWorkingTree(cwd);
 
-    for (const line of lines) {
-      const filePath = line.substring(3).trim();
-      const fullPath = path.resolve(cwd, filePath);
+  const baseRef = base || (hasCommits ? 'HEAD' : undefined);
+  const diffArgs = ['diff'];
+  if (staged) diffArgs.push('--cached');
+  diffArgs.push('--name-status', '-M', '-z');
+  if (baseRef) diffArgs.push(baseRef);
 
-      let content = '';
-      try {
-        content = await fs.readFile(fullPath, 'utf8');
-      } catch {
-        continue;
-      }
+  const entries = parseNameStatus(await runGit(diffArgs, cwd));
+  const diffs: FileDiff[] = [];
 
-      const lineCount = content.split('\n').length;
+  if (!staged) {
+    const untrackedOutput = await runGit(
+      ['ls-files', '--others', '--exclude-standard', '-z'],
+      cwd
+    );
+    for (const filePath of untrackedOutput.split('\0').filter(Boolean).map(normalizePath)) {
+      const afterContent = await readWorkingTreeFile(cwd, filePath);
+      if (afterContent === undefined) continue;
       diffs.push({
-        path: filePath.replace(/\\/g, '/'),
-        changeType: 'added',
-        afterContent: content,
-        linesAdded: lineCount,
+        path: filePath,
+        changeType: 'untracked',
+        afterContent,
+        linesAdded: countLines(afterContent),
         linesDeleted: 0,
       });
     }
-
-    return diffs;
   }
 
-  // Build git diff arguments
-  const diffArgs = ['diff', '--name-status', '-M'];
-  if (staged) {
-    diffArgs.push('--cached');
-  }
-  if (base) {
-    diffArgs.push(base);
-  } else if (!staged) {
-    diffArgs.push('HEAD');
-  }
-
-  const nameStatusOut = await runGit(diffArgs, cwd);
-  const diffLines = nameStatusOut.split('\n').filter((l) => l.trim().length > 0);
-
-  // Also collect untracked files if not checking staged only
-  if (!staged) {
-    const untrackedOut = await runGit(['status', '--porcelain', '-uall'], cwd);
-    for (const line of untrackedOut.split('\n')) {
-      if (line.startsWith('?? ')) {
-        let filePath = line.substring(3).trim();
-        if (filePath.startsWith('"') && filePath.endsWith('"')) {
-          filePath = filePath.slice(1, -1);
-        }
-        filePath = filePath.replace(/\\/g, '/');
-        const fullPath = path.resolve(cwd, filePath);
-        try {
-          const content = await fs.readFile(fullPath, 'utf8');
-          const lineCount = content.split('\n').length;
-          diffs.push({
-            path: filePath,
-            changeType: 'untracked',
-            afterContent: content,
-            linesAdded: lineCount,
-            linesDeleted: 0,
-          });
-        } catch {
-          // Skip if unreadable (e.g. binary or inaccessible)
-        }
-      }
-    }
-  }
-
-  for (const line of diffLines) {
-    const parts = line.split('\t');
-    const status = parts[0]?.trim();
-    if (!status) continue;
-
-    const statusCode = status[0];
-    const cleanPath = (p?: string) => {
-      if (!p) return undefined;
-      let cleaned = p.trim();
-      if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
-        cleaned = cleaned.slice(1, -1);
-      }
-      return cleaned.replace(/\\/g, '/');
-    };
-
-    let filePath = cleanPath(parts[1]);
-    let oldPath: string | undefined;
-
-    if (statusCode === 'R') {
-      oldPath = cleanPath(parts[1]);
-      filePath = cleanPath(parts[2]);
-    }
-
-    if (!filePath) continue;
-
+  for (const entry of entries) {
+    const { statusCode, path: filePath, oldPath } = entry;
     let changeType: FileChangeType = 'modified';
-    let beforeContent: string | undefined;
-    let afterContent: string | undefined;
-    let linesAdded = 0;
-    let linesDeleted = 0;
+    if (statusCode === 'A') changeType = 'added';
+    else if (statusCode === 'D') changeType = 'deleted';
+    else if (statusCode === 'R') changeType = 'renamed';
 
-    if (statusCode === 'A') {
-      changeType = 'added';
-      try {
-        afterContent = await fs.readFile(path.resolve(cwd, filePath), 'utf8');
-        linesAdded = afterContent.split('\n').length;
-      } catch {}
-    } else if (statusCode === 'D') {
-      changeType = 'deleted';
-      try {
-        beforeContent = await runGit(['show', `${baseRef}:${filePath}`], cwd);
-        linesDeleted = beforeContent.split('\n').length;
-      } catch {}
-    } else if (statusCode === 'R') {
-      changeType = 'renamed';
-      try {
-        if (oldPath) {
-          beforeContent = await runGit(['show', `${baseRef}:${oldPath}`], cwd);
-        }
-        afterContent = await fs.readFile(path.resolve(cwd, filePath), 'utf8');
-      } catch {}
-    } else {
-      // Modified ('M')
-      changeType = 'modified';
-      try {
-        beforeContent = await runGit(['show', `${baseRef}:${filePath}`], cwd);
-      } catch {}
-      try {
-        afterContent = await fs.readFile(path.resolve(cwd, filePath), 'utf8');
-      } catch {}
+    const beforeContent = baseRef
+      ? await readGitObject(cwd, baseRef, oldPath || filePath)
+      : undefined;
+    const afterContent = changeType === 'deleted'
+      ? undefined
+      : staged
+        ? await readGitObject(cwd, '', filePath)
+        : await readWorkingTreeFile(cwd, filePath);
 
-      // Calculate line changes
-      try {
-        const numstatOut = await runGit(
-          ['diff', '--numstat', baseRef, '--', filePath],
-          cwd
-        );
-        const [addedStr, deletedStr] = numstatOut.trim().split(/\s+/);
-        linesAdded = parseInt(addedStr, 10) || 0;
-        linesDeleted = parseInt(deletedStr, 10) || 0;
-      } catch {}
+    let { linesAdded, linesDeleted } = await getNumstat(
+      cwd,
+      baseRef,
+      staged,
+      filePath,
+      oldPath
+    );
+    if (changeType === 'added' && linesAdded === 0 && afterContent !== undefined) {
+      linesAdded = countLines(afterContent);
+    }
+    if (changeType === 'deleted' && linesDeleted === 0 && beforeContent !== undefined) {
+      linesDeleted = countLines(beforeContent);
     }
 
     diffs.push({

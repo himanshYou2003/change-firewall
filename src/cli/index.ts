@@ -2,6 +2,10 @@ import { Command } from 'commander';
 import pc from 'picocolors';
 import path from 'node:path';
 import fs from 'node:fs';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import type { AnalysisReport } from '../types/index.js';
+import type { DashboardMode } from '../dashboard/server.js';
 import {
   analyzeChanges,
   buildDependencyGraph,
@@ -13,6 +17,134 @@ import {
 } from '../index.js';
 
 const program = new Command();
+const execFileAsync = promisify(execFile);
+const semanticRunId = process.env.CHANGE_FIREWALL_RUN_ID || `${process.pid}-${Date.now()}`;
+
+type SemanticCommand = 'analyze' | 'preflight' | 'audit-agent';
+type SemanticEvent =
+  | {
+      type: 'command-start';
+      command: SemanticCommand;
+    }
+  | {
+      type: 'analysis-completed';
+      command: SemanticCommand;
+      requestedBase: string | null;
+      resolvedBase: string | null;
+      scope: 'staged' | 'working-tree';
+      filesChanged: number;
+      findings: number;
+      workspaceRevision: string | null;
+    }
+  | {
+      type: 'preflight-gate';
+      command: 'preflight';
+      readyToMerge: boolean;
+      maxRisk: number;
+      riskScore: number;
+    }
+  | {
+      type: 'command-failure';
+      command: SemanticCommand;
+      category: string;
+      message: string;
+    }
+  | {
+      type: 'command-exit';
+      command: SemanticCommand;
+      exitCode: number;
+    };
+
+function emitSemanticEvent(event: SemanticEvent): void {
+  const descriptorText = process.env.CHANGE_FIREWALL_EVENT_FD;
+  if (!descriptorText || !/^\d+$/.test(descriptorText)) return;
+  const descriptor = Number.parseInt(descriptorText, 10);
+  if (descriptor < 3) return;
+  try {
+    fs.writeSync(descriptor, `${JSON.stringify({
+      version: 1,
+      runId: semanticRunId,
+      processId: process.pid,
+      timestamp: new Date().toISOString(),
+      ...event,
+    })}\n`);
+  } catch {
+    // Semantic events are advisory and never change command behavior.
+  }
+}
+
+async function resolveComparisonBase(requestedBase: string | undefined, report: AnalysisReport): Promise<string | null> {
+  const revision = requestedBase || 'HEAD';
+  try {
+    const { stdout } = await execFileAsync('git', ['rev-parse', '--short', revision], {
+      cwd: report.projectPath,
+      encoding: 'utf8',
+    });
+    return stdout.trim() || report.baseCommit || null;
+  } catch {
+    return requestedBase || report.baseCommit || null;
+  }
+}
+
+async function emitAnalysisCompleted(
+  command: SemanticCommand,
+  report: AnalysisReport,
+  requestedBase?: string,
+  staged = false
+): Promise<void> {
+  emitSemanticEvent({
+    type: 'analysis-completed',
+    command,
+    requestedBase: requestedBase || null,
+    resolvedBase: await resolveComparisonBase(requestedBase, report),
+    scope: staged ? 'staged' : 'working-tree',
+    filesChanged: report.totalFilesChanged,
+    findings: report.findings.length,
+    workspaceRevision: report.baseCommit || null,
+  });
+}
+
+function emitCommandFailure(command: SemanticCommand, err: any): void {
+  emitSemanticEvent({
+    type: 'command-failure',
+    command,
+    category: String(err?.code || err?.name || 'UNKNOWN_ERROR'),
+    message: String(err?.message || err),
+  });
+  emitSemanticEvent({ type: 'command-exit', command, exitCode: 1 });
+}
+
+async function withDashboardMode<T>(mode: DashboardMode, task: () => Promise<T>): Promise<T> {
+  const previous = process.env.CHANGE_FIREWALL_DASHBOARD_MODE;
+  process.env.CHANGE_FIREWALL_DASHBOARD_MODE = mode;
+  try {
+    return await task();
+  } finally {
+    if (previous === undefined) delete process.env.CHANGE_FIREWALL_DASHBOARD_MODE;
+    else process.env.CHANGE_FIREWALL_DASHBOARD_MODE = previous;
+  }
+}
+
+function dashboardEventOptions(mode: DashboardMode) {
+  const descriptorText = process.env.CHANGE_FIREWALL_DASHBOARD_READY_FD;
+  if (!descriptorText || !/^\d+$/.test(descriptorText)) return undefined;
+
+  const descriptor = Number.parseInt(descriptorText, 10);
+  if (descriptor < 3) return undefined;
+
+  return {
+    mode,
+    onReady(event: { port: number; autoOpen: boolean; mode: DashboardMode }) {
+      try {
+        // Advisory playground metadata travels on an explicitly inherited file
+        // descriptor and never contaminates terminal, JSON, or MCP output.
+        fs.writeSync(descriptor, `${JSON.stringify(event)}\n`);
+      } catch {
+        // The dashboard remains usable if the optional receiver disconnects.
+      }
+    },
+  };
+}
 
 program
   .name('change-firewall')
@@ -33,6 +165,7 @@ program
   .option('-i, --intent <text>', 'Audit AI agent stated intent vs actual code mutations')
   .option('--record-memory', 'Record verified baseline snapshot into persistent memory (.firewall/memory)')
   .action(async (options) => {
+    emitSemanticEvent({ type: 'command-start', command: 'analyze' });
     try {
       const port = parseInt(options.port, 10) || 4783;
       const report = await analyzeChanges({
@@ -42,21 +175,29 @@ program
         intent: options.intent,
         recordMemory: Boolean(options.recordMemory),
       });
+      await emitAnalysisCompleted('analyze', report, options.base, Boolean(options.staged));
 
       if (options.json) {
         console.log(renderJsonReport(report));
+        emitSemanticEvent({ type: 'command-exit', command: 'analyze', exitCode: 0 });
         return;
       }
 
       if (options.interactive || options.inspect) {
         await startInteractiveInspector(report);
+        emitSemanticEvent({ type: 'command-exit', command: 'analyze', exitCode: 0 });
         return;
       }
 
       let dashboardUrl: string | undefined;
 
       if (options.open) {
-        const server = await startDashboardServer(report, port, true);
+        const server = await startDashboardServer(
+          report,
+          port,
+          true,
+          dashboardEventOptions('snapshot')
+        );
         dashboardUrl = server.url;
         renderTerminalReport(report, dashboardUrl);
         console.log(pc.cyan(`\nDashboard running at ${dashboardUrl}. Press Ctrl+C to stop.\n`));
@@ -64,10 +205,13 @@ program
         await new Promise(() => {});
       } else {
         renderTerminalReport(report);
+        emitSemanticEvent({ type: 'command-exit', command: 'analyze', exitCode: 0 });
       }
     } catch (err: any) {
       console.error(pc.red(`\nError during analysis: ${err.message}\n`));
-      process.exit(1);
+      emitCommandFailure('analyze', err);
+      process.exitCode = 1;
+      return;
     }
   });
 
@@ -88,7 +232,8 @@ program
       await startInteractiveInspector(report);
     } catch (err: any) {
       console.error(pc.red(`\nError starting interactive inspector: ${err.message}\n`));
-      process.exit(1);
+      process.exitCode = 1;
+      return;
     }
   });
 
@@ -104,6 +249,7 @@ program
   .option('-b, --base <ref>', 'Base git commit or branch to compare against (default: HEAD)')
   .option('-s, --staged', 'Only evaluate staged changes')
   .action(async (options) => {
+    emitSemanticEvent({ type: 'command-start', command: 'preflight' });
     try {
       const maxRisk = parseInt(options.threshold || options.maxRisk, 10) || 60;
       const failOnHigh = options.failOnHigh !== false;
@@ -113,9 +259,17 @@ program
         base: options.base,
         staged: options.staged,
       });
+      await emitAnalysisCompleted('preflight', report, options.base, Boolean(options.staged));
 
       const { evaluatePreflight, renderPreflightTerminal } = await import('../index.js');
       const result = evaluatePreflight(report, { maxRisk, failOnHigh });
+      emitSemanticEvent({
+        type: 'preflight-gate',
+        command: 'preflight',
+        readyToMerge: result.readyToMerge,
+        maxRisk,
+        riskScore: report.risk.score,
+      });
 
       if (options.json) {
         console.log(JSON.stringify(result, null, 2));
@@ -124,11 +278,16 @@ program
       }
 
       if (!result.readyToMerge) {
-        process.exit(1);
+        emitSemanticEvent({ type: 'command-exit', command: 'preflight', exitCode: 1 });
+        process.exitCode = 1;
+        return;
       }
+      emitSemanticEvent({ type: 'command-exit', command: 'preflight', exitCode: 0 });
     } catch (err: any) {
       console.error(pc.red(`\nPreflight check failed: ${err.message}\n`));
-      process.exit(1);
+      emitCommandFailure('preflight', err);
+      process.exitCode = 1;
+      return;
     }
   });
 
@@ -142,13 +301,19 @@ program
       const port = parseInt(options.port, 10) || 4783;
       console.log(pc.cyan('Analyzing project and starting local dashboard...'));
       const report = await analyzeChanges({ cwd: process.cwd() });
-      const server = await startDashboardServer(report, port, true);
+      const server = await startDashboardServer(
+        report,
+        port,
+        true,
+        dashboardEventOptions('snapshot')
+      );
       renderTerminalReport(report, server.url);
       console.log(pc.cyan(`\nDashboard running at ${server.url}. Press Ctrl+C to stop.\n`));
       await new Promise(() => {});
     } catch (err: any) {
       console.error(pc.red(`\nFailed to start dashboard: ${err.message}\n`));
-      process.exit(1);
+      process.exitCode = 1;
+      return;
     }
   });
 
@@ -200,7 +365,8 @@ program
       console.log(pc.cyan('═'.repeat(54)) + '\n');
     } catch (err: any) {
       console.error(pc.red(`\nError inspecting impact: ${err.message}\n`));
-      process.exit(1);
+      process.exitCode = 1;
+      return;
     }
   });
 
@@ -214,11 +380,11 @@ program
     try {
       const port = parseInt(options.port, 10) || 4783;
       const { startWatchMode } = await import('../index.js');
-      const handle = await startWatchMode({
-        cwd: process.cwd(),
-        port,
-        open: options.open !== false,
-      });
+      const handle = await withDashboardMode('watch', () => startWatchMode({
+          cwd: process.cwd(),
+          port,
+          open: options.open !== false,
+        }));
 
       process.on('SIGINT', async () => {
         console.log(pc.yellow('\nStopping watch mode...'));
@@ -227,7 +393,8 @@ program
       });
     } catch (err: any) {
       console.error(pc.red(`\nWatch mode failed: ${err.message}\n`));
-      process.exit(1);
+      process.exitCode = 1;
+      return;
     }
   });
 
@@ -276,7 +443,8 @@ program
       console.log(pc.cyan('═'.repeat(58)) + '\n');
     } catch (err: any) {
       console.error(pc.red(`\nError explaining file: ${err.message}\n`));
-      process.exit(1);
+      process.exitCode = 1;
+      return;
     }
   });
 
@@ -290,13 +458,14 @@ program
     try {
       const port = parseInt(options.port, 10) || 4783;
       const { runDemoSimulation } = await import('../index.js');
-      await runDemoSimulation({
-        port,
-        open: options.open !== false,
-      });
+      await withDashboardMode('demo', () => runDemoSimulation({
+          port,
+          open: options.open !== false,
+        }));
     } catch (err: any) {
       console.error(pc.red(`\nDemo failed: ${err.message}\n`));
-      process.exit(1);
+      process.exitCode = 1;
+      return;
     }
   });
 
@@ -310,7 +479,8 @@ program
       await startMcpServer();
     } catch (err: any) {
       console.error(pc.red(`\nMCP Server failed to start: ${err.message}\n`));
-      process.exit(1);
+      process.exitCode = 1;
+      return;
     }
   });
 
@@ -344,7 +514,8 @@ program
       console.log(ascii + '\n');
     } catch (err: any) {
       console.error(pc.red(`\nError rendering behavior graph: ${err.message}\n`));
-      process.exit(1);
+      process.exitCode = 1;
+      return;
     }
   });
 
@@ -384,7 +555,8 @@ program
       console.log(pc.cyan('═'.repeat(54)) + '\n');
     } catch (err: any) {
       console.error(pc.red(`\nMemory command failed: ${err.message}\n`));
-      process.exit(1);
+      process.exitCode = 1;
+      return;
     }
   });
 
@@ -395,12 +567,14 @@ program
   .option('-i, --intent <text>', 'Stated intention or prompt given to the AI coding agent', 'General improvements')
   .option('--json', 'Output agent audit report as JSON')
   .action(async (options) => {
+    emitSemanticEvent({ type: 'command-start', command: 'audit-agent' });
     try {
       const { analyzeChanges, renderTerminalReport, renderJsonReport } = await import('../index.js');
       const report = await analyzeChanges({
         cwd: process.cwd(),
         intent: options.intent,
       });
+      await emitAnalysisCompleted('audit-agent', report);
 
       if (options.json) {
         console.log(renderJsonReport(report));
@@ -409,29 +583,37 @@ program
       }
 
       if (report.agentAudit && (report.agentAudit.verdict === 'STEALTH_MUTATION' || report.agentAudit.verdict === 'HIGH_DRIFT')) {
-        process.exit(1);
+        emitSemanticEvent({ type: 'command-exit', command: 'audit-agent', exitCode: 1 });
+        process.exitCode = 1;
+        return;
       }
+      emitSemanticEvent({ type: 'command-exit', command: 'audit-agent', exitCode: 0 });
     } catch (err: any) {
       console.error(pc.red(`\nAgent audit failed: ${err.message}\n`));
-      process.exit(1);
+      emitCommandFailure('audit-agent', err);
+      process.exitCode = 1;
+      return;
     }
   });
 
-// Normalize common user inputs like -inspect, -graph, etc. into valid subcommands
-const normalizedArgv = process.argv.map((arg) => {
-  if (arg === '-inspect' || arg === '--inspect') {
-    return 'inspect';
-  }
-  if (arg === '-graph' || arg === '--graph') {
-    return 'graph';
-  }
-  if (arg === '-impact' || arg === '--impact') {
-    return 'impact';
-  }
-  if (arg === '-preflight' || arg === '--preflight' || arg === '-gate' || arg === '--gate') {
-    return 'preflight';
-  }
-  return arg;
-});
+// Normalize legacy command spellings only in the root command position. Options
+// belonging to explicit commands (for example `analyze --inspect`) and option
+// values must remain untouched.
+const normalizedArgv = [...process.argv];
+const rootAliases: Record<string, string> = {
+  '-inspect': 'inspect',
+  '--inspect': 'inspect',
+  '-graph': 'graph',
+  '--graph': 'graph',
+  '-impact': 'impact',
+  '--impact': 'impact',
+  '-preflight': 'preflight',
+  '--preflight': 'preflight',
+  '-gate': 'preflight',
+  '--gate': 'preflight',
+};
+if (normalizedArgv[2] && rootAliases[normalizedArgv[2]]) {
+  normalizedArgv[2] = rootAliases[normalizedArgv[2]];
+}
 
-program.parse(normalizedArgv);
+await program.parseAsync(normalizedArgv);

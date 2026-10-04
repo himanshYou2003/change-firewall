@@ -1,0 +1,5 @@
+node_modules/
+.firewall/
+.playground.json
+.playground-workspace
+*.log

@@ -3,3 +3,6 @@ dist/
 .firewall/
 *.log
 scratch/
+.playground-artifacts/
+playwright-report/
+test-results/

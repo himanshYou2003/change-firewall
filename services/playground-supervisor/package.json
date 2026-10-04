@@ -1,0 +1,16 @@
+{
+  "name": "@change-firewall/playground-supervisor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "../../node_modules/.bin/tsc -p tsconfig.json",
+    "typecheck": "../../node_modules/.bin/tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && node --test dist/test/*.test.js"
+  },
+  "dependencies": {
+    "node-pty": "1.1.0"
+  }
+}

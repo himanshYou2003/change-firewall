@@ -3,6 +3,8 @@ import './globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import PixelTrailCursor from '@/components/PixelTrailCursor';
+import PageLoader from '@/components/PageLoader';
 
 export const viewport: Viewport = {
   themeColor: '#f5f2e8',
@@ -96,6 +98,8 @@ export default function RootLayout({
       </head>
       <body className="bg-background text-[var(--text-primary)] min-h-screen flex flex-col selection:bg-[#d1c8b7] selection:text-[#181512] transition-colors duration-200">
         <ThemeProvider>
+          <PageLoader />
+          <PixelTrailCursor />
           <div className="fixed inset-0 bg-grid-pattern pointer-events-none opacity-60 z-0" />
           <div className="fixed inset-0 bg-radial-gradient pointer-events-none z-0" />
           <div className="relative z-10 flex flex-col min-h-screen">
@@ -108,4 +112,6 @@ export default function RootLayout({
     </html>
   );
 }
+
+
 

@@ -1,0 +1,72 @@
+{
+  "generatedAt": "2026-10-04T06:55:17.037Z",
+  "version": "0.3.1",
+  "executable": "npx change-firewall",
+  "rootHelp": "Usage: change-firewall [options] [command]\n\nThe deterministic trust layer & referee for autonomous AI coding agents.\nVerifies agent actions, blast radius, invariant memory, and crash proofs.\n\nOptions:\n  -V, --version                  output the version number\n  -h, --help                     display help for command\n\nCommands:\n  analyze [options]              Deterministic verification of code changes,\n                                 downstream blast radius, and contract\n                                 invariants\n  interactive|inspect [options]  Launch keyboard-driven interactive terminal\n                                 inspector (Tab: call stacks, p: crash proof, f:\n                                 fingerprint, a: auto-fix)\n  preflight|gate [options]       Determine whether the current changes are safe\n                                 to merge (exit 0 for safe, exit 1 for blocked)\n  open [options]                 Start and open the local dashboard with current\n                                 working tree analysis\n  impact <file>                  Inspect the blast radius and downstream\n                                 dependents of a specific file\n  watch [options]                Live watch mode: automatically re-analyzes on\n                                 AI changes and updates local dashboard via SSE\n  why <file>                     Explain why a file matters to the architecture,\n                                 its role, history, and dependents\n  demo [options]                 Run an interactive simulated AI change scenario\n                                 (Section 7 Golden Moment) with live dashboard\n  mcp                            Start Model Context Protocol (MCP) server over\n                                 stdio for Claude Desktop, Antigravity, and\n                                 Cursor\n  graph <file>                   Display the architectural Behavior Graph and\n                                 critical paths for a specific file/symbol\n  memory [action]                Manage persistent contract memory (status,\n                                 record, reset)\n  audit-agent [options]          Audit stated AI agent intent (commit message or\n                                 prompt) against actual uncommitted diffs\n  help [command]                 display help for command\n",
+  "commands": [
+    {
+      "name": "analyze",
+      "aliases": [],
+      "help": "Usage: change-firewall analyze [options]\n\nDeterministic verification of code changes, downstream blast radius, and\ncontract invariants\n\nOptions:\n  --json               Output results in JSON format for CI and AI agents\n  --interactive        Launch keyboard-driven interactive terminal inspector\n                       (Tab: call stacks, p: crash proof, f: fingerprint, a:\n                       auto-fix)\n  --inspect            Alias for --interactive\n  --open               Start and open local web dashboard at localhost:4783\n  -p, --port <number>  Port for the local dashboard (default: \"4783\")\n  -b, --base <ref>     Base git commit or branch to compare against (default:\n                       HEAD)\n  -s, --staged         Only analyze staged changes\n  -i, --intent <text>  Audit AI agent stated intent vs actual code mutations\n  --record-memory      Record verified baseline snapshot into persistent memory\n                       (.firewall/memory)\n  -h, --help           display help for command\n"
+    },
+    {
+      "name": "interactive",
+      "aliases": [
+        "inspect"
+      ],
+      "help": "Usage: change-firewall interactive|inspect [options]\n\nLaunch keyboard-driven interactive terminal inspector (Tab: call stacks, p:\ncrash proof, f: fingerprint, a: auto-fix)\n\nOptions:\n  -b, --base <ref>  Base git commit or branch to compare against (default: HEAD)\n  -s, --staged      Only inspect staged changes\n  -h, --help        display help for command\n"
+    },
+    {
+      "name": "preflight",
+      "aliases": [
+        "gate"
+      ],
+      "help": "Usage: change-firewall preflight|gate [options]\n\nDetermine whether the current changes are safe to merge (exit 0 for safe, exit 1\nfor blocked)\n\nOptions:\n  -m, --max-risk <number>   Maximum acceptable risk score before blocking merge\n                            (default: \"60\")\n  -t, --threshold <number>  Alias for --max-risk (threshold score)\n  --no-fail-on-high         Do not automatically fail on high severity\n                            behavioral findings\n  --json                    Output preflight evaluation result as JSON\n  -b, --base <ref>          Base git commit or branch to compare against\n                            (default: HEAD)\n  -s, --staged              Only evaluate staged changes\n  -h, --help                display help for command\n"
+    },
+    {
+      "name": "open",
+      "aliases": [],
+      "help": "Usage: change-firewall open [options]\n\nStart and open the local dashboard with current working tree analysis\n\nOptions:\n  -p, --port <number>  Port for the local dashboard (default: \"4783\")\n  -h, --help           display help for command\n"
+    },
+    {
+      "name": "impact",
+      "aliases": [],
+      "help": "Usage: change-firewall impact [options] <file>\n\nInspect the blast radius and downstream dependents of a specific file\n\nOptions:\n  -h, --help  display help for command\n"
+    },
+    {
+      "name": "watch",
+      "aliases": [],
+      "help": "Usage: change-firewall watch [options]\n\nLive watch mode: automatically re-analyzes on AI changes and updates local\ndashboard via SSE\n\nOptions:\n  -p, --port <number>  Port for the local dashboard (default: \"4783\")\n  --no-open            Do not automatically open browser on startup\n  -h, --help           display help for command\n"
+    },
+    {
+      "name": "why",
+      "aliases": [],
+      "help": "Usage: change-firewall why [options] <file>\n\nExplain why a file matters to the architecture, its role, history, and\ndependents\n\nOptions:\n  -h, --help  display help for command\n"
+    },
+    {
+      "name": "demo",
+      "aliases": [],
+      "help": "Usage: change-firewall demo [options]\n\nRun an interactive simulated AI change scenario (Section 7 Golden Moment) with\nlive dashboard\n\nOptions:\n  -p, --port <number>  Port for the local dashboard (default: \"4783\")\n  --no-open            Do not automatically open browser on startup\n  -h, --help           display help for command\n"
+    },
+    {
+      "name": "mcp",
+      "aliases": [],
+      "help": "Usage: change-firewall mcp [options]\n\nStart Model Context Protocol (MCP) server over stdio for Claude Desktop,\nAntigravity, and Cursor\n\nOptions:\n  -h, --help  display help for command\n"
+    },
+    {
+      "name": "graph",
+      "aliases": [],
+      "help": "Usage: change-firewall graph [options] <file>\n\nDisplay the architectural Behavior Graph and critical paths for a specific\nfile/symbol\n\nOptions:\n  -h, --help  display help for command\n"
+    },
+    {
+      "name": "memory",
+      "aliases": [],
+      "help": "Usage: change-firewall memory [options] [action]\n\nManage persistent contract memory (status, record, reset)\n\nOptions:\n  -h, --help  display help for command\n"
+    },
+    {
+      "name": "audit-agent",
+      "aliases": [],
+      "help": "Usage: change-firewall audit-agent [options]\n\nAudit stated AI agent intent (commit message or prompt) against actual\nuncommitted diffs\n\nOptions:\n  -i, --intent <text>  Stated intention or prompt given to the AI coding agent\n                       (default: \"General improvements\")\n  --json               Output agent audit report as JSON\n  -h, --help           display help for command\n"
+    }
+  ]
+}

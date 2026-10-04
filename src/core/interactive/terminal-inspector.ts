@@ -304,17 +304,18 @@ export async function startInteractiveInspector(report: AnalysisReport): Promise
 
       messageBanner = '';
 
-      // Explicit Quit condition: 'q', 'Q', or Ctrl+C
-      if ((key.ctrl && key.name === 'c') || key.name === 'q' || _str === 'q' || _str === 'Q') {
+      // Explicit Quit condition: 'q', 'Q', Escape, or Ctrl+C
+      if (
+        (key.ctrl && key.name === 'c') ||
+        key.name === 'escape' ||
+        key.name === 'q' ||
+        _str === 'q' ||
+        _str === 'Q'
+      ) {
         cleanup();
         process.stdin.removeListener('keypress', handleKeypress);
         console.log(pc.cyan('Exited Interactive Terminal Inspector.'));
         resolve();
-        return;
-      }
-
-      // Ignore bare escape codes or sequence prefixes
-      if (key.name === 'escape') {
         return;
       }
 

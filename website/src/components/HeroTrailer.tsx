@@ -2,17 +2,28 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
+import dynamic from 'next/dynamic';
 import BlastVisualizer from './BlastVisualizer';
-import { Sparkles, Terminal, ArrowRight, ShieldCheck, Cpu, Code2, BookOpen, Check, Copy, Bot } from 'lucide-react';
+import { Activity, Terminal, ArrowRight, ShieldCheck, Cpu, Code2, BookOpen, Check, Copy, Bot } from 'lucide-react';
 import Link from 'next/link';
+import { useTheme } from '@/components/ThemeProvider';
+
+import TextEmerge from '@/components/originkit/ui/text-emerge';
+
+const VectorWordmark = dynamic(() => import('@/components/originkit/ui/vector-wordmark'), {
+  ssr: false,
+});
 
 export default function HeroTrailer() {
+  const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const subtitleRef = useRef<HTMLParagraphElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     gsap.fromTo(
       titleRef.current,
       { opacity: 0, y: 25 },
@@ -30,6 +41,8 @@ export default function HeroTrailer() {
     );
   }, []);
 
+  const isDark = theme === 'dark';
+
   const copyQuickStart = () => {
     navigator.clipboard.writeText('npx change-firewall');
     setCopied(true);
@@ -37,8 +50,36 @@ export default function HeroTrailer() {
   };
 
   return (
-    <section id="simulator" className="relative pt-10 pb-20 sm:pt-16 sm:pb-28 overflow-hidden">
-      <div className="w-full max-w-[1550px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
+    <section id="simulator" className="relative pt-8 pb-14 sm:pt-12 sm:pb-20 overflow-hidden scroll-mt-[68px]">
+      {/* Vector Wordmark Dynamic Overlay over the Hero Area */}
+      <div className="absolute inset-0 w-full h-[580px] sm:h-[640px] pointer-events-none z-10 overflow-hidden">
+        {mounted && (
+          <VectorWordmark
+            background="transparent"
+            text=""
+            textColor="transparent"
+            shade="transparent"
+            accent={isDark ? 'rgba(56, 189, 248, 0.4)' : 'rgba(255, 92, 38, 0.4)'}
+            reach={340}
+            speed={50}
+            damping={55}
+            handles={{
+              size: 85,
+              spread: 32,
+              labels: true,
+            }}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              pointerEvents: 'none',
+            }}
+          />
+        )}
+      </div>
+
+      <div className="w-full max-w-[1550px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center relative z-20">
         {/* Release Pill Badge */}
         <div className="inline-flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-1.5 rounded-full bg-[var(--surface-100)] border border-[var(--border-subtle)] text-[var(--text-secondary)] text-[11px] sm:text-xs font-medium mb-6 max-w-full">
           <Terminal className="w-3.5 h-3.5 text-brand-cyan shrink-0" />
@@ -62,16 +103,34 @@ export default function HeroTrailer() {
           </span>
         </h1>
 
-        {/* Subtitle with soft comfortable contrast */}
-        <p
+        {/* Subtitle with dynamic Text Emerge animation */}
+        <div
           ref={subtitleRef}
-          className="mt-5 text-base sm:text-xl text-[var(--text-secondary)] max-w-3xl font-normal leading-relaxed"
+          className="mt-4 text-sm sm:text-lg text-[var(--text-secondary)] max-w-3xl font-normal leading-relaxed w-full"
         >
-          Autonomous agents rewrite 20 files in 5 seconds and self-report success. Change Firewall provides deterministic, compiler-grounded verification of what the agent actually touched vs. what it claimed, maps downstream blast radius, and proves runtime crashes with zero guesswork.
-        </p>
+          <TextEmerge
+            text="Autonomous agents rewrite 20 files in 5 seconds and self-report success. Change Firewall provides deterministic, compiler-grounded verification of what the agent actually touched vs. what it claimed, maps downstream blast radius, and proves runtime crashes with zero guesswork."
+            color="var(--text-secondary)"
+            staggerFrom="start"
+            tag="p"
+            font={{
+              fontFamily: 'inherit',
+              fontSize: 'inherit',
+              lineHeight: 'inherit',
+              fontWeight: 'inherit',
+              textAlign: 'center',
+            }}
+            transition={{
+              duration: 0.55,
+              delay: 0.15,
+              ease: 'easeOut',
+              staggerChildren: 0.02,
+            }}
+          />
+        </div>
 
         {/* Quick Command & Action Buttons */}
-        <div ref={ctaRef} className="mt-8 flex flex-col sm:flex-row items-center gap-3.5 w-full sm:w-auto">
+        <div ref={ctaRef} className="mt-6 flex flex-col sm:flex-row items-center gap-3.5 w-full sm:w-auto">
           {/* 1-Click Copy Command */}
           <button
             onClick={copyQuickStart}
@@ -110,7 +169,7 @@ export default function HeroTrailer() {
         </div>
 
         {/* Value Prop Badges */}
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs text-[var(--text-muted)] font-mono">
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-5 text-xs text-[var(--text-muted)] font-mono">
           <div className="flex items-center gap-1.5">
             <ShieldCheck className="w-4 h-4 text-brand-success" />
             <span>Neutral Non-LLM Referee</span>
@@ -126,7 +185,7 @@ export default function HeroTrailer() {
         </div>
 
         {/* Killer Interactive AST Blast Radius Visualizer - Full Width */}
-        <div className="w-full mt-12 max-w-[1550px]">
+        <div className="w-full mt-10 max-w-[1550px]">
           <BlastVisualizer />
         </div>
       </div>

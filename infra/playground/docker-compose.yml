@@ -1,0 +1,22 @@
+services:
+  playground-gateway:
+    build:
+      context: ../..
+      dockerfile: infra/playground/gateway.Dockerfile
+    environment:
+      PLAYGROUND_HOST: 0.0.0.0
+      PLAYGROUND_PORT: 8787
+      PLAYGROUND_ALLOWED_ORIGIN: http://localhost:3000
+      PLAYGROUND_SEED_SCRIPT: /app/scripts/playground/seed.mjs
+      PLAYGROUND_CLI_ROOT: /app
+      PLAYGROUND_RUNTIME_ROOT: /runtime
+    ports:
+      - "127.0.0.1:8787:8787"
+    tmpfs:
+      - /runtime:size=512m,mode=0700
+    init: true
+    stop_grace_period: 5s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL

@@ -17,8 +17,21 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
+    "pretest": "npm run build",
     "test": "vitest run",
     "verify:mcp": "node scripts/verify-mcp-e2e.mjs",
+    "preplayground:seed": "npm run playground:artifact",
+    "playground:seed": "node scripts/playground/seed.mjs",
+    "preplayground:validate": "npm run playground:artifact",
+    "playground:validate": "node scripts/playground/validate-fixture.mjs",
+    "playground:manifest": "node scripts/playground/capture-command-manifest.mjs",
+    "playground:artifact": "node scripts/playground/build-artifact.mjs",
+    "playground:protocol": "npm test --prefix packages/playground-protocol",
+    "playground:supervisor": "npm test --prefix services/playground-supervisor",
+    "playground:gateway": "npm test --prefix services/playground-gateway",
+    "playground:check": "npm run playground:validate && npm run playground:protocol && npm run playground:supervisor && npm run playground:gateway",
+    "playground:build": "npm run build && npm run build --prefix packages/playground-protocol && npm run build --prefix services/playground-supervisor && npm run build --prefix services/playground-gateway",
+    "playground:start": "PLAYGROUND_SEED_SCRIPT=\"$PWD/scripts/playground/seed.mjs\" PLAYGROUND_CLI_ROOT=\"$PWD\" PLAYGROUND_ALLOWED_ORIGIN=\"http://localhost:3000\" npm run start --prefix services/playground-gateway",
     "prepublishOnly": "npm run build && npm run verify:mcp"
   },
   "keywords": [

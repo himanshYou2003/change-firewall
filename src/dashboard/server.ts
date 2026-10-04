@@ -1,4 +1,5 @@
 import http from 'node:http';
+import fs from 'node:fs';
 import open from 'open';
 import type { AnalysisReport } from '../types/index.js';
 import { getDashboardHtml } from './ui.js';
@@ -9,10 +10,48 @@ export interface DashboardServer {
   update: (newReport: AnalysisReport) => void;
 }
 
+export interface DashboardReadyEvent {
+  type: 'dashboard-ready';
+  port: number;
+  autoOpen: boolean;
+  mode: DashboardMode;
+}
+
+export type DashboardMode = 'snapshot' | 'watch' | 'demo';
+
+export interface DashboardServerOptions {
+  /** Optional advisory hook for sandbox/runtime integrations. Disabled by default. */
+  onReady?: (event: DashboardReadyEvent) => void;
+  mode?: DashboardMode;
+}
+
+function getReadyDescriptor(): number | undefined {
+  const descriptorText = process.env.CHANGE_FIREWALL_DASHBOARD_READY_FD;
+  if (!descriptorText || !/^\d+$/.test(descriptorText)) return undefined;
+
+  const descriptor = Number.parseInt(descriptorText, 10);
+  return descriptor >= 3 ? descriptor : undefined;
+}
+
+function getEnvironmentMode(): DashboardMode | undefined {
+  const mode = process.env.CHANGE_FIREWALL_DASHBOARD_MODE;
+  return mode === 'snapshot' || mode === 'watch' || mode === 'demo' ? mode : undefined;
+}
+
+function emitEnvironmentReadyEvent(event: DashboardReadyEvent, descriptor: number): void {
+
+  try {
+    fs.writeSync(descriptor, `${JSON.stringify(event)}\n`);
+  } catch {
+    // A disconnected advisory receiver must not affect dashboard startup.
+  }
+}
+
 export async function startDashboardServer(
   initialReport: AnalysisReport,
   preferredPort = 4783,
-  autoOpen = false
+  autoOpen = false,
+  options: DashboardServerOptions = {}
 ): Promise<DashboardServer> {
   let currentReport = initialReport;
   const sseClients = new Set<http.ServerResponse>();
@@ -69,7 +108,23 @@ export async function startDashboardServer(
       const actualPort = typeof address === 'object' && address ? address.port : currentPort;
       const url = `http://localhost:${actualPort}`;
 
-      if (autoOpen) {
+      const readyEvent: DashboardReadyEvent = {
+        type: 'dashboard-ready',
+        port: actualPort,
+        autoOpen,
+        mode: options.mode || getEnvironmentMode() || 'snapshot',
+      };
+      const readyDescriptor = getReadyDescriptor();
+      try {
+        if (options.onReady) options.onReady(readyEvent);
+        else if (readyDescriptor !== undefined) emitEnvironmentReadyEvent(readyEvent, readyDescriptor);
+      } catch {
+        // Advisory hooks must never prevent the local dashboard from starting.
+      }
+
+      // A playground bridge owns browser presentation. Suppress the host OS
+      // opener whenever its inherited advisory descriptor is active.
+      if (autoOpen && readyDescriptor === undefined) {
         try {
           await open(url);
         } catch {
