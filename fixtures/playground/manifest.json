@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "sourceDigest": "f5e3f3adf5726fce1fc7184aefe693ff092661b7e4a4e35509d3d3cefe1e8476",
+  "sourceDigest": "76be33b7370ba29fa83f8fbecd74c400068c18aa5bec6bcc2abdb3865d6db0ea",
   "digestAlgorithm": "sha256",
   "defaultScenario": "contract-drift",
   "defaultFile": "src/middleware/auth.ts",

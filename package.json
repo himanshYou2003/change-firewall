@@ -31,7 +31,7 @@
     "playground:gateway": "npm test --prefix services/playground-gateway",
     "playground:check": "npm run playground:validate && npm run playground:protocol && npm run playground:supervisor && npm run playground:gateway",
     "playground:build": "npm run build && npm run build --prefix packages/playground-protocol && npm run build --prefix services/playground-supervisor && npm run build --prefix services/playground-gateway",
-    "playground:start": "PLAYGROUND_SEED_SCRIPT=\"$PWD/scripts/playground/seed.mjs\" PLAYGROUND_CLI_ROOT=\"$PWD\" PLAYGROUND_ALLOWED_ORIGIN=\"http://localhost:3000\" npm run start --prefix services/playground-gateway",
+    "playground:start": "node scripts/playground/start-gateway.mjs",
     "prepublishOnly": "npm run build && npm run verify:mcp"
   },
   "keywords": [

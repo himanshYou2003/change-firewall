@@ -4,6 +4,11 @@ This service is the local development adapter for the interactive IDE. It create
 
 This adapter is **not hardened production isolation**. It starts visitor commands as host child processes. Bind it to loopback only. Public deployment requires the hardened sandbox adapter and isolation/security gates described in `docs/interactive-ide-implementation-plan.md`.
 
+The executable fails closed when `NODE_ENV=production`. Setting an environment
+label cannot turn host child processes into a security boundary. Deployments
+must provide the separate hardened runtime adapter before enabling public live
+sessions.
+
 ## Run locally
 
 Build the root CLI first, then build and start the gateway:
@@ -17,7 +22,16 @@ PLAYGROUND_ALLOWED_ORIGIN="http://localhost:3000" \
 npm start --prefix services/playground-gateway
 ```
 
-Set `NEXT_PUBLIC_PLAYGROUND_GATEWAY_URL=http://127.0.0.1:8787` for the website. The gateway defaults to `127.0.0.1:8787`. `PLAYGROUND_FIXTURE_ROOT` may replace the seed script for a simple prebuilt fixture copy. Other settings are `PLAYGROUND_RUNTIME_ROOT`, `PLAYGROUND_GATEWAY_TOKEN`, `PLAYGROUND_IDLE_TTL_MS`, and `PLAYGROUND_ABSOLUTE_TTL_MS`.
+Set `NEXT_PUBLIC_PLAYGROUND_GATEWAY_URL=http://127.0.0.1:8787` for the website. The gateway defaults to `127.0.0.1:8787`. `PLAYGROUND_FIXTURE_ROOT` may replace the seed script for a simple prebuilt fixture copy. Other settings are `PLAYGROUND_RUNTIME_ROOT`, `PLAYGROUND_GATEWAY_TOKEN`, `PLAYGROUND_IDLE_TTL_MS`, `PLAYGROUND_ABSOLUTE_TTL_MS`, `PLAYGROUND_MAX_SESSIONS`, `PLAYGROUND_WARM_POOL_SIZE` (one ready session by default), and `PLAYGROUND_SHUTDOWN_TIMEOUT_MS`.
+
+The release artifact contains a digest-verified baseline template. Expensive Git
+history creation and contract-memory analysis happen once while building the
+artifact, not once per visitor. The gateway prepares a warm session before it
+accepts traffic and replenishes that pool asynchronously after allocation.
+
+`GET /healthz` is the liveness endpoint. `GET /readyz` reports whether the
+gateway is accepting work plus current session usage and configured capacity.
+Route traffic only while `/readyz` returns HTTP 200.
 
 The browser receives an HttpOnly local session cookie. The exact configured origin is the only CORS origin. A gateway token, when configured, is required only to create sessions through `X-Playground-Gateway-Token`; a production application should issue sessions server-side rather than expose that token.
 

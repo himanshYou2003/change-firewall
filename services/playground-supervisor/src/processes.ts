@@ -1,19 +1,36 @@
-import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
+import { execFile, spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { EventEmitter } from 'node:events';
 import { readFile, readdir, readlink } from 'node:fs/promises';
 import { delimiter, join } from 'node:path';
+import { promisify } from 'node:util';
 import type { ServerEvent } from '../../../packages/playground-protocol/dist/index.js';
 import { ProtocolError } from '../../../packages/playground-protocol/dist/index.js';
 import type { IPty } from 'node-pty';
 
 let nodePty: typeof import('node-pty') | undefined;
 try { nodePty = await import('node-pty'); } catch { /* Optional native dependency is unavailable. */ }
+const execFileAsync = promisify(execFile);
+
+function shellCommand(command: string): { file: string; args: string[] } {
+  if (process.platform === 'win32') {
+    return { file: process.env.ComSpec || 'cmd.exe', args: ['/d', '/s', '/c', command] };
+  }
+  return { file: '/bin/sh', args: ['-c', command] };
+}
 
 export function nativePtyAvailable(): boolean { return Boolean(nodePty); }
 
 export type RunningCommand = { processId: string; runId: string; terminalId: string; child?: ChildProcessWithoutNullStreams; pty?: IPty; pid: number; command: string };
 type DashboardReadyNotice = { processId: string; runId: string; port: number; autoOpen: boolean; mode?: string };
+
+export function dashboardPortFromOutput(text: string): number | undefined {
+  const plainText = text.replace(/\x1B\[[0-?]*[ -/]*[@-~]/g, '');
+  const match = /(?:Dashboard running at|Local Dashboard:|Live Dashboard active at:)\s+http:\/\/(?:localhost|127\.0\.0\.1):(\d+)/i.exec(plainText);
+  if (!match) return undefined;
+  const port = Number.parseInt(match[1]!, 10);
+  return port >= 1024 && port <= 65535 ? port : undefined;
+}
 
 export class ProcessManager extends EventEmitter {
   private readonly commands = new Map<string, RunningCommand>();
@@ -24,18 +41,21 @@ export class ProcessManager extends EventEmitter {
     if (this.commands.size >= this.maxProcesses) throw new ProtocolError(429, 'terminal process limit reached');
     const processId = randomUUID(); const runId = randomUUID(); const terminalId = requestedTerminalId ?? randomUUID();
     if (nodePty && /(^|\s)(interactive|inspect)(\s|$)/.test(command)) return this.startPty(command, processId, runId, terminalId, workspaceRevision);
-    const child = spawn('/bin/sh', ['-c', command], {
+    const shell = shellCommand(command);
+    const child = spawn(shell.file, shell.args, {
       cwd: this.workspace, detached: process.platform !== 'win32', stdio: ['pipe', 'pipe', 'pipe', 'pipe'],
       env: {
         PATH: `${join(this.workspace, 'node_modules/.bin')}${delimiter}${process.env.PATH ?? '/usr/local/bin:/usr/bin:/bin'}`,
         HOME: this.workspace, TERM: 'xterm-256color', NO_COLOR: process.env.NO_COLOR ?? '',
         CHANGE_FIREWALL_DASHBOARD_READY_FD: '3',
+        CHANGE_FIREWALL_PLAYGROUND_PROGRESS: '1',
       },
     }) as ChildProcessWithoutNullStreams;
     const record: RunningCommand = { processId, runId, terminalId, child, pid: child.pid!, command };
     this.commands.set(processId, record);
     this.emitEvent({ type: 'command.started', runId, terminalId, family: command.trim().split(/\s+/)[0] ?? 'shell', workspaceRevision });
     let dashboardEmitted = false;
+    let dashboardOutputBuffer = '';
     const emitDashboard = (port: number, autoOpen: boolean, mode?: string) => {
       if (dashboardEmitted) return;
       dashboardEmitted = true;
@@ -52,14 +72,12 @@ export class ProcessManager extends EventEmitter {
       const text = data.toString('utf8');
       this.emitEvent({ type: 'terminal.output', terminalId, data: text });
       if (!dashboardEmitted) {
-        const match = /(?:Dashboard running at|Local Dashboard:)\s+http:\/\/(?:localhost|127\.0\.0\.1):(\d+)/i.exec(text);
-        if (match) {
-          const port = Number.parseInt(match[1], 10);
-          if (port >= 1024 && port <= 65535) {
+        dashboardOutputBuffer = `${dashboardOutputBuffer}${text}`.slice(-4096);
+        const port = dashboardPortFromOutput(dashboardOutputBuffer);
+        if (port !== undefined) {
             const mode = /(^|\s)watch(\s|$)/.test(command) ? 'watch' : /(^|\s)demo(\s|$)/.test(command) ? 'demo' : 'snapshot';
             const autoOpen = !/(^|\s)--no-open(\s|$)/.test(command);
             emitDashboard(port, autoOpen, mode);
-          }
         }
       }
     };
@@ -87,25 +105,25 @@ export class ProcessManager extends EventEmitter {
   }
 
   private startPty(command: string, processId: string, runId: string, terminalId: string, workspaceRevision: number): Omit<RunningCommand, 'child'> {
-    const pty = nodePty!.spawn('/bin/sh', ['-c', command], {
+    const shell = shellCommand(command);
+    const pty = nodePty!.spawn(shell.file, shell.args, {
       name: 'xterm-256color', cols: 100, rows: 28, cwd: this.workspace,
-      env: { PATH: `${join(this.workspace, 'node_modules/.bin')}${delimiter}${process.env.PATH ?? '/usr/local/bin:/usr/bin:/bin'}`, HOME: this.workspace, TERM: 'xterm-256color', NO_COLOR: process.env.NO_COLOR ?? '' },
+      env: { PATH: `${join(this.workspace, 'node_modules/.bin')}${delimiter}${process.env.PATH ?? '/usr/local/bin:/usr/bin:/bin'}`, HOME: this.workspace, TERM: 'xterm-256color', NO_COLOR: process.env.NO_COLOR ?? '', CHANGE_FIREWALL_PLAYGROUND_PROGRESS: '1' },
     });
     const record: RunningCommand = { processId, runId, terminalId, pty, pid: pty.pid, command }; this.commands.set(processId, record);
     this.emitEvent({ type: 'command.started', runId, terminalId, family: command.trim().split(/\s+/)[0] ?? 'shell', workspaceRevision });
     let ptyDashboardEmitted = false;
+    let ptyDashboardOutputBuffer = '';
     pty.onData((data) => {
       this.emitEvent({ type: 'terminal.output', terminalId, data });
       if (!ptyDashboardEmitted) {
-        const match = /(?:Dashboard running at|Local Dashboard:)\s+http:\/\/(?:localhost|127\.0\.0\.1):(\d+)/i.exec(data);
-        if (match) {
-          const port = Number.parseInt(match[1], 10);
-          if (port >= 1024 && port <= 65535) {
+        ptyDashboardOutputBuffer = `${ptyDashboardOutputBuffer}${data}`.slice(-4096);
+        const port = dashboardPortFromOutput(ptyDashboardOutputBuffer);
+        if (port !== undefined) {
             ptyDashboardEmitted = true;
             const mode = /(^|\s)watch(\s|$)/.test(command) ? 'watch' : /(^|\s)demo(\s|$)/.test(command) ? 'demo' : 'snapshot';
             const autoOpen = !/(^|\s)--no-open(\s|$)/.test(command);
             this.emit('dashboard-ready', { processId, runId, port, autoOpen, mode } satisfies DashboardReadyNotice);
-          }
         }
       }
     });
@@ -127,9 +145,17 @@ export class ProcessManager extends EventEmitter {
   stop(processId: string): void {
     const command = this.commands.get(processId);
     if (!command) return;
-    try { process.kill(process.platform === 'win32' ? command.pid : -command.pid, 'SIGTERM'); }
+    if (process.platform === 'win32') {
+      const killer = spawn('taskkill.exe', ['/pid', String(command.pid), '/t', '/f'], {
+        stdio: 'ignore',
+        windowsHide: true,
+      });
+      killer.unref();
+      return;
+    }
+    try { process.kill(-command.pid, 'SIGTERM'); }
     catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ESRCH') throw error; }
-    setTimeout(() => { try { process.kill(process.platform === 'win32' ? command.pid : -command.pid, 'SIGKILL'); } catch {} }, 1500).unref();
+    setTimeout(() => { try { process.kill(-command.pid, 'SIGKILL'); } catch {} }, 1500).unref();
   }
 
   stopAll(): void { for (const id of this.commands.keys()) this.stop(id); }
@@ -155,6 +181,41 @@ async function descendants(rootPid: number): Promise<Set<number>> {
 }
 
 export async function processOwnsListeningPort(pid: number, port: number): Promise<boolean> {
+  if (process.platform === 'win32') {
+    const script = `
+$rootProcessId = [int]$env:CF_PROCESS_ROOT
+$listenPort = [int]$env:CF_LISTEN_PORT
+$owners = @(Get-NetTCPConnection -State Listen -LocalPort $listenPort -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique)
+if ($owners.Count -eq 0) { exit 1 }
+$parents = @{}
+Get-CimInstance Win32_Process | ForEach-Object { $parents[[int]$_.ProcessId] = [int]$_.ParentProcessId }
+foreach ($ownerId in $owners) {
+  $currentId = [int]$ownerId
+  $visited = @{}
+  while ($currentId -gt 0 -and -not $visited.ContainsKey($currentId)) {
+    if ($currentId -eq $rootProcessId) { exit 0 }
+    $visited[$currentId] = $true
+    if (-not $parents.ContainsKey($currentId)) { break }
+    $currentId = [int]$parents[$currentId]
+  }
+}
+exit 1
+`;
+    try {
+      await execFileAsync(
+        'powershell.exe',
+        ['-NoProfile', '-NonInteractive', '-Command', script],
+        {
+          env: { ...process.env, CF_PROCESS_ROOT: String(pid), CF_LISTEN_PORT: String(port) },
+          timeout: 30_000,
+          windowsHide: true,
+        }
+      );
+      return true;
+    } catch {
+      return false;
+    }
+  }
   if (process.platform !== 'linux') return false;
   const wanted = port.toString(16).toUpperCase().padStart(4, '0');
   for (let attempt = 0; attempt < 5; attempt++) {

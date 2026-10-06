@@ -2,7 +2,6 @@ import http, { type IncomingMessage, type ServerResponse } from 'node:http';
 import { createHash, timingSafeEqual } from 'node:crypto';
 import type { Duplex } from 'node:stream';
 import { URL } from 'node:url';
-import { resolve } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { parseJsonBody, ProtocolError, requireInteger, requireString, validateClientMessage } from '../../../packages/playground-protocol/dist/index.js';
@@ -24,7 +23,7 @@ async function body(request: IncomingMessage): Promise<Buffer> {
 }
 
 function json(response: ServerResponse, status: number, value: unknown): void {
-  const payload = JSON.stringify(value); response.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'content-length': Buffer.byteLength(payload), 'cache-control': 'no-store' }); response.end(payload);
+  const payload = JSON.stringify(value); response.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'content-length': Buffer.byteLength(payload), 'cache-control': 'no-store', 'x-content-type-options': 'nosniff', 'referrer-policy': 'no-referrer' }); response.end(payload);
 }
 
 function constantEqual(actual: string | undefined, expected: string): boolean {
@@ -37,18 +36,32 @@ export class PlaygroundGateway {
   readonly sessions: LocalSessionManager;
   readonly server: http.Server;
   private readonly idempotency = new Map<string, string>();
-  readonly config: Required<Pick<GatewayConfig, 'host' | 'port' | 'allowedOrigin' | 'gatewayToken'>>;
+  readonly config: Required<Pick<GatewayConfig, 'host' | 'port' | 'allowedOrigin' | 'gatewayToken' | 'maxSessions'>>;
+  private readonly allowedOrigins: Set<string>;
+  private closing = false;
 
   constructor(config: GatewayConfig = {}) {
-    this.config = { host: config.host ?? '127.0.0.1', port: config.port ?? 8787, allowedOrigin: config.allowedOrigin ?? 'http://localhost:3000', gatewayToken: config.gatewayToken ?? '' };
+    this.config = { host: config.host ?? '127.0.0.1', port: config.port ?? 8787, allowedOrigin: config.allowedOrigin ?? 'http://localhost:3000,http://127.0.0.1:3000', gatewayToken: config.gatewayToken ?? '', maxSessions: config.maxSessions ?? 25 };
+    this.allowedOrigins = new Set(this.config.allowedOrigin.split(',').map(origin => origin.trim()).filter(Boolean));
     this.sessions = new LocalSessionManager(config); this.server = http.createServer((request, response) => void this.handle(request, response));
     this.server.on('upgrade', (request, socket, head) => void this.upgrade(request, socket, head));
+    this.server.headersTimeout = 10_000;
+    this.server.requestTimeout = 15_000;
+    this.server.keepAliveTimeout = 5_000;
+    this.server.maxHeadersCount = 100;
+    this.server.maxRequestsPerSocket = 1_000;
+    this.server.on('clientError', (_error, socket) => {
+      if (socket.writable) socket.end('HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\n');
+    });
   }
   async listen(): Promise<{ host: string; port: number }> {
     await new Promise<void>((resolvePromise, reject) => { this.server.once('error', reject); this.server.listen(this.config.port, this.config.host, resolvePromise); });
     const address = this.server.address(); return { host: this.config.host, port: typeof address === 'object' && address ? address.port : this.config.port };
   }
+  async warmup(): Promise<void> { await this.sessions.warmup(); }
   async close(): Promise<void> {
+    this.closing = true;
+    this.server.closeIdleConnections();
     await this.sessions.close(); this.server.closeAllConnections();
     if (!this.server.listening) return;
     await new Promise<void>((resolvePromise, reject) => this.server.close((error) => error ? reject(error) : resolvePromise()));
@@ -56,7 +69,7 @@ export class PlaygroundGateway {
 
   private cors(request: IncomingMessage, response: ServerResponse): void {
     const origin = request.headers.origin;
-    if (origin === this.config.allowedOrigin) {
+    if (origin && this.allowedOrigins.has(origin)) {
       response.setHeader('access-control-allow-origin', origin); response.setHeader('vary', 'Origin'); response.setHeader('access-control-allow-credentials', 'true');
       response.setHeader('access-control-allow-headers', 'content-type, authorization, x-playground-session-token, x-playground-gateway-token, idempotency-key');
       response.setHeader('access-control-allow-methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -64,7 +77,7 @@ export class PlaygroundGateway {
   }
   private assertOrigin(request: IncomingMessage): void {
     if (request.method === 'GET' || request.method === 'HEAD') return;
-    const origin = request.headers.origin; if (origin && origin !== this.config.allowedOrigin) throw new ProtocolError(403, 'origin is not allowed');
+    const origin = request.headers.origin; if (origin && !this.allowedOrigins.has(origin)) throw new ProtocolError(403, 'origin is not allowed');
   }
   private createAuthorized(request: IncomingMessage): boolean { return !this.config.gatewayToken || constantEqual(request.headers['x-playground-gateway-token'] as string | undefined, this.config.gatewayToken); }
   private sessionToken(request: IncomingMessage, url: URL): string | undefined {
@@ -83,10 +96,15 @@ export class PlaygroundGateway {
     try {
       this.assertOrigin(request); const url = new URL(request.url ?? '/', `http://${request.headers.host ?? 'localhost'}`); const parts = routeParts(url.pathname);
       if (request.method === 'GET' && url.pathname === '/healthz') { json(response, 200, { ok: true, adapter: 'local-development', hardened: false }); return; }
+      if (request.method === 'GET' && url.pathname === '/readyz') {
+        json(response, this.closing ? 503 : 200, { ready: !this.closing, sessions: this.sessions.activeCount, capacity: this.config.maxSessions }); return;
+      }
+      if (this.closing) throw new ProtocolError(503, 'gateway is shutting down');
       if (request.method === 'POST' && url.pathname === '/sessions') {
         if (!this.createAuthorized(request)) throw new ProtocolError(401, 'invalid gateway token');
         const input = parseJsonBody(await body(request)); const fixtureId = requireString(input.fixtureId ?? 'contract-drift', 'fixtureId', 128); requireString(input.fixtureVersion ?? 'development', 'fixtureVersion', 128);
-        const key = request.headers['idempotency-key'];
+        const keyHeader = request.headers['idempotency-key'];
+        const key = typeof keyHeader === 'string' ? requireString(keyHeader, 'idempotency-key', 128) : undefined;
         if (typeof key === 'string' && this.idempotency.has(key)) {
           try {
             const existing = this.sessions.get(this.idempotency.get(key)!);
@@ -103,7 +121,11 @@ export class PlaygroundGateway {
       if (parts[0] !== 'sessions' || !parts[1]) throw new ProtocolError(404, 'route not found');
       const sessionId = parts[1]; const session = this.authorizedSession(sessionId, request, url);
       if (parts.length === 2 && request.method === 'GET') { json(response, 200, session.view()); return; }
-      if (parts.length === 2 && request.method === 'DELETE') { await this.sessions.delete(sessionId); response.writeHead(204); response.end(); return; }
+      if (parts.length === 2 && request.method === 'DELETE') {
+        await this.sessions.delete(sessionId);
+        for (const [key, value] of this.idempotency) if (value === sessionId) this.idempotency.delete(key);
+        response.writeHead(204); response.end(); return;
+      }
       if (parts[2] === 'reset' && request.method === 'POST') { const input = parseJsonBody(await body(request)); const generation = requireInteger(input.expectedGeneration, 'expectedGeneration', 1, Number.MAX_SAFE_INTEGER); const preset = typeof input.preset === 'string' ? requireString(input.preset, 'preset', 128) : 'contract-drift'; json(response, 200, (await this.sessions.reset(sessionId, generation, preset)).view()); return; }
       if (parts[2] === 'files' && parts.length === 3 && request.method === 'GET') {
         const [tree, git] = await Promise.all([session.files(), session.gitStatus()]); const statuses = new Map<string, string>();
@@ -140,14 +162,16 @@ export class PlaygroundGateway {
       throw new ProtocolError(404, 'route not found');
     } catch (error) {
       if (response.headersSent) { response.destroy(error as Error); return; }
-      const status = error instanceof ProtocolError ? error.status : 500; json(response, status, { error: status === 500 ? 'internal gateway error' : (error as Error).message });
+      const status = error instanceof ProtocolError ? error.status : 500;
+      if (status === 500) console.error('Playground gateway request failed:', error);
+      json(response, status, { error: status === 500 ? 'internal gateway error' : (error as Error).message });
     }
   }
 
   private async runMcpTest(session: LocalSession, tool: string, customArgs?: Record<string, unknown>): Promise<unknown> {
     const allowed = new Set(['analyze_changes', 'evaluate_preflight', 'compute_blast_radius', 'explain_file_impact', 'get_behavior_graph', 'audit_agent_intent']);
     if (!allowed.has(tool)) throw new ProtocolError(400, 'unsupported MCP tool');
-    const cliEntry = resolve(session.workspace, 'node_modules/.bin/change-firewall');
+    const cliEntry = session.cliEntry;
     const transport = new StdioClientTransport({ command: process.execPath, args: [cliEntry, 'mcp'], cwd: session.workspace, stderr: 'pipe', env: { PATH: process.env.PATH ?? '/usr/bin:/bin', HOME: session.workspace, NO_COLOR: '1' } });
     const client = new Client({ name: 'change-firewall-playground', version: '0.1.0' }, { capabilities: {} });
     try {
@@ -166,9 +190,10 @@ export class PlaygroundGateway {
 
   private async upgrade(request: IncomingMessage, socket: Duplex, head: Buffer): Promise<void> {
     try {
+      if (this.closing) throw new ProtocolError(503, 'gateway is shutting down');
       const url = new URL(request.url ?? '/', `http://${request.headers.host ?? 'localhost'}`); const parts = routeParts(url.pathname);
       if (parts[0] !== 'sessions' || !parts[1] || parts[2] !== 'stream' || parts.length !== 3) throw new ProtocolError(404, 'stream not found');
-      const origin = request.headers.origin; if (origin && origin !== this.config.allowedOrigin) throw new ProtocolError(403, 'origin is not allowed');
+      const origin = request.headers.origin; if (origin && !this.allowedOrigins.has(origin)) throw new ProtocolError(403, 'origin is not allowed');
       const session = this.authorizedSession(parts[1], request, url); const key = request.headers['sec-websocket-key'];
       if (typeof key !== 'string' || request.headers.upgrade?.toLowerCase() !== 'websocket') throw new ProtocolError(400, 'invalid WebSocket upgrade');
       const accept = createHash('sha1').update(`${key}258EAFA5-E914-47DA-95CA-C5AB0DC85B11`).digest('base64');
@@ -216,6 +241,7 @@ export class PlaygroundGateway {
         for (const [name, value] of Object.entries(upstreamResponse.headers)) if (!HOP_BY_HOP.has(name) && value !== undefined) response.setHeader(name, value);
         response.statusCode = upstreamResponse.statusCode ?? 502; response.setHeader('content-security-policy', `default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data:; script-src 'self' 'unsafe-inline'; connect-src 'self'`); upstreamResponse.pipe(response); upstreamResponse.on('end', resolvePromise);
       });
+      upstream.setTimeout(15_000, () => upstream.destroy(new ProtocolError(504, 'preview upstream timed out')));
       upstream.on('error', reject); request.on('close', () => upstream.destroy()); upstream.end();
     });
   }

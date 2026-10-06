@@ -168,6 +168,7 @@ program
     emitSemanticEvent({ type: 'command-start', command: 'analyze' });
     try {
       const port = parseInt(options.port, 10) || 4783;
+      if (!options.json) console.log(pc.cyan('Analyzing changes with the local compiler...'));
       const report = await analyzeChanges({
         cwd: process.cwd(),
         base: options.base,
@@ -253,6 +254,7 @@ program
     try {
       const maxRisk = parseInt(options.threshold || options.maxRisk, 10) || 60;
       const failOnHigh = options.failOnHigh !== false;
+      if (!options.json) console.log(pc.cyan('Evaluating the preflight safety gate...'));
 
       const report = await analyzeChanges({
         cwd: process.cwd(),

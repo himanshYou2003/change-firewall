@@ -3943,22 +3943,28 @@ export function getDashboardHtml(report: AnalysisReport): string {
       console.error("Initial renderReport error:", err);
     }
 
-    // Fallback fetch: If initial report was empty, fetch /api/report
+    // Resolve through the current preview base path. In the playground the
+    // dashboard is mounted below an authenticated gateway proxy rather than at
+    // the origin root, so preserve its session token on API and SSE requests.
+    var previewToken = new URLSearchParams(window.location.search).get('sessionToken');
+    var previewAuth = previewToken ? '?sessionToken=' + encodeURIComponent(previewToken) : '';
+
+    // Fallback fetch: If initial report was empty, fetch api/report
     if (!currentReport || !currentReport.risk) {
-      fetch('/api/report')
+      fetch('api/report' + previewAuth)
         .then(function(res) { return res.json(); })
         .then(function(data) {
           currentReport = data;
           renderReport(data);
         })
         .catch(function(err) {
-          console.error("Failed to fetch /api/report:", err);
+          console.error("Failed to fetch api/report:", err);
         });
     }
 
     // Live Server-Sent Events stream
     if (typeof EventSource !== 'undefined') {
-      var evtSource = new EventSource('/api/events');
+      var evtSource = new EventSource('api/events' + previewAuth);
       evtSource.onmessage = function(e) {
         try {
           var updated = JSON.parse(e.data);

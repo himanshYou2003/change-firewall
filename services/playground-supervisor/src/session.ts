@@ -19,6 +19,8 @@ export type SupervisorConfig = {
   runtimeRoot?: string;
   idleTtlMs?: number;
   absoluteTtlMs?: number;
+  maxSessions?: number;
+  warmPoolSize?: number;
   cliVersion?: string;
 };
 
@@ -28,7 +30,7 @@ export class LocalSession extends EventEmitter {
   readonly sessionId = randomUUID();
   readonly token = randomBytes(32).toString('base64url');
   readonly workspace: string;
-  readonly capabilities: RuntimeCapabilities = { pty: nativePtyAvailable(), interactiveInput: true, terminalResize: nativePtyAvailable(), previewProxy: process.platform === 'linux', isolation: 'local-development' };
+  readonly capabilities: RuntimeCapabilities = { pty: nativePtyAvailable(), interactiveInput: true, terminalResize: nativePtyAvailable(), previewProxy: process.platform === 'linux' || process.platform === 'win32', isolation: 'local-development' };
   generation = 1;
   state: SessionState = 'idle';
   workspaceRevision = 0;
@@ -40,8 +42,13 @@ export class LocalSession extends EventEmitter {
   private sequence = 0;
   private absoluteTimer?: NodeJS.Timeout;
   private idleTimer?: NodeJS.Timeout;
+  private destroyPromise?: Promise<void>;
 
-  constructor(readonly root: string, private readonly config: Required<Pick<SupervisorConfig, 'idleTtlMs' | 'absoluteTtlMs' | 'cliVersion'>>) {
+  constructor(
+    readonly root: string,
+    private readonly config: Required<Pick<SupervisorConfig, 'idleTtlMs' | 'absoluteTtlMs' | 'cliVersion' | 'cliRoot'>>,
+    private readonly onExpired: (sessionId: string) => void = () => undefined,
+  ) {
     super(); this.workspace = join(root, 'workspace'); this.expiresAt = new Date(Date.now() + config.absoluteTtlMs);
     this.processes = new ProcessManager(this.workspace, (event) => this.push(event));
     this.processes.on('exit', (id) => {
@@ -66,13 +73,36 @@ export class LocalSession extends EventEmitter {
   view(): SessionView { return { sessionId: this.sessionId, generation: this.generation, state: this.state, expiresAt: this.expiresAt.toISOString(), cliVersion: this.config.cliVersion, capabilities: this.capabilities }; }
   touch(): void {
     if (this.state === 'destroying' || this.state === 'expired') return;
-    clearTimeout(this.idleTimer); this.idleTimer = setTimeout(() => void this.expire('idle timeout'), this.config.idleTtlMs); this.idleTimer.unref();
+    clearTimeout(this.idleTimer);
+    this.idleTimer = undefined;
+    if (this.state !== 'ready') return;
+    this.idleTimer = setTimeout(() => {
+      void this.expire('idle timeout').catch(error => console.error('Failed to expire idle playground session:', error));
+    }, this.config.idleTtlMs); this.idleTimer.unref();
   }
-  armAbsoluteExpiry(): void { this.absoluteTimer = setTimeout(() => void this.expire('absolute timeout'), this.config.absoluteTtlMs); this.absoluteTimer.unref(); this.touch(); }
-  async expire(reason: string): Promise<void> { if (this.state === 'destroying' || this.state === 'expired') return; this.setState('expired', reason); await this.destroy(false); }
+  get cliEntry(): string { return join(this.config.cliRoot, 'bin', 'change-firewall.js'); }
+  armAbsoluteExpiry(): void {
+    clearTimeout(this.absoluteTimer);
+    this.expiresAt = new Date(Date.now() + this.config.absoluteTtlMs);
+    this.absoluteTimer = setTimeout(() => {
+      void this.expire('absolute timeout').catch(error => console.error('Failed to expire playground session at its absolute timeout:', error));
+    }, this.config.absoluteTtlMs); this.absoluteTimer.unref(); this.touch();
+  }
+  async expire(reason: string): Promise<void> {
+    if (this.state === 'destroying' || this.state === 'expired') return;
+    this.setState('expired', reason);
+    try { await this.destroy(false); }
+    finally { this.onExpired(this.sessionId); }
+  }
   async destroy(markDestroying = true): Promise<void> {
-    if (markDestroying) this.setState('destroying'); clearTimeout(this.idleTimer); clearTimeout(this.absoluteTimer); this.processes.stopAll(); this.dashboards.clear(); this.terminals.clear();
-    await new Promise((resolveTimer) => setTimeout(resolveTimer, 50)); await rm(this.root, { recursive: true, force: true });
+    if (this.destroyPromise) return this.destroyPromise;
+    if (markDestroying) this.setState('destroying');
+    clearTimeout(this.idleTimer); clearTimeout(this.absoluteTimer); this.processes.stopAll(); this.dashboards.clear(); this.terminals.clear();
+    this.destroyPromise = (async () => {
+      await new Promise((resolveTimer) => setTimeout(resolveTimer, 50));
+      await rm(this.root, { recursive: true, force: true, maxRetries: 50, retryDelay: 200 });
+    })();
+    return this.destroyPromise;
   }
   eventsAfter(sequence: number): Envelope<ServerEvent>[] { return this.events.filter((event) => event.sequence > sequence); }
   async files() { this.touch(); return listWorkspaceFiles(this.workspace); }
@@ -132,29 +162,73 @@ async function runSeed(script: string, target: string, cliRoot: string, scenario
 export class LocalSessionManager {
   private readonly sessions = new Map<string, LocalSession>();
   private readonly config: Required<SupervisorConfig>;
+  private creating = 0;
+  private readonly warmRoots: string[] = [];
+  private warmupPromise?: Promise<void>;
+  private closed = false;
   constructor(config: SupervisorConfig = {}) {
-    this.config = { fixtureRoot: config.fixtureRoot ?? '', seedScript: config.seedScript ?? '', cliRoot: config.cliRoot ?? resolve('.'), runtimeRoot: config.runtimeRoot ?? tmpdir(), idleTtlMs: config.idleTtlMs ?? 10 * 60_000, absoluteTtlMs: config.absoluteTtlMs ?? 30 * 60_000, cliVersion: config.cliVersion ?? 'development' };
+    this.config = { fixtureRoot: config.fixtureRoot ?? '', seedScript: config.seedScript ?? '', cliRoot: config.cliRoot ?? resolve('.'), runtimeRoot: config.runtimeRoot ?? tmpdir(), idleTtlMs: config.idleTtlMs ?? 10 * 60_000, absoluteTtlMs: config.absoluteTtlMs ?? 30 * 60_000, maxSessions: config.maxSessions ?? 25, warmPoolSize: config.warmPoolSize ?? 0, cliVersion: config.cliVersion ?? 'development' };
+  }
+  private async seedRoot(scenario: string): Promise<string> {
+    const root = await mkdtemp(join(this.config.runtimeRoot, 'change-firewall-playground-'));
+    try {
+      const workspace = join(root, 'workspace');
+      if (this.config.seedScript) await runSeed(this.config.seedScript, workspace, this.config.cliRoot, scenario);
+      else if (this.config.fixtureRoot) { await mkdir(workspace, { recursive: true }); await cp(this.config.fixtureRoot, workspace, { recursive: true, force: true }); }
+      else throw new Error('PLAYGROUND_FIXTURE_ROOT or PLAYGROUND_SEED_SCRIPT is required');
+      return root;
+    } catch (error) {
+      await rm(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+      throw error;
+    }
+  }
+  async warmup(): Promise<void> {
+    if (this.closed || this.config.warmPoolSize === 0 || this.warmRoots.length >= this.config.warmPoolSize) return;
+    if (this.warmupPromise) return this.warmupPromise;
+    this.warmupPromise = (async () => {
+      while (!this.closed && this.warmRoots.length < this.config.warmPoolSize) {
+        this.warmRoots.push(await this.seedRoot('contract-drift'));
+      }
+    })().finally(() => { this.warmupPromise = undefined; });
+    return this.warmupPromise;
   }
   async create(scenario = 'contract-drift'): Promise<LocalSession> {
-    const root = await mkdtemp(join(this.config.runtimeRoot, 'change-firewall-playground-')); const session = new LocalSession(root, this.config); this.sessions.set(session.sessionId, session);
+    if (this.sessions.size + this.creating >= this.config.maxSessions) throw new ProtocolError(429, 'playground session capacity reached');
+    this.creating += 1;
+    let root: string;
+    try {
+      root = scenario === 'contract-drift' && this.warmRoots.length > 0
+        ? this.warmRoots.shift()!
+        : await this.seedRoot(scenario);
+    }
+    finally { this.creating -= 1; }
+    const session = new LocalSession(root, this.config, (sessionId) => this.sessions.delete(sessionId)); this.sessions.set(session.sessionId, session);
     try {
       session.setState('provisioning'); session.setState('seeding');
-      if (this.config.seedScript) await runSeed(this.config.seedScript, session.workspace, this.config.cliRoot, scenario);
-      else if (this.config.fixtureRoot) { await mkdir(session.workspace, { recursive: true }); await cp(this.config.fixtureRoot, session.workspace, { recursive: true, force: true }); }
-      else throw new Error('PLAYGROUND_FIXTURE_ROOT or PLAYGROUND_SEED_SCRIPT is required');
-      session.setState('ready'); session.armAbsoluteExpiry(); return session;
+      session.setState('ready'); session.armAbsoluteExpiry();
+      if (scenario === 'contract-drift') void this.warmup().catch((error) => console.error('Failed to replenish playground warm pool:', error));
+      return session;
     } catch (error) { session.setState('failed', (error as Error).message); await session.destroy(false); this.sessions.delete(session.sessionId); throw error; }
   }
+  get activeCount(): number { return this.sessions.size; }
   get(id: string): LocalSession { const session = this.sessions.get(id); if (!session) throw new ProtocolError(404, 'session not found'); return session; }
   authorize(id: string, token: string | undefined): LocalSession { const session = this.get(id); if (!token || !timingSafeEqualString(token, session.token)) throw new ProtocolError(401, 'invalid session token'); return session; }
   async delete(id: string): Promise<void> { const session = this.sessions.get(id); if (!session) return; this.sessions.delete(id); await session.destroy(); }
   async reset(id: string, expectedGeneration: number, scenario = 'contract-drift'): Promise<LocalSession> {
     const old = this.get(id); if (old.generation !== expectedGeneration) throw new ProtocolError(409, 'stale session generation');
-    old.processes.stopAll(); old.dashboards.clear(); old.terminals.clear(); await rm(old.workspace, { recursive: true, force: true }); old.setState('seeding');
+    old.processes.stopAll(); old.dashboards.clear(); old.terminals.clear(); old.setState('seeding');
+    await rm(old.workspace, { recursive: true, force: true, maxRetries: 50, retryDelay: 200 });
     if (this.config.seedScript) await runSeed(this.config.seedScript, old.workspace, this.config.cliRoot, scenario); else { await mkdir(old.workspace, { recursive: true }); await cp(this.config.fixtureRoot, old.workspace, { recursive: true, force: true }); }
     old.generation += 1; old.workspaceRevision = 0; old.setState('ready'); return old;
   }
-  async close(): Promise<void> { await Promise.all([...this.sessions.keys()].map((id) => this.delete(id))); }
+  async close(): Promise<void> {
+    this.closed = true;
+    await this.warmupPromise?.catch(() => undefined);
+    await Promise.all([
+      ...[...this.sessions.keys()].map((id) => this.delete(id)),
+      ...this.warmRoots.splice(0).map((root) => rm(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 })),
+    ]);
+  }
 }
 
 function timingSafeEqualString(a: string, b: string): boolean {

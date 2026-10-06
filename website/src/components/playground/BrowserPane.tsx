@@ -4,8 +4,8 @@ import { ExternalLink, Loader2, MonitorStop, RefreshCw } from 'lucide-react';
 import type { PreviewState } from '@/lib/playground/types';
 
 export default function BrowserPane({ preview, onOpenExternal, onRefresh }: { preview?: PreviewState; onOpenExternal: () => void; onRefresh: () => void }) {
-  if (!preview) return <div className="playground-browser-empty"><MonitorStop /><h3>No dashboard is running</h3><p>Run <code>npx change-firewall --open</code> for a real snapshot, or <code>npx change-firewall watch</code> for live updates.</p></div>;
-  if (preview.status === 'loading') return <div className="playground-browser-empty"><Loader2 className="animate-spin" /><h3>Connecting to the dashboard…</h3></div>;
+  if (!preview) return <div className="playground-browser-empty"><MonitorStop /><h3>No dashboard is running</h3><p>Run <code>change-firewall --open</code> for a real snapshot, or <code>change-firewall watch</code> for live updates.</p></div>;
+  if (preview.status === 'loading') return <div className="playground-browser-empty"><Loader2 className="animate-spin" /><h3>Connecting to the dashboardâ€¦</h3></div>;
   if (preview.status === 'stopped' || preview.status === 'error' || !preview.url) return <div className="playground-browser-empty"><MonitorStop /><h3>{preview.status === 'stopped' ? 'Dashboard stopped' : 'Dashboard unavailable'}</h3><p>{preview.message || 'The runtime did not provide a usable preview.'}</p></div>;
   return (
     <section className="playground-browser" aria-label="Change Firewall dashboard preview">

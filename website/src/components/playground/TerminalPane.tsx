@@ -65,14 +65,14 @@ function writeLine(terminal: XTerm, item: TerminalLine) {
 }
 
 export default function TerminalPane({ connected, pty, terminals, activeTerminalId, suggestedCommand, theme, opacity = 100, onSuggestionConsumed, onRun, onStop, onInput, onResize, onSelectTerminal, onClear, onStart, onOpenCommands }: Props) {
-  const [command, setCommand] = useState('npx change-firewall');
+  const [command, setCommand] = useState('change-firewall');
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [submitting, setSubmitting] = useState(false);
   const [atBottom, setAtBottom] = useState(true);
   const outputRef = useRef<HTMLDivElement>(null);
   const commandInputRef = useRef<HTMLInputElement>(null);
-  const xtermRef = useRef<XTerm>();
+  const xtermRef = useRef<XTerm | undefined>(undefined);
   const renderedLinesRef = useRef(0);
   const renderedTerminalRef = useRef('');
   const pinnedRef = useRef(true);
@@ -347,17 +347,17 @@ export default function TerminalPane({ connected, pty, terminals, activeTerminal
         if (event.key === 'ArrowUp' && history.length) { event.preventDefault(); const next = Math.min(historyIndex + 1, history.length - 1); setHistoryIndex(next); setCommand(history[history.length - 1 - next]); }
         if (event.key === 'ArrowDown') { event.preventDefault(); const next = historyIndex - 1; setHistoryIndex(next); setCommand(next < 0 ? '' : history[history.length - 1 - next]); }
         if (event.ctrlKey && event.key.toLowerCase() === 'c') { event.preventDefault(); activeTerminal?.running ? sendKey('\x03') : onStop(); }
-      }} aria-label="Terminal command" placeholder={connected ? 'Type command (e.g. npx change-firewall)' : 'Start live runtime to run commands'} />
+      }} aria-label="Terminal command" placeholder={connected ? 'Type command (e.g. change-firewall)' : 'Start live runtime to run commands'} />
       <button type="button" onClick={() => void submit()} disabled={submitting || !command.trim()}>{connected ? <><CornerDownLeft /> Run</> : 'Start'}</button>
     </div>
     <div className="playground-terminal-quick-bar" aria-label="Quick commands">
       <span className="playground-quick-tag"><Command /> Quick:</span>
       <div className="playground-quick-scroll">
         {[
-          { label: 'cf run', cmd: 'npx change-firewall' },
-          { label: 'cf --open', cmd: 'npx change-firewall --open' },
-          { label: 'cf watch', cmd: 'npx change-firewall watch' },
-          { label: 'cf check', cmd: 'npx change-firewall check' },
+          { label: 'cf run', cmd: 'change-firewall' },
+          { label: 'cf --open', cmd: 'change-firewall --open' },
+          { label: 'cf watch', cmd: 'change-firewall watch' },
+          { label: 'cf check', cmd: 'change-firewall check' },
           { label: 'git status', cmd: 'git status' },
           { label: 'git diff', cmd: 'git diff' },
         ].map(item => (
@@ -381,7 +381,7 @@ export default function TerminalPane({ connected, pty, terminals, activeTerminal
             onClick={onOpenCommands}
             title="Browse all commands"
           >
-            All commands →
+            All commands â†’
           </button>
         )}
       </div>
@@ -390,7 +390,7 @@ export default function TerminalPane({ connected, pty, terminals, activeTerminal
     {!atBottom && <button className="playground-jump-latest" type="button" onClick={() => { pinnedRef.current = true; setAtBottom(true); xtermRef.current?.scrollToBottom(); }}>Jump to latest</button>}
     <div className="playground-terminal-mobile-controls" aria-label="Terminal control keys">
       <button type="button" disabled={!activeTerminal?.running} onClick={() => sendKey('\x03')}>Ctrl+C</button><button type="button" disabled={!activeTerminal?.running} onClick={() => sendKey('\t')}>Tab</button>
-      <button type="button" disabled={!activeTerminal?.running} onClick={() => sendKey('\x1b[D')} aria-label="Left arrow">←</button><button type="button" disabled={!activeTerminal?.running} onClick={() => sendKey('\x1b[A')} aria-label="Up arrow">↑</button><button type="button" disabled={!activeTerminal?.running} onClick={() => sendKey('\x1b[B')} aria-label="Down arrow">↓</button><button type="button" disabled={!activeTerminal?.running} onClick={() => sendKey('\x1b[C')} aria-label="Right arrow">→</button><button type="button" disabled={!activeTerminal?.running} onClick={() => sendKey('\x1b')}>Esc</button>
+      <button type="button" disabled={!activeTerminal?.running} onClick={() => sendKey('\x1b[D')} aria-label="Left arrow">â†</button><button type="button" disabled={!activeTerminal?.running} onClick={() => sendKey('\x1b[A')} aria-label="Up arrow">â†‘</button><button type="button" disabled={!activeTerminal?.running} onClick={() => sendKey('\x1b[B')} aria-label="Down arrow">â†“</button><button type="button" disabled={!activeTerminal?.running} onClick={() => sendKey('\x1b[C')} aria-label="Right arrow">â†’</button><button type="button" disabled={!activeTerminal?.running} onClick={() => sendKey('\x1b')}>Esc</button>
     </div>
     <p className="playground-terminal-a11y">Terminal output is not announced for every chunk. Focus the terminal canvas for interactive input; press Control Shift F6 to return to the command field. {pty ? 'PTY control keys are available below the output on small screens.' : 'This runtime reports streamed output without PTY support.'}</p>
   </section>;

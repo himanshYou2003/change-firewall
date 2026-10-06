@@ -4,7 +4,7 @@ import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { cp, lstat, mkdir, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
@@ -68,39 +68,57 @@ async function digestFiles(root, relativePaths) {
   return hash.digest('hex');
 }
 
-async function installLocalCommand(target, artifactManifestPath) {
+async function installLocalCommand(target, artifactManifestPath, cliRoot) {
   const artifactManifest = JSON.parse(await readFile(artifactManifestPath, 'utf8'));
   const artifactRoot = path.dirname(artifactManifestPath);
   const artifactPath = path.join(artifactRoot, artifactManifest.filename);
-  const dependencyDirectory = path.join(artifactRoot, artifactManifest.dependencyDirectory);
   const artifactDigest = createHash('sha256').update(await readFile(artifactPath)).digest('hex');
   if (artifactDigest !== artifactManifest.sha256) {
     throw new Error(`CLI artifact digest mismatch: expected ${artifactManifest.sha256}, received ${artifactDigest}`);
   }
-  const dependencyDigest = await digestFiles(dependencyDirectory, await readdir(dependencyDirectory));
-  if (dependencyDigest !== artifactManifest.dependencySha256) {
-    throw new Error(`CLI dependency digest mismatch: expected ${artifactManifest.dependencySha256}, received ${dependencyDigest}`);
-  }
-
+  const commandTarget = path.join(path.resolve(cliRoot), 'bin', 'change-firewall.js');
+  await lstat(commandTarget).catch(() => {
+    throw new Error(`Built CLI entry is missing at ${commandTarget}. Run npm run build first.`);
+  });
   const binDirectory = path.join(target, 'node_modules', '.bin');
   const packageDirectory = path.join(target, 'node_modules', 'change-firewall');
-  const extractionDirectory = path.join(target, '.artifact-extract');
+  const packageBinDirectory = path.join(packageDirectory, 'bin');
   await mkdir(binDirectory, { recursive: true });
-  await cp(dependencyDirectory, path.join(target, 'node_modules'), { recursive: true, dereference: true });
-  await mkdir(extractionDirectory, { recursive: true });
-  await execFileAsync('tar', ['-xzf', artifactPath, '-C', extractionDirectory]);
-  await cp(path.join(extractionDirectory, 'package'), packageDirectory, { recursive: true });
-  await rm(extractionDirectory, { recursive: true, force: true });
-  const commandTarget = path.join(packageDirectory, 'bin', 'change-firewall.js');
+  await mkdir(packageBinDirectory, { recursive: true });
+  const packageCommand = path.join(packageBinDirectory, 'change-firewall.js');
+  await writeFile(
+    path.join(packageDirectory, 'package.json'),
+    JSON.stringify({
+      name: artifactManifest.name,
+      version: artifactManifest.version,
+      type: 'module',
+      bin: { 'change-firewall': 'bin/change-firewall.js' },
+    }, null, 2) + '\n',
+    'utf8'
+  );
+  await writeFile(
+    packageCommand,
+    `#!/usr/bin/env node\nawait import(${JSON.stringify(pathToFileURL(commandTarget).href)});\n`,
+    { encoding: 'utf8', mode: 0o755 }
+  );
   const commandLink = path.join(binDirectory, 'change-firewall');
-  await symlink(commandTarget, commandLink);
+  if (process.platform === 'win32') {
+    await writeFile(
+      `${commandLink}.cmd`,
+      '@echo off\r\nnode "%~dp0\\..\\change-firewall\\bin\\change-firewall.js" %*\r\n',
+      'utf8'
+    );
+  } else {
+    await symlink(packageCommand, commandLink);
+  }
   await writeFile(
     path.join(packageDirectory, '.playground-artifact.json'),
     JSON.stringify({
       name: artifactManifest.name,
       version: artifactManifest.version,
       digest: artifactDigest,
-      dependencyDigest,
+      dependencyDigest: artifactManifest.dependencySha256,
+      sharedCli: commandTarget,
     }, null, 2) + '\n',
     'utf8'
   );
@@ -160,7 +178,7 @@ async function main() {
       ? args.get('--artifact-manifest')
       : path.join(cliRoot, '.playground-artifacts', 'manifest.json')
   );
-  await readFile(artifactManifestPath, 'utf8').catch(() => {
+  const artifactManifest = await readFile(artifactManifestPath, 'utf8').then(JSON.parse).catch(() => {
     throw new Error(`Packed CLI artifact is missing at ${artifactManifestPath}. Run npm run playground:artifact first.`);
   });
 
@@ -184,41 +202,67 @@ async function main() {
     await rm(target, { recursive: true, force: true });
   }
   await mkdir(path.dirname(target), { recursive: true });
-  await mkdir(target, { recursive: false });
-  await writeFile(path.join(target, '.playground-workspace'), 'change-firewall-playground-v1\n', 'utf8');
-  await copyLayer(path.join(fixtureRoot, 'foundation'), target);
-  const installedCli = await installLocalCommand(target, artifactManifestPath);
+  const baselineTemplate = artifactManifest.baselineTemplate;
+  const canUseBaselineTemplate = baselineTemplate
+    && !scenario.noCommits
+    && !scenario.stopAfterBaselineLayer
+    && baselineTemplate.fixtureDigest === fixtureDigest
+    && baselineTemplate.cliDigest === artifactManifest.sha256;
+  let installedCli;
+  let memoryContracts = 0;
+  let memoryOutput = '';
+
+  if (canUseBaselineTemplate) {
+    const templatePath = path.join(path.dirname(artifactManifestPath), baselineTemplate.filename);
+    const templateDigest = createHash('sha256').update(await readFile(templatePath)).digest('hex');
+    if (templateDigest !== baselineTemplate.sha256) {
+      throw new Error(`Baseline template digest mismatch: expected ${baselineTemplate.sha256}, received ${templateDigest}`);
+    }
+    await mkdir(target, { recursive: false });
+    await execFileAsync('tar', ['-xzf', templatePath, '-C', target]);
+    installedCli = await installLocalCommand(target, artifactManifestPath, cliRoot);
+    memoryContracts = await assertRecordedMemory(target);
+    memoryOutput = `Restored ${memoryContracts} verified contracts from the release template.`;
+  } else {
+    await mkdir(target, { recursive: false });
+    await writeFile(path.join(target, '.playground-workspace'), 'change-firewall-playground-v1\n', 'utf8');
+    await copyLayer(path.join(fixtureRoot, 'foundation'), target);
+    installedCli = await installLocalCommand(target, artifactManifestPath, cliRoot);
+  }
   const cliDigest = installedCli.digest;
-  await git(target, ['init', '--quiet']);
-  await git(target, ['config', 'user.name', 'Change Firewall Playground']);
-  await git(target, ['config', 'user.email', 'playground@change-firewall.local']);
+  if (!canUseBaselineTemplate) {
+    await git(target, ['init', '--quiet']);
+    await git(target, ['config', 'user.name', 'Change Firewall Playground']);
+    await git(target, ['config', 'user.email', 'playground@change-firewall.local']);
 
-  if (scenario.noCommits) {
+    if (scenario.noCommits) {
+      await copyLayer(path.join(fixtureRoot, 'baseline'), target);
+      await removeMemory(target);
+      console.log(JSON.stringify({ target, scenario: scenarioName, head: null, memoryContracts: 0, cliDigest }, null, 2));
+      return;
+    }
+
+    await git(target, ['add', '.']);
+    await git(target, ['commit', '--quiet', '-m', 'seed foundation'], { date: '2026-01-01T00:00:00Z' });
     await copyLayer(path.join(fixtureRoot, 'baseline'), target);
-    await removeMemory(target);
-    console.log(JSON.stringify({ target, scenario: scenarioName, head: null, memoryContracts: 0, cliDigest }, null, 2));
-    return;
+
+    if (scenario.stopAfterBaselineLayer) {
+      await removeMemory(target);
+      console.log(JSON.stringify({ target, scenario: scenarioName, head: 'seed foundation', memoryContracts: 0, cliDigest }, null, 2));
+      return;
+    }
+
+    const memoryResult = await execFileAsync(process.execPath, [installedCli.cliEntry, 'memory', 'record'], {
+      cwd: target,
+      env: { ...process.env, NO_COLOR: '1' },
+      maxBuffer: 10 * 1024 * 1024,
+    });
+    memoryContracts = await assertRecordedMemory(target);
+    memoryOutput = memoryResult.stdout.trim();
+    await git(target, ['add', '.']);
+    await git(target, ['commit', '--quiet', '-m', 'safe application baseline'], { date: '2026-01-02T00:00:00Z' });
+    await git(target, ['tag', manifest.baselineTag]);
   }
-
-  await git(target, ['add', '.']);
-  await git(target, ['commit', '--quiet', '-m', 'seed foundation'], { date: '2026-01-01T00:00:00Z' });
-  await copyLayer(path.join(fixtureRoot, 'baseline'), target);
-
-  if (scenario.stopAfterBaselineLayer) {
-    await removeMemory(target);
-    console.log(JSON.stringify({ target, scenario: scenarioName, head: 'seed foundation', memoryContracts: 0, cliDigest }, null, 2));
-    return;
-  }
-
-  const memoryResult = await execFileAsync(process.execPath, [installedCli.cliEntry, 'memory', 'record'], {
-    cwd: target,
-    env: { ...process.env, NO_COLOR: '1' },
-    maxBuffer: 10 * 1024 * 1024,
-  });
-  const memoryContracts = await assertRecordedMemory(target);
-  await git(target, ['add', '.']);
-  await git(target, ['commit', '--quiet', '-m', 'safe application baseline'], { date: '2026-01-02T00:00:00Z' });
-  await git(target, ['tag', manifest.baselineTag]);
 
   if (scenario.patch) {
     await copyLayer(path.join(fixtureRoot, scenario.patch), target);
@@ -252,7 +296,7 @@ async function main() {
     memoryContracts,
     cliDigest,
     status: status.trim().split('\n').filter(Boolean),
-    memoryOutput: memoryResult.stdout.trim(),
+    memoryOutput,
   }, null, 2));
 }
 

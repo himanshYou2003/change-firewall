@@ -9,8 +9,8 @@
     "@modelcontextprotocol/sdk": "^1.30.0"
   },
   "scripts": {
-    "build": "npm run build --prefix ../../packages/playground-protocol && npm run build --prefix ../playground-supervisor && ../../node_modules/.bin/tsc -p tsconfig.json",
-    "typecheck": "../../node_modules/.bin/tsc -p tsconfig.json --noEmit",
+    "build": "npm run build --prefix ../../packages/playground-protocol && npm run build --prefix ../playground-supervisor && tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
     "start": "node dist/main.js",
     "test": "npm run build && node --test dist/test/*.test.js"
   }

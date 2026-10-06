@@ -41,7 +41,28 @@ npm run dev
 Visit `http://localhost:3000`. The default example connects the browser to
 `http://127.0.0.1:8787` through `NEXT_PUBLIC_PLAYGROUND_GATEWAY_URL`.
 
-The included gateway is a local development adapter. Its capability badge says
-“Local development runtime.” It is not the hardened isolation boundary required
-for a public deployment. Configure the website to use the separately deployed
-hardened gateway in production.
+## Production playground
+
+The Next.js deployment and the stateful playground gateway are separate services.
+Deploy the gateway container behind HTTPS with WebSocket and SSE proxying enabled,
+then configure both sides:
+
+```text
+# Website build environment
+NEXT_PUBLIC_PLAYGROUND_GATEWAY_URL=https://playground.example.com
+
+# Hardened gateway deployment (not the repository's local-process adapter)
+PLAYGROUND_ALLOWED_ORIGIN=https://www.example.com
+PLAYGROUND_MAX_SESSIONS=<capacity-approved-by-operator>
+```
+
+Vercel production builds now fail when the public gateway URL is missing, uses
+plain HTTP, or points to localhost. This prevents a deployment that looks live
+but can never connect from a visitor's browser.
+
+The included gateway reports `local-development` isolation, executes commands
+inside its host/container, and refuses to start with `NODE_ENV=production`.
+Before opening live execution to untrusted public users, replace the local
+supervisor with a per-session sandbox or microVM boundary as described in
+`infra/playground/README.md`. A Vercel function cannot replace this stateful,
+streaming process service.

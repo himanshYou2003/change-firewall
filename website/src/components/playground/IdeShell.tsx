@@ -32,9 +32,9 @@ export default function IdeShell() {
       const stored = localStorage.getItem('cf-playground-theme-mode');
       if (stored === 'light') return 'light';
       if (stored === 'dark') return 'dark';
-      return 'dark';
+      return 'auto';
     } catch {
-      return 'dark';
+      return 'auto';
     }
   });
 
@@ -92,8 +92,9 @@ export default function IdeShell() {
   const rootRef = useRef<HTMLDivElement>(null);
   const expandButtonRef = useRef<HTMLButtonElement>(null);
   const startingRef = useRef(false);
-  const saveActionRef = useRef<() => Promise<boolean>>();
-  const startActionRef = useRef<() => Promise<void>>();
+  const connectionRetryRef = useRef(0);
+  const saveActionRef = useRef<(() => Promise<boolean>) | undefined>(undefined);
+  const startActionRef = useRef<(() => Promise<void>) | undefined>(undefined);
   const generationRef = useRef(0);
   const lastSequenceRef = useRef(0);
   const stateRef = useRef(state);
@@ -161,6 +162,7 @@ export default function IdeShell() {
     }
     const event = unwrapEvent(raw);
     if (!event.type) return;
+    if (event.type === 'command.started' && event.terminalId) addLines(String(event.terminalId), line(`Started real ${event.family || 'command'} process; loading output…`, 'system'));
     if (event.type === 'terminal.output' && event.terminalId) addLines(String(event.terminalId), line(String(event.data ?? ''), 'output'));
     if (event.type === 'command.failed') addActiveLines(line(`${event.category || 'runtime'}: ${event.message}`, 'error'));
     if (event.type === 'process.exit') {
@@ -232,12 +234,22 @@ export default function IdeShell() {
   }, [addActiveLines, client, connect]);
   startActionRef.current = start;
 
-  // Auto-connect to live runtime on mount when gateway is configured
+  // Auto-connect on mount and recover from short gateway startup/restart races.
   useEffect(() => {
-    if (client.configured && stateRef.current.session.state === 'idle') {
-      void start();
+    if (!client.configured) return;
+    if (state.session.state === 'ready') {
+      connectionRetryRef.current = 0;
+      return;
     }
-  }, [client.configured, start]);
+    if (state.session.state === 'idle') {
+      void start();
+      return;
+    }
+    if (state.session.state !== 'failed' || connectionRetryRef.current >= 3) return;
+    const attempt = ++connectionRetryRef.current;
+    const timer = window.setTimeout(() => void start(), attempt * 2_000);
+    return () => window.clearTimeout(timer);
+  }, [client.configured, start, state.session.state]);
 
   const save = useCallback(async () => {
     const current = stateRef.current;

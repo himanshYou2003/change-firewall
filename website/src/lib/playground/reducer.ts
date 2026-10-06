@@ -51,9 +51,7 @@ export const initialState: PlaygroundState = {
   mainView: 'code',
   mobileView: 'code',
   activeTerminalId: 'terminal-welcome',
-  terminals: [{ terminalId: 'terminal-welcome', running: false, lines: [
-    { id: 1, kind: 'system', text: 'Live runtime is not connected. Start the playground to run real commands.' },
-  ] }],
+  terminals: [{ terminalId: 'terminal-welcome', running: false, lines: [] }],
   commandCount: 0,
   processRunning: false,
   git: { ...EMPTY_GIT, head: 'playground-baseline', unstaged: ['src/middleware/auth.ts', 'src/routes/user.ts', 'src/services/userService.ts'], hasPreviousCommit: true },

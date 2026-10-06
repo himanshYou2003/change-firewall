@@ -14,8 +14,14 @@ services:
       - "127.0.0.1:8787:8787"
     tmpfs:
       - /runtime:size=512m,mode=0700
+      - /tmp:size=128m,mode=1777
     init: true
+    restart: unless-stopped
     stop_grace_period: 5s
+    read_only: true
+    pids_limit: 256
+    mem_limit: 768m
+    cpus: 1.5
     security_opt:
       - no-new-privileges:true
     cap_drop:

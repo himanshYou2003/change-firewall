@@ -13,8 +13,12 @@ COPY scripts/playground ./scripts/playground
 COPY packages/playground-protocol ./packages/playground-protocol
 COPY services/playground-supervisor ./services/playground-supervisor
 COPY services/playground-gateway ./services/playground-gateway
-RUN npm ci && npm run build && npm run build --prefix services/playground-gateway
+RUN npm ci \
+  && node scripts/playground/build-artifact.mjs \
+  && npm run build --prefix services/playground-gateway
 
-ENV NODE_ENV=production
+ENV NODE_ENV=development
 EXPOSE 8787
+HEALTHCHECK --interval=10s --timeout=3s --start-period=20s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:8787/readyz').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
 CMD ["node", "services/playground-gateway/dist/main.js"]

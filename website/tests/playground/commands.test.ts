@@ -15,8 +15,8 @@ describe('playground command coverage', () => {
 
   it('retains critical real workflows', () => {
     const commands = PLAYGROUND_COMMANDS.map(item => item.command);
-    expect(commands).toContain('npx change-firewall --open');
-    expect(commands).toContain('npx change-firewall memory record');
+    expect(commands).toContain('change-firewall --open');
+    expect(commands).toContain('change-firewall memory record');
     expect(commands).toContain('git status --short');
   });
 });

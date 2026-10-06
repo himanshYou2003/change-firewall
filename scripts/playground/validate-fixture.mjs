@@ -46,7 +46,7 @@ async function runCaptured(workspace, command, args) {
 }
 
 async function runCli(workspace, args) {
-  const cliEntry = path.join(workspace, 'node_modules', '.bin', 'change-firewall');
+  const cliEntry = path.join(workspace, 'node_modules', 'change-firewall', 'bin', 'change-firewall.js');
   return runCaptured(workspace, process.execPath, [cliEntry, ...args]);
 }
 
@@ -72,10 +72,15 @@ async function main() {
       if (!help.includes(command)) throw new Error(`Root help is missing ${command}`);
     }
     const directVersion = (await runCli(workspace, ['--version'])).trim();
+    const npmCli = process.env.npm_execpath || (process.platform === 'win32'
+      ? path.join(path.dirname(process.execPath), 'node_modules', 'npm', 'bin', 'npm-cli.js')
+      : undefined);
     const npxVersion = (await runCaptured(
       workspace,
-      'npx',
-      ['--offline', '--no-install', 'change-firewall', '--version']
+      npmCli ? process.execPath : 'npx',
+      npmCli
+        ? [npmCli, 'exec', '--offline', '--no-install', '--', 'change-firewall', '--version']
+        : ['--offline', '--no-install', 'change-firewall', '--version']
     )).trim();
     if (!directVersion || directVersion !== npxVersion) {
       throw new Error(`Local CLI resolution mismatch: direct=${directVersion}, npx=${npxVersion}`);
