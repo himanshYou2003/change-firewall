@@ -16,7 +16,7 @@ function integer(environment: NodeJS.ProcessEnv, name: string, fallback: number,
 }
 
 function origins(raw: string): string {
-  const values = raw.split(',').map((value) => value.trim()).filter(Boolean);
+  const values = raw.split(',').map((value) => value.trim().replace(/\/+$/, '')).filter(Boolean);
   if (values.length === 0) throw new Error('PLAYGROUND_ALLOWED_ORIGIN must contain at least one explicit origin');
   for (const value of values) {
     if (value === '*') throw new Error('PLAYGROUND_ALLOWED_ORIGIN cannot contain a wildcard');
