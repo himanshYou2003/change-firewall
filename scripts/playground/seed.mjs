@@ -61,7 +61,9 @@ async function digestFiles(root, relativePaths) {
     }
     hash.update(relative.replaceAll(path.sep, '/'));
     hash.update('\0');
-    hash.update(await readFile(absolute));
+    let content = await readFile(absolute);
+    content = Buffer.from(content.toString('latin1').replace(/\r\n/g, '\n'), 'latin1');
+    hash.update(content);
     hash.update('\0');
   }
   for (const relative of relativePaths) await add(relative);

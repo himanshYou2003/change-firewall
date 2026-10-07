@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "sourceDigest": "76be33b7370ba29fa83f8fbecd74c400068c18aa5bec6bcc2abdb3865d6db0ea",
+  "sourceDigest": "f5e3f3adf5726fce1fc7184aefe693ff092661b7e4a4e35509d3d3cefe1e8476",
   "digestAlgorithm": "sha256",
   "defaultScenario": "contract-drift",
   "defaultFile": "src/middleware/auth.ts",
@@ -11,43 +11,70 @@
       "description": "Uncommitted authentication, response-shape, and nullability changes.",
       "patch": "patches/contract-drift",
       "expected": {
-        "changedPaths": ["src/middleware/auth.ts", "src/routes/user.ts", "src/services/userService.ts"],
-        "findingCategories": ["AUTH", "API_CONTRACT", "FUNCTION_CONTRACT"],
+        "changedPaths": [
+          "src/middleware/auth.ts",
+          "src/routes/user.ts",
+          "src/services/userService.ts"
+        ],
+        "findingCategories": [
+          "AUTH",
+          "API_CONTRACT",
+          "FUNCTION_CONTRACT"
+        ],
         "memoryContractsMinimum": 1
       }
     },
     "clean-baseline": {
       "label": "Clean baseline",
       "description": "The committed safe project with no working-tree changes.",
-      "expected": { "defaultFilesChanged": 0 }
+      "expected": {
+        "defaultFilesChanged": 0
+      }
     },
     "just-committed": {
       "label": "Just committed",
       "description": "The contract-drift patch committed after the safe baseline.",
       "patch": "patches/contract-drift",
       "commitPatch": true,
-      "expected": { "defaultFilesChanged": 0, "baseFilesChangedMinimum": 3 }
+      "expected": {
+        "defaultFilesChanged": 0,
+        "baseFilesChangedMinimum": 3
+      }
     },
     "staged-vs-unstaged": {
       "label": "Staged vs unstaged",
       "description": "Authentication drift staged; response and nullability drift left unstaged.",
       "patch": "patches/contract-drift",
-      "stage": ["src/middleware/auth.ts"],
-      "expected": { "stagedPaths": ["src/middleware/auth.ts"], "defaultFilesChanged": 3 }
+      "stage": [
+        "src/middleware/auth.ts"
+      ],
+      "expected": {
+        "stagedPaths": [
+          "src/middleware/auth.ts"
+        ],
+        "defaultFilesChanged": 3
+      }
     },
     "memory-lesson": {
       "label": "Memory lesson",
       "description": "Safe contract changes are present and memory is intentionally absent.",
       "stopAfterBaselineLayer": true,
       "removeMemory": true,
-      "expected": { "memoryExists": false, "defaultFilesChangedMinimum": 1 }
+      "expected": {
+        "memoryExists": false,
+        "defaultFilesChangedMinimum": 1
+      }
     },
     "fresh-repository": {
       "label": "Fresh repository",
       "description": "A repository with sample files and no initial commit.",
       "noCommits": true,
       "removeMemory": true,
-      "expected": { "memoryExists": false, "defaultFilesChangedMinimum": 1, "hasHead": false }
+      "expected": {
+        "memoryExists": false,
+        "defaultFilesChangedMinimum": 1,
+        "hasHead": false
+      }
     }
   }
 }
