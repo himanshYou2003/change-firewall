@@ -56,9 +56,11 @@ PLAYGROUND_ALLOWED_ORIGIN=https://www.example.com
 PLAYGROUND_MAX_SESSIONS=<capacity-approved-by-operator>
 ```
 
-Vercel production builds now fail when the public gateway URL is missing, uses
-plain HTTP, or points to localhost. This prevents a deployment that looks live
-but can never connect from a visitor's browser.
+Vercel production builds accept only a public HTTPS gateway URL. Missing or
+invalid values (including localhost and plain HTTP) are removed from the browser
+bundle, so the website still deploys while the playground clearly reports that
+its live runtime is unavailable. Configure the real gateway URL and redeploy to
+enable live execution.
 
 The included gateway reports `local-development` isolation, executes commands
 inside its host/container, and refuses to start with `NODE_ENV=production`.
