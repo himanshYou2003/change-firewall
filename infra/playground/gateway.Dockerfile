@@ -17,7 +17,11 @@ RUN npm ci \
   && node scripts/playground/build-artifact.mjs \
   && npm run build --prefix services/playground-gateway
 
-ENV NODE_ENV=development
+ENV NODE_ENV=development \
+    PLAYGROUND_HOST=0.0.0.0 \
+    PLAYGROUND_PORT=8787 \
+    PLAYGROUND_CLI_ROOT=/app \
+    PLAYGROUND_SEED_SCRIPT=/app/scripts/playground/seed.mjs
 EXPOSE 8787
 HEALTHCHECK --interval=10s --timeout=3s --start-period=20s --retries=3 \
   CMD node -e "fetch('http://127.0.0.1:8787/readyz').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"

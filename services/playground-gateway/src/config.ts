@@ -44,7 +44,7 @@ export function loadGatewayConfig(environment: NodeJS.ProcessEnv = process.env):
 
   return {
     host: environment.PLAYGROUND_HOST?.trim() || '127.0.0.1',
-    port: integer(environment, 'PLAYGROUND_PORT', 8787, 1, 65_535),
+    port: integer(environment, environment.PLAYGROUND_PORT !== undefined ? 'PLAYGROUND_PORT' : 'PORT', 8787, 1, 65_535),
     allowedOrigin: origins(environment.PLAYGROUND_ALLOWED_ORIGIN ?? 'http://localhost:3000,http://127.0.0.1:3000'),
     gatewayToken: environment.PLAYGROUND_GATEWAY_TOKEN ?? '',
     fixtureRoot,
