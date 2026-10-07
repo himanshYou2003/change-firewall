@@ -94,7 +94,12 @@ export class PlaygroundGateway {
     this.cors(request, response);
     if (request.method === 'OPTIONS') { response.writeHead(204); response.end(); return; }
     try {
-      this.assertOrigin(request); const url = new URL(request.url ?? '/', `http://${request.headers.host ?? 'localhost'}`); const parts = routeParts(url.pathname);
+      this.assertOrigin(request);
+      const forwardedProto = (request.headers['x-forwarded-proto'] as string | undefined)?.split(',')[0]?.trim();
+      const forwardedHost = (request.headers['x-forwarded-host'] as string | undefined)?.split(',')[0]?.trim();
+      const effectiveProto = forwardedProto || 'http';
+      const effectiveHost = forwardedHost || request.headers.host || 'localhost';
+      const url = new URL(request.url ?? '/', `${effectiveProto}://${effectiveHost}`); const parts = routeParts(url.pathname);
       if (request.method === 'GET' && url.pathname === '/healthz') { json(response, 200, { ok: true, adapter: 'local-development', hardened: false }); return; }
       if (request.method === 'GET' && url.pathname === '/readyz') {
         json(response, this.closing ? 503 : 200, { ready: !this.closing, sessions: this.sessions.activeCount, capacity: this.config.maxSessions }); return;
